@@ -17,6 +17,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { dashboard } from '@/routes';
 import { store } from '@/routes/userPost';
@@ -41,6 +42,7 @@ export default function Dashboard({
     const { data, setData, processing, submit, reset} = useForm<{
         content: string;
         userTokenIds: number[];
+        is_scheduled: boolean;
         scheduled_date: Date;
         scheduled_date_string: string;
         scheduled_time: string;
@@ -48,11 +50,25 @@ export default function Dashboard({
     }>({
         content: '',
         userTokenIds: [],
+        is_scheduled: false,
         scheduled_date: new Date(),
         scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
-        scheduled_time: '',
+        scheduled_time: format(new Date(), 'HH:mm'),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
+
+    function toggleSchedule(checked: boolean) {
+        const now = new Date();
+        setData((prev) => ({
+            ...prev,
+            is_scheduled: checked,
+            scheduled_date: checked ? prev.scheduled_date : now,
+            scheduled_date_string: checked
+                ? prev.scheduled_date_string
+                : format(now, 'yyyy-MM-dd'),
+            scheduled_time: checked ? prev.scheduled_time : format(now, 'HH:mm'),
+        }));
+    }
 
     function togglePlatform(userTokenId: number) {
         setData(
@@ -177,7 +193,20 @@ export default function Dashboard({
                                 </div>
                             </div>
 
-                            <div className="space-y-3 rounded-lg border bg-muted/30 p-4 mb-4">
+                            <div className="space-y-3 rounded-lg border bg-muted/70 p-4 mb-4">
+                                <div className="flex items-center justify-between">
+                                    <Label
+                                        htmlFor="schedule-toggle"
+                                        className="cursor-pointer"
+                                    >
+                                        Schedule Post
+                                    </Label>
+                                    <Switch
+                                        id="schedule-toggle"
+                                        checked={data.is_scheduled}
+                                        onCheckedChange={toggleSchedule}
+                                    />
+                                </div>
                                 <div className="flex flex-col gap-3 sm:flex-row">
                                     <div className="flex-1 space-y-1.5">
                                         <Label>Date</Label>
@@ -185,6 +214,7 @@ export default function Dashboard({
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     variant="outline"
+                                                    disabled={!data.is_scheduled}
                                                     className="w-full justify-start text-left font-normal"
                                                 >
                                                     {data.scheduled_date
@@ -236,6 +266,7 @@ export default function Dashboard({
                                             type="time"
                                             id="time-picker"
                                             step="60"
+                                            disabled={!data.is_scheduled}
                                             value={data.scheduled_time}
                                             onChange={(e) =>
                                                 setData(

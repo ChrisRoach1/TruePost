@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\UserPost;
 use App\Models\UserToken;
+use App\Services\InstagramService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -24,10 +25,17 @@ class SendPosts implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(XService $xService): void
+    public function handle(XService $xService, InstagramService $instagramService): void
     {
-        $userTokens = UserToken::where('user_id', $this->userPost->user_id)->get();
-        $xToken = $userTokens->where('system_id', 1)->first();
-        $xService->createPost($xToken->access_token, $this->userPost->content);
+        foreach ($this->userPost->UserPostSystems as $platform) {
+            switch ($platform->userToken->System->url_slug) {
+                case 'instagram':
+                    $instagramService->createPost($platform->userToken->access_token, $this->userPost->content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    break;
+                case 'x':
+                    $xService->createPost($platform->userToken->access_token, $this->userPost->content, $this->userPost->media_url);
+                    break;
+            }
+        }
     }
 }

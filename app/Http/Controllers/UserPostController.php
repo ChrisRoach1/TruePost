@@ -44,7 +44,9 @@ class UserPostController extends Controller
             $userPost->UserPostSystems()->create(['user_token_id' => $userTokenId]);
         }
 
-        $job = (new SendPosts($userPost))->delay($postDate);
+        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+
+        $job = (new SendPosts($userPostWithData))->delay($postDate);
         $jobId = Bus::dispatch($job);
 
         $userPost->update(['job_id' => $jobId]);

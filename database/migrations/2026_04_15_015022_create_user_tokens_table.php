@@ -15,6 +15,8 @@ return new class extends Migration
     {
         Schema::create('user_tokens', function (Blueprint $table) {
             $table->id();
+            $table->string('user_name');
+            $table->string('user_token_id');
             $table->foreignIdFor(User::class, 'user_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(System::class, 'system_id')->constrained()->cascadeOnDelete();
             $table->string('access_token');

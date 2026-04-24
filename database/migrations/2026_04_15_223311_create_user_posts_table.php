@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class);
             $table->text('content');
+            $table->string('media_url');
             $table->dateTime('post_at');
             $table->integer('job_id')->nullable(true);
             $table->timestamps();

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('background_color')->nullable(true);
             $table->string('icon_color')->nullable(true);
             $table->string('url_slug')->unique();
+            $table->json('scopes');
             $table->timestamps();
         });
     }

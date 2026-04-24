@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name'])]
 class System extends Model
 {
-    //
+    protected $casts = [
+        'scopes' => 'array',
+    ];
 
     public function UserToken(): HasMany
     {

@@ -4,11 +4,11 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
-class XService
+class XService implements SocialServiceInterface
 {
-    public function createPost(string $authtoken, string $content): void
+    public function createPost(string $authToken, string $content, ?string $user_token_id = null, ?string $media = null): void
     {
-        $response = Http::withToken($authtoken)->post('https://api.x.com/2/tweets',
+        $response = Http::withToken($authToken)->post('https://api.x.com/2/tweets',
             [
                 'text' => $content,
             ]);
@@ -16,5 +16,8 @@ class XService
 
     }
 
-    public function createPostWithMedia() {}
+    public function getPosts()
+    {
+        // TODO: Implement getPosts() method.
+    }
 }
