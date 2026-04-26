@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('user_posts', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class);
-            $table->text('original_content');
+            $table->text('original_content')->nullable(true);
             $table->string('media_url');
             $table->dateTime('post_at');
             $table->integer('job_id')->nullable(true);

@@ -23,10 +23,11 @@ class UserPostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'scheduled_date' => 'required',
             'scheduled_date_string' => 'required',
             'scheduled_time' => 'required',
+            'channelContent' => 'nullable|array',
             'userTokenIds' => 'required|array',
             'timezone' => 'required|timezone',
             'image' => 'nullable|image|mimes:jpeg|mimetypes:image/jpeg',
@@ -43,7 +44,8 @@ class UserPostController extends Controller
         ]);
 
         foreach ($request->input('userTokenIds') as $userTokenId) {
-            $userPost->UserPostSystems()->create(['user_token_id' => $userTokenId]);
+            $overrideText = $request->input('channelContent')[$userTokenId] ?? null;
+            $userPost->UserPostSystems()->create(['user_token_id' => $userTokenId, 'override_content' => $overrideText]);
         }
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);

@@ -10,7 +10,7 @@ export default function AppLogo() {
                     style={{ fontFamily: '"DM Sans", system-ui, sans-serif' }}
                 >
                     <span className="text-foreground">True</span>
-                    <span className="text-[#3FB582]">Post</span>
+                    <span className="text-primary">Post</span>
                 </span>
             </div>
         </>

@@ -14,21 +14,21 @@
   </defs>
 
   
-  <rect x="48" y="48" width="416" height="416" rx="12" fill="#72E3AD" mask="url(#stamp-perforations-inv)"></rect>
+  <rect x="48" y="48" width="416" height="416" rx="12" fill="#006239" mask="url(#stamp-perforations-inv)"></rect>
 
   
   <rect x="84" y="84" width="344" height="344" rx="8" fill="#101714"></rect>
 
   
   <g transform="translate(256, 256)">
-    <path d="M -90 -10 L 100 -76 L 32 92 L 8 28 Z" fill="#72E3AD"></path>
-    <path d="M -90 -10 L 8 28 L 32 92 Z" fill="#3FB582"></path>
-    <circle cx="-110" cy="6" r="5" fill="#72E3AD" opacity="0.7"></circle>
-    <circle cx="-128" cy="22" r="4" fill="#72E3AD" opacity="0.7"></circle>
-    <circle cx="-142" cy="36" r="3" fill="#72E3AD" opacity="0.7"></circle>
+    <path d="M -90 -10 L 100 -76 L 32 92 L 8 28 Z" fill="#006239"></path>
+    <path d="M -90 -10 L 8 28 L 32 92 Z" fill="#00472A"></path>
+    <circle cx="-110" cy="6" r="5" fill="#006239" opacity="0.7"></circle>
+    <circle cx="-128" cy="22" r="4" fill="#006239" opacity="0.7"></circle>
+    <circle cx="-142" cy="36" r="3" fill="#006239" opacity="0.7"></circle>
   </g>
 
   
-  <text x="100" y="120" fill="#72E3AD" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">TP</text>
-  <text x="412" y="412" text-anchor="end" fill="#72E3AD" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">∞</text>
+  <text x="100" y="120" fill="#006239" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">TP</text>
+  <text x="412" y="412" text-anchor="end" fill="#006239" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">∞</text>
 </svg>
