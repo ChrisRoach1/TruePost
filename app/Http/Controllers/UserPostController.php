@@ -13,7 +13,7 @@ class UserPostController extends Controller
     public function index()
     {
         $userPosts = UserPost::query()->with('UserPostSystems.userToken.system')->where('user_id', auth()->id())->orderBy('id', 'desc')->get();
-        //dd($userPosts);
+
         return Inertia::render('posts',
             [
                 'userPosts' => $userPosts,
@@ -29,15 +29,17 @@ class UserPostController extends Controller
             'scheduled_time' => 'required',
             'userTokenIds' => 'required|array',
             'timezone' => 'required|timezone',
+            'image' => 'nullable|image|mimes:jpeg|mimetypes:image/jpeg',
         ]);
 
         $userTz = new \DateTimeZone($request->timezone);
         $postDate = new \DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
 
         $userPost = UserPost::create([
-            'content' => $request->input('content'),
+            'original_content' => $request->input('content'),
             'user_id' => auth()->id(),
             'post_at' => $postDate,
+            'media_url' => '',
         ]);
 
         foreach ($request->input('userTokenIds') as $userTokenId) {

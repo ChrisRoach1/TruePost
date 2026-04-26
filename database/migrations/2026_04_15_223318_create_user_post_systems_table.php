@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\System;
-use App\Models\User;
 use App\Models\UserPost;
 use App\Models\UserToken;
 use Illuminate\Database\Migrations\Migration;
@@ -19,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(UserPost::class);
             $table->foreignIdFor(UserToken::class);
+            $table->text('override_content')->nullable(true);
             $table->timestamps();
         });
     }

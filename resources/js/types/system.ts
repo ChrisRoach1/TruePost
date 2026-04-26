@@ -8,6 +8,7 @@ export type UserToken = {
 export type System = {
     id: number;
     name: string;
+    image_required: boolean;
     icon: string;
     background_color: string;
     icon_color: string;

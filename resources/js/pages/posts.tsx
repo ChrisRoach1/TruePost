@@ -116,15 +116,6 @@ export default function Posts({ userPosts: posts = [] }: Props) {
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 <div className="mx-auto w-full max-w-6xl space-y-6">
                     <div className="flex items-end justify-between gap-4">
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-semibold tracking-tight">Your Posts</h1>
-                            <p className="text-sm text-muted-foreground">
-                                {posts.length === 0
-                                    ? 'Nothing here yet -- time to create something.'
-                                    : `${posts.length} post${posts.length === 1 ? '' : 's'} across your platforms`
-                                }
-                            </p>
-                        </div>
                         {posts.length > 0 && (
                             <Button asChild size="sm">
                                 <Link href={dashboard().url}>

@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('user_token_id');
             $table->foreignIdFor(User::class, 'user_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(System::class, 'system_id')->constrained()->cascadeOnDelete();
-            $table->string('access_token');
-            $table->string('refresh_token');
+            $table->text('access_token');
+            $table->text('refresh_token');
             $table->timestamps();
         });
     }

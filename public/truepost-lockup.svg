@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">
+  <title>TruePost — Icon + wordmark lockup</title>
+
+  <defs>
+    <mask id="stamp-perforations-lockup">
+      <rect width="320" height="320" fill="white"></rect>
+      <g fill="black" transform="translate(0,0)">
+        
+        <circle cx="35" cy="35" r="6.93"></circle><circle cx="54.23" cy="35" r="6.93"></circle><circle cx="73.46" cy="35" r="6.93"></circle><circle cx="92.69" cy="35" r="6.93"></circle><circle cx="111.92" cy="35" r="6.93"></circle><circle cx="131.15" cy="35" r="6.93"></circle><circle cx="150.38" cy="35" r="6.93"></circle><circle cx="169.62" cy="35" r="6.93"></circle><circle cx="188.85" cy="35" r="6.93"></circle><circle cx="208.08" cy="35" r="6.93"></circle><circle cx="227.31" cy="35" r="6.93"></circle><circle cx="246.54" cy="35" r="6.93"></circle><circle cx="265.77" cy="35" r="6.93"></circle><circle cx="285" cy="35" r="6.93"></circle>
+        <circle cx="35" cy="285" r="6.93"></circle><circle cx="54.23" cy="285" r="6.93"></circle><circle cx="73.46" cy="285" r="6.93"></circle><circle cx="92.69" cy="285" r="6.93"></circle><circle cx="111.92" cy="285" r="6.93"></circle><circle cx="131.15" cy="285" r="6.93"></circle><circle cx="150.38" cy="285" r="6.93"></circle><circle cx="169.62" cy="285" r="6.93"></circle><circle cx="188.85" cy="285" r="6.93"></circle><circle cx="208.08" cy="285" r="6.93"></circle><circle cx="227.31" cy="285" r="6.93"></circle><circle cx="246.54" cy="285" r="6.93"></circle><circle cx="265.77" cy="285" r="6.93"></circle><circle cx="285" cy="285" r="6.93"></circle>
+        <circle cx="35" cy="54.23" r="6.93"></circle><circle cx="35" cy="73.46" r="6.93"></circle><circle cx="35" cy="92.69" r="6.93"></circle><circle cx="35" cy="111.92" r="6.93"></circle><circle cx="35" cy="131.15" r="6.93"></circle><circle cx="35" cy="150.38" r="6.93"></circle><circle cx="35" cy="169.62" r="6.93"></circle><circle cx="35" cy="188.85" r="6.93"></circle><circle cx="35" cy="208.08" r="6.93"></circle><circle cx="35" cy="227.31" r="6.93"></circle><circle cx="35" cy="246.54" r="6.93"></circle><circle cx="35" cy="265.77" r="6.93"></circle>
+        <circle cx="285" cy="54.23" r="6.93"></circle><circle cx="285" cy="73.46" r="6.93"></circle><circle cx="285" cy="92.69" r="6.93"></circle><circle cx="285" cy="111.92" r="6.93"></circle><circle cx="285" cy="131.15" r="6.93"></circle><circle cx="285" cy="150.38" r="6.93"></circle><circle cx="285" cy="169.62" r="6.93"></circle><circle cx="285" cy="188.85" r="6.93"></circle><circle cx="285" cy="208.08" r="6.93"></circle><circle cx="285" cy="227.31" r="6.93"></circle><circle cx="285" cy="246.54" r="6.93"></circle><circle cx="285" cy="265.77" r="6.93"></circle>
+      </g>
+    </mask>
+  </defs>
+
+  
+  <g transform="translate(0, 0)">
+    <rect x="30" y="30" width="260" height="260" rx="7.5" fill="#FBFAF6" mask="url(#stamp-perforations-lockup)"></rect>
+    <rect x="52.5" y="52.5" width="215" height="215" rx="5" fill="#72E3AD"></rect>
+    <g transform="translate(160, 160)">
+      <path d="M -56.25 -6.25 L 62.5 -47.5 L 20 57.5 L 5 17.5 Z" fill="#FBFAF6"></path>
+      <path d="M -56.25 -6.25 L 5 17.5 L 20 57.5 Z" fill="#E2F8EC"></path>
+      <circle cx="-68.75" cy="3.75" r="3.13" fill="#FBFAF6" opacity="0.7"></circle>
+      <circle cx="-80" cy="13.75" r="2.5" fill="#FBFAF6" opacity="0.7"></circle>
+      <circle cx="-88.75" cy="22.5" r="1.88" fill="#FBFAF6" opacity="0.7"></circle>
+    </g>
+  </g>
+
+  
+  <g transform="translate(360, 200)">
+    <text font-family="DM Sans, system-ui, sans-serif" font-weight="600" font-size="160" letter-spacing="-3.2">
+      <tspan fill="#101714">True</tspan><tspan fill="#3FB582">Post</tspan>
+    </text>
+  </g>
+</svg>

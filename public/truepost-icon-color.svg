@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>TruePost — Stamp with paper plane (color)</title>
+  <defs>
+    <mask id="stamp-perforations">
+      <rect width="512" height="512" fill="white"></rect>
+      <g fill="black">
+        
+        <circle cx="56" cy="56" r="11.08"></circle>
+        <circle cx="86.77" cy="56" r="11.08"></circle>
+        <circle cx="117.54" cy="56" r="11.08"></circle>
+        <circle cx="148.31" cy="56" r="11.08"></circle>
+        <circle cx="179.08" cy="56" r="11.08"></circle>
+        <circle cx="209.85" cy="56" r="11.08"></circle>
+        <circle cx="240.62" cy="56" r="11.08"></circle>
+        <circle cx="271.38" cy="56" r="11.08"></circle>
+        <circle cx="302.15" cy="56" r="11.08"></circle>
+        <circle cx="332.92" cy="56" r="11.08"></circle>
+        <circle cx="363.69" cy="56" r="11.08"></circle>
+        <circle cx="394.46" cy="56" r="11.08"></circle>
+        <circle cx="425.23" cy="56" r="11.08"></circle>
+        <circle cx="456" cy="56" r="11.08"></circle>
+        
+        <circle cx="56" cy="456" r="11.08"></circle>
+        <circle cx="86.77" cy="456" r="11.08"></circle>
+        <circle cx="117.54" cy="456" r="11.08"></circle>
+        <circle cx="148.31" cy="456" r="11.08"></circle>
+        <circle cx="179.08" cy="456" r="11.08"></circle>
+        <circle cx="209.85" cy="456" r="11.08"></circle>
+        <circle cx="240.62" cy="456" r="11.08"></circle>
+        <circle cx="271.38" cy="456" r="11.08"></circle>
+        <circle cx="302.15" cy="456" r="11.08"></circle>
+        <circle cx="332.92" cy="456" r="11.08"></circle>
+        <circle cx="363.69" cy="456" r="11.08"></circle>
+        <circle cx="394.46" cy="456" r="11.08"></circle>
+        <circle cx="425.23" cy="456" r="11.08"></circle>
+        <circle cx="456" cy="456" r="11.08"></circle>
+        
+        <circle cx="56" cy="86.77" r="11.08"></circle>
+        <circle cx="56" cy="117.54" r="11.08"></circle>
+        <circle cx="56" cy="148.31" r="11.08"></circle>
+        <circle cx="56" cy="179.08" r="11.08"></circle>
+        <circle cx="56" cy="209.85" r="11.08"></circle>
+        <circle cx="56" cy="240.62" r="11.08"></circle>
+        <circle cx="56" cy="271.38" r="11.08"></circle>
+        <circle cx="56" cy="302.15" r="11.08"></circle>
+        <circle cx="56" cy="332.92" r="11.08"></circle>
+        <circle cx="56" cy="363.69" r="11.08"></circle>
+        <circle cx="56" cy="394.46" r="11.08"></circle>
+        <circle cx="56" cy="425.23" r="11.08"></circle>
+        
+        <circle cx="456" cy="86.77" r="11.08"></circle>
+        <circle cx="456" cy="117.54" r="11.08"></circle>
+        <circle cx="456" cy="148.31" r="11.08"></circle>
+        <circle cx="456" cy="179.08" r="11.08"></circle>
+        <circle cx="456" cy="209.85" r="11.08"></circle>
+        <circle cx="456" cy="240.62" r="11.08"></circle>
+        <circle cx="456" cy="271.38" r="11.08"></circle>
+        <circle cx="456" cy="302.15" r="11.08"></circle>
+        <circle cx="456" cy="332.92" r="11.08"></circle>
+        <circle cx="456" cy="363.69" r="11.08"></circle>
+        <circle cx="456" cy="394.46" r="11.08"></circle>
+        <circle cx="456" cy="425.23" r="11.08"></circle>
+      </g>
+    </mask>
+  </defs>
+
+  
+  <rect x="48" y="48" width="416" height="416" rx="12" fill="#FBFAF6" mask="url(#stamp-perforations)"></rect>
+
+  
+  <rect x="84" y="84" width="344" height="344" rx="8" fill="#72E3AD"></rect>
+
+  
+  <g transform="translate(256, 256)">
+    <path d="M -90 -10 L 100 -76 L 32 92 L 8 28 Z" fill="#FBFAF6"></path>
+    <path d="M -90 -10 L 8 28 L 32 92 Z" fill="#E2F8EC"></path>
+    
+    <circle cx="-110" cy="6" r="5" fill="#FBFAF6" opacity="0.7"></circle>
+    <circle cx="-128" cy="22" r="4" fill="#FBFAF6" opacity="0.7"></circle>
+    <circle cx="-142" cy="36" r="3" fill="#FBFAF6" opacity="0.7"></circle>
+  </g>
+
+  
+  <text x="100" y="120" fill="#3FB582" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">TP</text>
+  <text x="412" y="412" text-anchor="end" fill="#3FB582" font-family="DM Sans, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="3.5">∞</text>
+</svg>

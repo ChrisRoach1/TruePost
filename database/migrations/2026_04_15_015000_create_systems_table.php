@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('icon')->nullable(true);
             $table->string('background_color')->nullable(true);
+            $table->boolean('image_required')->nullable(false);
             $table->string('icon_color')->nullable(true);
             $table->string('url_slug')->unique();
             $table->json('scopes');

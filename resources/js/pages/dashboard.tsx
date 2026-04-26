@@ -1,5 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
+import { ImagePlus, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -39,7 +41,10 @@ export default function Dashboard({
         systems.some((ca) => ca.id === s.system_id),
     );
 
-    const { data, setData, processing, submit, reset} = useForm<{
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    const { data, setData, processing, submit, reset, errors, clearErrors } = useForm<{
         content: string;
         userTokenIds: number[];
         is_scheduled: boolean;
@@ -47,6 +52,7 @@ export default function Dashboard({
         scheduled_date_string: string;
         scheduled_time: string;
         timezone: string;
+        image: File | null;
     }>({
         content: '',
         userTokenIds: [],
@@ -55,7 +61,38 @@ export default function Dashboard({
         scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
         scheduled_time: format(new Date(), 'HH:mm'),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        image: null,
     });
+
+    function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+
+        clearErrors('image');
+        setData('image', file);
+        setImagePreview((prev) => {
+            if (prev) {
+                URL.revokeObjectURL(prev);
+            }
+
+            return file ? URL.createObjectURL(file) : null;
+        });
+    }
+
+    function clearImage() {
+        setData('image', null);
+        setImagePreview((prev) => {
+            if (prev) {
+                URL.revokeObjectURL(prev);
+            }
+
+            return null;
+        });
+        clearErrors('image');
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }
 
     function toggleSchedule(checked: boolean) {
         const now = new Date();
@@ -83,14 +120,22 @@ export default function Dashboard({
         e.preventDefault();
         submit(store());
         reset();
+        clearImage();
     }
 
     const characterCount = data.content.length;
     const isOverLimit = characterCount > MAX_CHARACTERS;
+    const requiresImage = connectedSystems.some(
+        (system) =>
+            data.userTokenIds.includes(system.id) &&
+            system.system.image_required,
+    );
+    const isMissingRequiredImage = requiresImage && !data.image;
     const canSubmit =
         data.content.trim().length > 0 &&
         data.userTokenIds.length > 0 &&
         !isOverLimit &&
+        !isMissingRequiredImage &&
         data.scheduled_date &&
         data.scheduled_time;
 
@@ -191,6 +236,61 @@ export default function Dashboard({
                                         {characterCount} / {MAX_CHARACTERS}
                                     </span>
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="post-image">Image</Label>
+                                <input
+                                    ref={fileInputRef}
+                                    id="post-image"
+                                    type="file"
+                                    accept="image/jpeg"
+                                    className="hidden"
+                                    onChange={handleImageChange}
+                                />
+                                {imagePreview ? (
+                                    <div className="relative w-fit">
+                                        <img
+                                            src={imagePreview}
+                                            alt="Selected"
+                                            className="max-h-64 rounded-lg border object-contain"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="icon"
+                                            onClick={clearImage}
+                                            className="absolute right-2 top-2 size-7 rounded-full shadow"
+                                        >
+                                            <X className="size-4" />
+                                            <span className="sr-only">
+                                                Remove image
+                                            </span>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            fileInputRef.current?.click()
+                                        }
+                                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-6 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-muted/50"
+                                    >
+                                        <ImagePlus className="size-4" />
+                                        Upload JPEG image
+                                    </button>
+                                )}
+                                {errors.image && (
+                                    <p className="text-xs text-destructive">
+                                        {errors.image}
+                                    </p>
+                                )}
+                                {isMissingRequiredImage && !errors.image && (
+                                    <p className="text-xs text-destructive">
+                                        An image is required for one or more
+                                        of the selected platforms.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-3 rounded-lg border bg-muted/70 p-4 mb-4">
