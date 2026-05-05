@@ -27,9 +27,9 @@ function PlatformPill({ system }: { system: { icon: string; background_color: st
 }
 
 function PostCard({ post, index }: { post: userPosts; index: number }) {
+
     const posted = isPast(new Date(post.post_at));
     const scheduleDate = new Date(post.post_at);
-
     return (
         <Card
             className="group relative flex flex-col overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 animate-in fade-in slide-in-from-bottom-3"

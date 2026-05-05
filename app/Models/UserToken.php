@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'user_name', 'system_id', 'access_token', 'refresh_token', 'user_token_id'])]
+#[Fillable(['user_id', 'user_name', 'system_id', 'access_token', 'refresh_token', 'user_token_id', 'expires_at'])]
 class UserToken extends Model
 {
     public function User(): BelongsTo

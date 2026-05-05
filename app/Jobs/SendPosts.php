@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\UserPost;
-use App\Models\UserToken;
 use App\Services\InstagramService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,10 +29,10 @@ class SendPosts implements ShouldQueue
         foreach ($this->userPost->UserPostSystems as $platform) {
             switch ($platform->userToken->System->url_slug) {
                 case 'instagram':
-                    $instagramService->createPost($platform->userToken->access_token, $this->userPost->content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    $instagramService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
                     break;
                 case 'x':
-                    $xService->createPost($platform->userToken->access_token, $this->userPost->content, $this->userPost->media_url);
+                    $xService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
                     break;
             }
         }

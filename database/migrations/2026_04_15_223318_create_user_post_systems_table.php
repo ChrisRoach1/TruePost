@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('user_post_systems', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(UserPost::class);
+            $table->foreignIdFor(UserPost::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(UserToken::class);
             $table->text('override_content')->nullable(true);
             $table->timestamps();

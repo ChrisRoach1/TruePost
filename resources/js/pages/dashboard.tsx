@@ -22,8 +22,6 @@ type Props = {
     systems?: System[];
 };
 
-const MAX_CHARACTERS = 280;
-
 type ChipProps = {
     account: UserToken;
     selected: boolean;
@@ -32,7 +30,7 @@ type ChipProps = {
 };
 
 function ChannelChip({ account, selected, count, onToggle }: ChipProps) {
-    const limit = MAX_CHARACTERS;
+    const limit = account.system.max_post_length;
     const over = count > limit;
     const near = !over && count > limit * 0.85;
     const ringColorClass = over
@@ -264,9 +262,8 @@ export default function Dashboard({
     }
 
     const currentText = getContent(effectiveTab);
-    const characterCount = currentText.length;
-    const isOverLimit = characterCount > MAX_CHARACTERS;
-    const counterPct = Math.min(1, characterCount / MAX_CHARACTERS);
+    //const characterCount = currentText.length;
+    //const isOverLimit = characterCount > MAX_CHARACTERS;
     const requiresImage = connectedSystems.some(
         (system) =>
             data.userTokenIds.includes(system.id) &&
@@ -274,14 +271,48 @@ export default function Dashboard({
     );
     const isMissingRequiredImage = requiresImage && !data.image;
 
-    const canSubmit =
-        (data.content.trim().length > 0 ||
-        (data.customizing && Object.keys(data.channelContent).length === data.userTokenIds.length && Object.values(data.channelContent).every(content => content.trim().length > 0))) &&
-        data.userTokenIds.length > 0 &&
-        !isOverLimit &&
-        !isMissingRequiredImage &&
-        data.scheduled_date &&
-        data.scheduled_time;
+    function canSubmit(): boolean {
+
+        let isOverLimit = false;
+
+        if(data.customizing){
+            for (const [key, value] of Object.entries(data.channelContent)) {
+                const connectedSystem = connectedSystems.find((a) => a.id === Number.parseInt(key));
+
+                if(connectedSystem){
+                    if(value.trim().length > connectedSystem?.system.max_post_length){
+                        isOverLimit = true;
+                    }
+                }
+              }
+        }else{
+            for(const systemId of data.userTokenIds){
+                const connectedSystem = connectedSystems.find((a) => a.id === systemId);
+
+                if(connectedSystem){
+                    if(data.content.trim().length > connectedSystem.system.max_post_length){
+                        isOverLimit = true;
+                    }
+                }
+            }
+        }
+
+        return (
+            (data.content.trim().length > 0 ||
+                (data.customizing &&
+                    Object.keys(data.channelContent).length ===
+                        data.userTokenIds.length &&
+                    Object.values(data.channelContent).every(
+                        (content) => content.trim().length > 0,
+                    ))) &&
+            data.userTokenIds.length > 0 &&
+            !isOverLimit &&
+            !isMissingRequiredImage &&
+            Boolean(data.scheduled_date) &&
+            Boolean(data.scheduled_time)
+        );
+    }
+
 
     const activeAccount =
         effectiveTab === 'all'
@@ -308,7 +339,7 @@ export default function Dashboard({
 
                             {connectedSystems.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
-                                    {connectedSystems.map((account) => (
+                                    {connectedSystems.sort((a, b) => a.system.order - b.system.order).map((account) => (
                                         <ChannelChip
                                             key={account.id}
                                             account={account}
@@ -330,7 +361,7 @@ export default function Dashboard({
                             )}
                         </div>
 
-                        {data.userTokenIds.length > 0 && (
+                        {data.userTokenIds.length > 1 && (
                             <div className="flex items-center gap-2.5 border-b border-border bg-muted/40 px-6 py-2.5">
                                 <span className="text-xs font-medium text-muted-foreground">
                                     Compose
@@ -344,7 +375,10 @@ export default function Dashboard({
                                                 setData('channelContent', {});
                                                 setActiveTab('all');
                                             }else{
-                                                setActiveTab(data.userTokenIds[0]);
+                                                const sortedConnectedSystems = connectedSystems.filter((account) => data.userTokenIds.includes(account.id)).sort((a, b) => a.system.order - b.system.order);
+
+                                                setActiveTab(sortedConnectedSystems[0].id);
+                                                setContent(effectiveTab, data.content);
                                             }
 
                                             setData('customizing', checked);
@@ -360,7 +394,7 @@ export default function Dashboard({
                                 {connectedSystems
                                     .filter((account) =>
                                         data.userTokenIds.includes(account.id),
-                                    )
+                                    ).sort((a, b) => a.system.order - b.system.order)
                                     .map((account) => {
                                         const tabActive =
                                             effectiveTab === account.id;
@@ -368,7 +402,7 @@ export default function Dashboard({
                                             account.id,
                                         );
                                         const tabOver =
-                                            tabCount > MAX_CHARACTERS;
+                                            tabCount > account.system.max_post_length;
 
                                         return (
                                             <button
@@ -444,50 +478,6 @@ export default function Dashboard({
                                 }
                                 className="min-h-36 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
                             />
-
-                            <div className="flex items-center gap-1.5 border-t border-border pt-2">
-                                <div className="ml-auto flex items-center gap-2.5">
-                                    <div
-                                        className={cn(
-                                            'text-xs tabular-nums',
-                                            isOverLimit
-                                                ? 'font-semibold text-destructive'
-                                                : 'font-medium text-muted-foreground',
-                                        )}
-                                    >
-                                        {characterCount} / {MAX_CHARACTERS}
-                                    </div>
-                                    <svg
-                                        width="22"
-                                        height="22"
-                                        viewBox="0 0 22 22"
-                                    >
-                                        <circle
-                                            cx="11"
-                                            cy="11"
-                                            r="9"
-                                            fill="none"
-                                            className="stroke-border"
-                                            strokeWidth="2"
-                                        />
-                                        <circle
-                                            cx="11"
-                                            cy="11"
-                                            r="9"
-                                            fill="none"
-                                            className={cn(
-                                                isOverLimit
-                                                    ? 'stroke-destructive'
-                                                    : 'stroke-primary',
-                                            )}
-                                            strokeWidth="2"
-                                            strokeDasharray={`${counterPct * 56.55} 56.55`}
-                                            transform="rotate(-90 11 11)"
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="px-6 pb-4">
@@ -635,7 +625,7 @@ export default function Dashboard({
                             <div className="flex items-center gap-2">
                                 <Button
                                     type="submit"
-                                    disabled={!canSubmit || processing}
+                                    disabled={!canSubmit() || processing}
                                     className="bg-foreground text-background hover:bg-foreground/90"
                                 >
                                     {processing

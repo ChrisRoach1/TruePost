@@ -3,6 +3,8 @@
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\UserPostController;
 use App\Models\System;
+use App\Models\UserPost;
+use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +38,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::delete('accounts/{userToken}', function (UserToken $userToken) {
         $userToken->delete();
+
+        $postIds = UserPostSystem::query()->where('user_token_id', $userToken->id)->get()->pluck('user_post_id');
+
+        UserPost::query()->whereIn('id', $postIds)->delete();
+
         return redirect()->route('accounts')->with('success', 'Account deleted successfully');
     })->name('accounts.delete');
 

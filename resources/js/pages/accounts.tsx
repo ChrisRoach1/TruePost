@@ -21,6 +21,8 @@ export default function Accounts({connectedAccounts, systems}: Props) {
         if(connectedAccountId){
             router.delete(deleteMethod(connectedAccountId));
         }
+
+        router.flushAll();
     }
 
     return (

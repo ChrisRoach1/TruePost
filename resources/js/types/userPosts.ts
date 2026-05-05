@@ -10,6 +10,6 @@ export type userPosts = {
 
 export type userPostSystems = {
     id: number;
-    system_id: number;
     user_token: UserToken;
+    user_token_id: number;
 }

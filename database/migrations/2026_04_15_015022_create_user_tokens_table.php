@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignIdFor(System::class, 'system_id')->constrained()->cascadeOnDelete();
             $table->text('access_token');
             $table->text('refresh_token');
+            $table->dateTime('expires_at')->nullable();
             $table->timestamps();
         });
     }

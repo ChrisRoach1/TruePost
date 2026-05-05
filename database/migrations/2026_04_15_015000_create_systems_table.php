@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('icon')->nullable(true);
+            $table->integer('order')->nullable(false);
+            $table->integer('max_post_length')->nullable(true);
             $table->string('background_color')->nullable(true);
             $table->boolean('image_required')->nullable(false);
             $table->string('icon_color')->nullable(true);
