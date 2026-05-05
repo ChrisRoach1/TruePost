@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\UserPost;
 use App\Services\InstagramService;
+use App\Services\LinkedInService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -24,7 +25,7 @@ class SendPosts implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(XService $xService, InstagramService $instagramService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService): void
     {
         foreach ($this->userPost->UserPostSystems as $platform) {
             switch ($platform->userToken->System->url_slug) {
