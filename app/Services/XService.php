@@ -10,7 +10,6 @@ class XService implements SocialServiceInterface
 {
     public function createPost(string $authToken, string $content, ?string $user_token_id = null, ?string $media = null): void
     {
-
         if ($media != null) {
             $file = \Storage::disk('r2')->get($media);
 

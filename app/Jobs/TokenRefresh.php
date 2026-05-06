@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\UserToken;
 use App\Services\InstagramService;
+use App\Services\LinkedInService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -24,7 +25,7 @@ class TokenRefresh implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(XService $xService, InstagramService $instagramService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService): void
     {
         if ($this->userToken == null) {
             return;
@@ -36,6 +37,9 @@ class TokenRefresh implements ShouldQueue
                 break;
             case 'instagram':
                 $instagramService->refreshToken($this->userToken);
+                break;
+            case 'linkedin-openid':
+                $linkedinService->refreshToken($this->userToken);
                 break;
         }
     }

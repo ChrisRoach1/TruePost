@@ -22,6 +22,8 @@ return new class extends Migration
             $table->text('access_token');
             $table->text('refresh_token');
             $table->dateTime('expires_at')->nullable();
+            $table->dateTime('refresh_expires_at')->nullable();
+            $table->boolean('needs_reauthed')->nullable()->default(false);
             $table->timestamps();
         });
     }

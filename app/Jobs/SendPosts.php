@@ -24,6 +24,7 @@ class SendPosts implements ShouldQueue
 
     /**
      * Execute the job.
+     * @throws \Exception
      */
     public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService): void
     {
@@ -35,6 +36,11 @@ class SendPosts implements ShouldQueue
                 case 'x':
                     $xService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
                     break;
+                case 'linkedin-openid':
+                    $linkedinService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    break;
+                default:
+                    throw new \Exception('Unsupported platform: '.$platform->userToken->System->url_slug);
             }
         }
     }

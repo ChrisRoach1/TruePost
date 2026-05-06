@@ -41,11 +41,11 @@ class OAuthController extends Controller
                 break;
             case 'instagram':
 
-                $longLivedToken = \Http::get('https://graph.instagram.com/access_token',[
-                        'grant_type' => 'ig_exchange_token',
-                        'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
-                        'access_token' => $user->token,
-                    ])
+                $longLivedToken = \Http::get('https://graph.instagram.com/access_token', [
+                    'grant_type' => 'ig_exchange_token',
+                    'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
+                    'access_token' => $user->token,
+                ])
                     ->json();
 
                 $userToken = UserToken::create([
@@ -72,14 +72,18 @@ class OAuthController extends Controller
                 ]);
                 break;
             case 'linkedin-openid':
-                UserToken::create([
+                $userToken = UserToken::create([
                     'system_id' => $system->id,
                     'user_name' => $user->user['name'],
                     'user_token_id' => $user->id,
                     'user_id' => auth()->id(),
                     'access_token' => $user->token,
                     'refresh_token' => $user->refreshToken ?? '',
+                    'expires_at' => \Date::now()->addSeconds($user->expiresIn),
                 ]);
+
+                $tokenWithSystem = UserToken::with('system')->find($userToken->id);
+                TokenRefresh::dispatch($tokenWithSystem)->delay(\Date::now()->addDays(55));
                 break;
             default:
                 break;
