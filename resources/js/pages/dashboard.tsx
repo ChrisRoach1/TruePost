@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, ImagePlus, X } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -22,108 +22,137 @@ type Props = {
     systems?: System[];
 };
 
-type ChipProps = {
+type CardProps = {
     account: UserToken;
     selected: boolean;
     count: number;
     onToggle: () => void;
 };
 
-function ChannelChip({ account, selected, count, onToggle }: ChipProps) {
+function ChannelCard({ account, selected, count, onToggle }: CardProps) {
     const limit = account.system.max_post_length;
     const over = count > limit;
-    const near = !over && count > limit * 0.85;
-    const ringColorClass = over
-        ? 'text-destructive'
-        : near
-          ? 'text-amber-500'
-          : 'text-primary';
-    const ringBgClass = over
-        ? 'bg-destructive'
-        : near
-          ? 'bg-amber-500'
-          : 'bg-primary';
-    const pct = Math.min(1, count / limit);
+    const left = Math.max(0, limit - count);
 
     return (
         <button
             type="button"
             onClick={onToggle}
             className={cn(
-                'relative flex items-center gap-2.5 rounded-full border py-2 pr-3.5 pl-2.5 transition-all',
+                'group relative flex items-center gap-3 rounded-xl border p-3 text-left transition-all',
                 selected
-                    ? 'border-gray-300 bg-card opacity-100 shadow-xs'
-                    : 'border-border bg-transparent opacity-60 hover:opacity-80',
+                    ? 'border-foreground bg-card shadow-xs'
+                    : 'border-border bg-card opacity-55 hover:opacity-90',
             )}
         >
             <span
-                className="grid size-[22px] shrink-0 place-items-center"
-                style={{
-                    color: selected
-                        ? account.system.background_color
-                        : undefined,
-                }}
+                className="grid size-10 shrink-0 place-items-center rounded-md text-white"
+                style={{ backgroundColor: account.system.background_color }}
             >
-                <span
-                    className={cn(
-                        'grid place-items-center',
-                        !selected && 'text-muted-foreground/60',
-                    )}
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                 >
-                    <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                    >
-                        <path d={account.system.icon} />
-                    </svg>
-                </span>
+                    <path d={account.system.icon} />
+                </svg>
             </span>
-            <span className="flex min-w-0 flex-col items-start leading-tight">
-                <span
-                    className={cn(
-                        'truncate text-[13px] font-medium',
-                        selected ? 'text-foreground' : 'text-muted-foreground',
-                    )}
-                >
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                <span className="truncate text-[13px] font-semibold text-foreground">
                     {account.system.name}
                 </span>
                 {account.user_name && (
-                    <span
-                        className={cn(
-                            'max-w-48 truncate text-[11px] font-normal',
-                            selected
-                                ? 'text-muted-foreground'
-                                : 'text-muted-foreground/70',
-                        )}
-                    >
+                    <span className="truncate text-[11px] text-muted-foreground">
                         @{account.user_name}
                     </span>
                 )}
             </span>
-            {selected && (
+            <span className="flex shrink-0 flex-col items-end leading-none">
                 <span
                     className={cn(
-                        'ml-0.5 text-[11px] font-semibold tabular-nums',
-                        ringColorClass,
+                        'text-xl font-semibold tabular-nums',
+                        over ? 'text-destructive' : 'text-foreground',
                     )}
                 >
-                    {over ? `−${count - limit}` : limit - count}
+                    {over
+                        ? `−${(count - limit).toLocaleString()}`
+                        : left.toLocaleString()}
                 </span>
-            )}
-            {selected && (
-                <span className="pointer-events-none absolute right-2 bottom-0.5 left-2 h-0.5 overflow-hidden rounded-sm">
-                    <span
-                        className={cn(
-                            'block h-full transition-[width] duration-200',
-                            ringBgClass,
-                        )}
-                        style={{ width: `${pct * 100}%` }}
-                    />
+                <span className="mt-1 text-[9px] font-semibold tracking-[0.18em] text-muted-foreground">
+                    LEFT
                 </span>
-            )}
+            </span>
+            <span className="absolute top-2 right-2 size-2 rounded-full bg-emerald-500 ring-2 ring-card" />
         </button>
+    );
+}
+
+function SectionHeader({
+    number,
+    title,
+    description,
+    action,
+}: {
+    number: string;
+    title: string;
+    description?: string;
+    action?: React.ReactNode;
+}) {
+    return (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-border pb-2">
+            <div className="flex items-baseline gap-2 text-[13px]">
+                <span className="font-mono font-semibold text-emerald-600">
+                    {number}
+                </span>
+                <span className="font-semibold text-foreground">{title}</span>
+                {description && (
+                    <span className="text-muted-foreground">
+                        — {description}
+                    </span>
+                )}
+            </div>
+            {action && <div className="flex items-center">{action}</div>}
+        </div>
+    );
+}
+
+function CounterRing({ pct, over }: { pct: number; over: boolean }) {
+    const r = 7;
+    const c = 2 * Math.PI * r;
+    const safePct = Math.max(0, Math.min(1, pct));
+    const dash = c * safePct;
+
+    return (
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            className={cn(
+                '-rotate-90',
+                over ? 'text-destructive' : 'text-foreground',
+            )}
+        >
+            <circle
+                cx="9"
+                cy="9"
+                r={r}
+                fill="none"
+                stroke="currentColor"
+                strokeOpacity="0.18"
+                strokeWidth="1.5"
+            />
+            <circle
+                cx="9"
+                cy="9"
+                r={r}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeDasharray={`${dash} ${c - dash}`}
+            />
+        </svg>
     );
 }
 
@@ -276,33 +305,44 @@ export default function Dashboard({
     }
 
     const currentText = getContent(effectiveTab);
-    const requiresImage = connectedSystems.some(
-        (system) =>
-            data.userTokenIds.includes(system.id) &&
-            system.system.image_required,
+    const selectedSystems = connectedSystems.filter((s) =>
+        data.userTokenIds.includes(s.id),
     );
+    const requiringSystems = selectedSystems.filter(
+        (s) => s.system.image_required,
+    );
+    const requiresImage = requiringSystems.length > 0;
     const isMissingRequiredImage = requiresImage && !data.image;
 
     function canSubmit(): boolean {
-
         let isOverLimit = false;
 
-        if(data.customizing){
+        if (data.customizing) {
             for (const [key, value] of Object.entries(data.channelContent)) {
-                const connectedSystem = connectedSystems.find((a) => a.id === Number.parseInt(key));
+                const connectedSystem = connectedSystems.find(
+                    (a) => a.id === Number.parseInt(key),
+                );
 
-                if(connectedSystem){
-                    if(value.trim().length > connectedSystem?.system.max_post_length){
+                if (connectedSystem) {
+                    if (
+                        value.trim().length >
+                        connectedSystem?.system.max_post_length
+                    ) {
                         isOverLimit = true;
                     }
                 }
-              }
-        }else{
-            for(const systemId of data.userTokenIds){
-                const connectedSystem = connectedSystems.find((a) => a.id === systemId);
+            }
+        } else {
+            for (const systemId of data.userTokenIds) {
+                const connectedSystem = connectedSystems.find(
+                    (a) => a.id === systemId,
+                );
 
-                if(connectedSystem){
-                    if(data.content.trim().length > connectedSystem.system.max_post_length){
+                if (connectedSystem) {
+                    if (
+                        data.content.trim().length >
+                        connectedSystem.system.max_post_length
+                    ) {
                         isOverLimit = true;
                     }
                 }
@@ -325,15 +365,24 @@ export default function Dashboard({
         );
     }
 
-
     const activeAccount =
         effectiveTab === 'all'
             ? null
             : connectedSystems.find((a) => a.id === effectiveTab);
 
-    const scheduleLabel = data.is_scheduled
-        ? `Post now`
-        : 'Schedule for later';
+    const counterLimit =
+        activeAccount?.system.max_post_length ??
+        (selectedSystems.length > 0
+            ? Math.min(
+                  ...selectedSystems.map((s) => s.system.max_post_length),
+              )
+            : 0);
+    const counterCount = currentText.length;
+    const counterPct =
+        counterLimit > 0 ? counterCount / counterLimit : 0;
+    const counterOver = counterLimit > 0 && counterCount > counterLimit;
+
+    const scheduleLabel = data.is_scheduled ? `Post now` : 'Schedule for later';
 
     return (
         <>
@@ -344,151 +393,245 @@ export default function Dashboard({
                         onSubmit={handleSubmit}
                         className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                     >
-                        <div className="border-b border-border px-6 pt-5 pb-4">
-                            <h2 className="mb-4 text-base font-semibold tracking-tight">
-                                Create post
+                        <div className="border-b border-border px-7 pt-6 pb-5">
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase">
+                                New dispatch · Draft · Just now
+                            </p>
+                            <h2 className="mt-2.5 text-2xl font-semibold tracking-tight text-foreground">
+                                Compose once, land everywhere.
                             </h2>
+                        </div>
+
+                        <div className="px-7 pt-5 pb-5">
+                            <SectionHeader
+                                number="01"
+                                title="Where"
+                                description="pick the channels this dispatch goes out to"
+                            />
 
                             {connectedSystems.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {connectedSystems.sort((a, b) => a.system.order - b.system.order).map((account) => (
-                                        <ChannelChip
-                                            key={account.id}
-                                            account={account}
-                                            selected={data.userTokenIds.includes(
-                                                account.id,
-                                            )}
-                                            count={getChipCount(account.id)}
-                                            onToggle={() =>
-                                                togglePlatform(account.id)
-                                            }
-                                        />
-                                    ))}
+                                <div className="mt-4 grid gap-2.5 sm:grid-cols-2 md:grid-cols-3">
+                                    {connectedSystems
+                                        .sort(
+                                            (a, b) =>
+                                                a.system.order - b.system.order,
+                                        )
+                                        .map((account) => (
+                                            <ChannelCard
+                                                key={account.id}
+                                                account={account}
+                                                selected={data.userTokenIds.includes(
+                                                    account.id,
+                                                )}
+                                                count={getChipCount(account.id)}
+                                                onToggle={() =>
+                                                    togglePlatform(account.id)
+                                                }
+                                            />
+                                        ))}
                                 </div>
                             ) : (
-                                <div className="rounded-lg border border-dashed border-border/70 p-3.5 text-center text-[13px] text-muted-foreground">
+                                <div className="mt-4 rounded-lg border border-dashed border-border/70 p-3.5 text-center text-[13px] text-muted-foreground">
                                     No accounts connected. Connect an account
                                     to start posting.
                                 </div>
                             )}
                         </div>
 
-                        {data.userTokenIds.length > 1 && (
-                            <div className="flex items-center gap-2.5 border-b border-border bg-muted/40 px-6 py-2.5">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    Compose
-                                </span>
-                                <label className="ml-auto flex cursor-pointer items-center gap-2 text-xs font-semibold">
-                                    <Switch
-                                        size="sm"
-                                        checked={data.customizing}
-                                        onCheckedChange={(checked) => {
-                                            if(!checked){
-                                                setData('channelContent', {});
-                                                setActiveTab('all');
-                                            }else{
-                                                const sortedConnectedSystems = connectedSystems.filter((account) => data.userTokenIds.includes(account.id)).sort((a, b) => a.system.order - b.system.order);
+                        <div className="border-t border-border px-7 pt-5 pb-5">
+                            <SectionHeader
+                                number="02"
+                                title="Compose"
+                                description="one message, every channel"
+                                action={
+                                    data.userTokenIds.length > 1 && (
+                                        <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
+                                            <Switch
+                                                size="sm"
+                                                checked={data.customizing}
+                                                onCheckedChange={(checked) => {
+                                                    if (!checked) {
+                                                        setData(
+                                                            'channelContent',
+                                                            {},
+                                                        );
+                                                        setActiveTab('all');
+                                                    } else {
+                                                        const sortedConnectedSystems =
+                                                            connectedSystems
+                                                                .filter(
+                                                                    (account) =>
+                                                                        data.userTokenIds.includes(
+                                                                            account.id,
+                                                                        ),
+                                                                )
+                                                                .sort(
+                                                                    (a, b) =>
+                                                                        a.system
+                                                                            .order -
+                                                                        b.system
+                                                                            .order,
+                                                                );
 
-                                                setActiveTab(sortedConnectedSystems[0].id);
-                                                setContent(effectiveTab, data.content);
-                                            }
+                                                        setActiveTab(
+                                                            sortedConnectedSystems[0]
+                                                                .id,
+                                                        );
+                                                        setContent(
+                                                            effectiveTab,
+                                                            data.content,
+                                                        );
+                                                    }
 
-                                            setData('customizing', checked);
-                                        }}
-                                    />
-                                    Customize per channel
-                                </label>
-                            </div>
-                        )}
+                                                    setData(
+                                                        'customizing',
+                                                        checked,
+                                                    );
+                                                }}
+                                            />
+                                            Customize per channel
+                                        </label>
+                                    )
+                                }
+                            />
 
-                        {data.customizing && data.userTokenIds.length > 0 && (
-                            <div className="flex gap-0.5 overflow-x-auto border-b border-border px-3.5">
-                                {connectedSystems
-                                    .filter((account) =>
-                                        data.userTokenIds.includes(account.id),
-                                    ).sort((a, b) => a.system.order - b.system.order)
-                                    .map((account) => {
-                                        const tabActive =
-                                            effectiveTab === account.id;
-                                        const tabCount = getChipCount(
-                                            account.id,
-                                        );
-                                        const tabOver =
-                                            tabCount > account.system.max_post_length;
+                            {data.customizing &&
+                                data.userTokenIds.length > 0 && (
+                                    <div className="mt-3 flex gap-0.5 overflow-x-auto border-b border-border">
+                                        {connectedSystems
+                                            .filter((account) =>
+                                                data.userTokenIds.includes(
+                                                    account.id,
+                                                ),
+                                            )
+                                            .sort(
+                                                (a, b) =>
+                                                    a.system.order -
+                                                    b.system.order,
+                                            )
+                                            .map((account) => {
+                                                const tabActive =
+                                                    effectiveTab === account.id;
+                                                const tabCount = getChipCount(
+                                                    account.id,
+                                                );
+                                                const tabOver =
+                                                    tabCount >
+                                                    account.system
+                                                        .max_post_length;
 
-                                        return (
-                                            <button
-                                                key={account.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    setActiveTab(account.id)
-                                                }
-                                                className={cn(
-                                                    'relative flex items-center gap-2 border-b-2 px-3 py-2 text-[13px] transition-colors',
-                                                    tabActive
-                                                        ? 'border-foreground bg-muted/40 font-semibold text-foreground'
-                                                        : 'border-transparent font-medium text-muted-foreground hover:text-foreground',
-                                                )}
-                                            >
-                                                <span
-                                                    className="grid size-4 place-items-center"
-                                                    style={{
-                                                        color: tabActive
-                                                            ? account.system
-                                                                  .background_color
-                                                            : undefined,
-                                                    }}
-                                                >
-                                                    <span
+                                                return (
+                                                    <button
+                                                        key={account.id}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setActiveTab(
+                                                                account.id,
+                                                            )
+                                                        }
                                                         className={cn(
-                                                            'grid place-items-center',
-                                                            !tabActive &&
-                                                                'text-muted-foreground/60',
+                                                            'relative flex items-center gap-2 border-b-2 px-3 py-2 text-[13px] transition-colors',
+                                                            tabActive
+                                                                ? 'border-foreground font-semibold text-foreground'
+                                                                : 'border-transparent font-medium text-muted-foreground hover:text-foreground',
                                                         )}
                                                     >
-                                                        <svg
-                                                            width="14"
-                                                            height="14"
-                                                            viewBox="0 0 24 24"
-                                                            fill="currentColor"
+                                                        <span
+                                                            className="grid size-4 place-items-center"
+                                                            style={{
+                                                                color: tabActive
+                                                                    ? account
+                                                                          .system
+                                                                          .background_color
+                                                                    : undefined,
+                                                            }}
                                                         >
-                                                            <path
-                                                                d={
-                                                                    account
-                                                                        .system
-                                                                        .icon
-                                                                }
-                                                            />
-                                                        </svg>
-                                                    </span>
-                                                </span>
-                                                {account.system.name}
-                                                {isModified(account.id) && (
-                                                    <span className="size-1.5 rounded-full bg-primary" />
-                                                )}
-                                                {tabOver && (
-                                                    <span className="text-[11px] font-bold text-destructive">
-                                                        !
-                                                    </span>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                            </div>
-                        )}
+                                                            <span
+                                                                className={cn(
+                                                                    'grid place-items-center',
+                                                                    !tabActive &&
+                                                                        'text-muted-foreground/60',
+                                                                )}
+                                                            >
+                                                                <svg
+                                                                    width="14"
+                                                                    height="14"
+                                                                    viewBox="0 0 24 24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path
+                                                                        d={
+                                                                            account
+                                                                                .system
+                                                                                .icon
+                                                                        }
+                                                                    />
+                                                                </svg>
+                                                            </span>
+                                                        </span>
+                                                        {account.system.name}
+                                                        {isModified(
+                                                            account.id,
+                                                        ) && (
+                                                            <span className="size-1.5 rounded-full bg-primary" />
+                                                        )}
+                                                        {tabOver && (
+                                                            <span className="text-[11px] font-bold text-destructive">
+                                                                !
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                )}
 
-                        <div className="flex flex-col gap-3 px-6 py-4">
                             <Textarea
                                 value={currentText}
                                 onChange={(e) =>
                                     setContent(effectiveTab, e.target.value)
                                 }
-                                placeholder={'What do you want to say?'}
-                                className="min-h-36 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
+                                placeholder="What do you want to say?"
+                                className="mt-4 min-h-40 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
                             />
+
+                            {counterLimit > 0 && (
+                                <div className="mt-1 flex items-center justify-end gap-2 border-t border-dashed border-border pt-2">
+                                    <span
+                                        className={cn(
+                                            'text-xs tabular-nums',
+                                            counterOver
+                                                ? 'text-destructive'
+                                                : 'text-muted-foreground',
+                                        )}
+                                    >
+                                        {counterCount} / {counterLimit}
+                                    </span>
+                                    <CounterRing
+                                        pct={counterPct}
+                                        over={counterOver}
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        <div className="px-6 pb-4">
+                        <div className="border-t border-border px-7 pt-5 pb-5">
+                            <SectionHeader
+                                number="03"
+                                title="Media"
+                                description="drop images"
+                                action={
+                                    requiresImage && (
+                                        <span className="text-[11px] font-semibold tracking-[0.18em] text-amber-600 uppercase">
+                                            Required by{' '}
+                                            {requiringSystems
+                                                .map((s) => s.system.name)
+                                                .join(', ')}
+                                        </span>
+                                    )
+                                }
+                            />
+
                             <input
                                 ref={fileInputRef}
                                 id="post-image"
@@ -498,7 +641,7 @@ export default function Dashboard({
                                 onChange={handleImageChange}
                             />
                             {imagePreview ? (
-                                <div className="relative w-fit">
+                                <div className="relative mt-4 w-fit">
                                     <img
                                         src={imagePreview}
                                         alt="Selected"
@@ -519,10 +662,23 @@ export default function Dashboard({
                                     onClick={() =>
                                         fileInputRef.current?.click()
                                     }
-                                    className="flex w-full items-center justify-center gap-2.5 rounded-lg border-[1.5px] border-dashed border-border/70 bg-transparent p-3.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                                    className="mt-4 flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-[1.5px] border-dashed border-amber-500/60 bg-transparent px-6 py-10 text-center transition-colors hover:border-amber-500 hover:bg-amber-500/[0.03]"
                                 >
-                                    <ImagePlus size={16} />
-                                    Drop a JPEG image — or click to browse
+                                    <span className="text-lg text-muted-foreground">
+                                        Add an image
+                                    </span>
+                                    <span className="text-[12px] text-muted-foreground">
+                                        drop here, or{' '}
+                                        <span className="underline underline-offset-2">
+                                            click to browse
+                                        </span>
+                                        <span className="mx-1.5 text-muted-foreground/50">
+                                            ·
+                                        </span>
+                                        <span className="text-muted-foreground/70">
+                                            jpg
+                                        </span>
+                                    </span>
                                 </button>
                             )}
                             {errors.image && (
@@ -530,15 +686,9 @@ export default function Dashboard({
                                     {errors.image}
                                 </p>
                             )}
-                            {isMissingRequiredImage && !errors.image && (
-                                <p className="mt-1.5 text-xs text-destructive">
-                                    An image is required for one or more of
-                                    the selected platforms.
-                                </p>
-                            )}
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/40 px-6 py-3.5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-zinc-900 px-6 py-3.5 text-zinc-50 dark:bg-zinc-950">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button
                                     type="button"
@@ -550,9 +700,9 @@ export default function Dashboard({
                                             : openSchedule
                                     }
                                     className={cn(
-                                        !scheduleOpen &&
-                                            !data.is_scheduled &&
-                                            'border-transparent bg-transparent shadow-none hover:bg-muted',
+                                        'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50',
+                                        scheduleOpen &&
+                                            'border-zinc-50/40 bg-zinc-50/10',
                                     )}
                                 >
                                     <Clock className="size-3.5" />
@@ -566,7 +716,7 @@ export default function Dashboard({
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    className="text-xs"
+                                                    className="border-zinc-50/20 bg-transparent text-xs text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50"
                                                 >
                                                     {format(
                                                         data.scheduled_date,
@@ -624,7 +774,7 @@ export default function Dashboard({
                                                     e.target.value,
                                                 )
                                             }
-                                            className="h-8 w-28 appearance-none text-xs [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                                            className="h-8 w-28 appearance-none border-zinc-50/20 bg-transparent text-xs text-zinc-50 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:invert"
                                         />
                                     </div>
                                 )}
@@ -634,7 +784,7 @@ export default function Dashboard({
                                 <Button
                                     type="submit"
                                     disabled={!canSubmit() || processing}
-                                    className="bg-foreground text-background hover:bg-foreground/90"
+                                    className="bg-emerald-700 text-zinc-50 hover:bg-emerald-600"
                                 >
                                     {processing
                                         ? 'Posting...'
@@ -642,7 +792,7 @@ export default function Dashboard({
                                           ? 'Schedule'
                                           : 'Post now'}
                                     {data.userTokenIds.length > 0 && (
-                                        <span className="grid size-[18px] place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                                        <span className="grid size-[18px] place-items-center rounded-full bg-zinc-50/20 text-[11px] font-bold text-zinc-50">
                                             {data.userTokenIds.length}
                                         </span>
                                     )}
