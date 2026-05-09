@@ -52,7 +52,7 @@ function ChannelChip({ account, selected, count, onToggle }: ChipProps) {
             className={cn(
                 'relative flex items-center gap-2.5 rounded-full border py-2 pr-3.5 pl-2.5 transition-all',
                 selected
-                    ? 'border-foreground bg-card opacity-100 shadow-xs'
+                    ? 'border-gray-300 bg-card opacity-100 shadow-xs'
                     : 'border-border bg-transparent opacity-60 hover:opacity-80',
             )}
         >
@@ -80,13 +80,27 @@ function ChannelChip({ account, selected, count, onToggle }: ChipProps) {
                     </svg>
                 </span>
             </span>
-            <span
-                className={cn(
-                    'text-[13px] font-medium',
-                    selected ? 'text-foreground' : 'text-muted-foreground',
+            <span className="flex min-w-0 flex-col items-start leading-tight">
+                <span
+                    className={cn(
+                        'truncate text-[13px] font-medium',
+                        selected ? 'text-foreground' : 'text-muted-foreground',
+                    )}
+                >
+                    {account.system.name}
+                </span>
+                {account.user_name && (
+                    <span
+                        className={cn(
+                            'max-w-48 truncate text-[11px] font-normal',
+                            selected
+                                ? 'text-muted-foreground'
+                                : 'text-muted-foreground/70',
+                        )}
+                    >
+                        @{account.user_name}
+                    </span>
                 )}
-            >
-                {account.system.name}
             </span>
             {selected && (
                 <span
@@ -262,8 +276,6 @@ export default function Dashboard({
     }
 
     const currentText = getContent(effectiveTab);
-    //const characterCount = currentText.length;
-    //const isOverLimit = characterCount > MAX_CHARACTERS;
     const requiresImage = connectedSystems.some(
         (system) =>
             data.userTokenIds.includes(system.id) &&
@@ -471,11 +483,7 @@ export default function Dashboard({
                                 onChange={(e) =>
                                     setContent(effectiveTab, e.target.value)
                                 }
-                                placeholder={
-                                    effectiveTab === 'all'
-                                        ? 'What do you want to say?'
-                                        : `${activeAccount?.system.name ?? ''} version… (leave matching to use the same as 'All')`
-                                }
+                                placeholder={'What do you want to say?'}
                                 className="min-h-36 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
                             />
                         </div>

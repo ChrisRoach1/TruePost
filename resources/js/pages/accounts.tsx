@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { SocialPlatformCard } from '@/components/social-platform-card';
+import { useMemo } from 'react';
+import { SocialPlatformRow } from '@/components/social-platform-row';
 import { accounts } from '@/routes';
 import { deleteMethod } from '@/routes/accounts';
 import oauth from '@/routes/oauth';
@@ -10,36 +11,40 @@ type Props = {
     systems: System[];
 };
 
-export default function Accounts({connectedAccounts, systems}: Props) {
-    function connectPlatform(url_slug: string){
-        window.location.href = oauth.redirect(url_slug).url;
-    }
+export default function Accounts({ connectedAccounts, systems }: Props) {
+    const accountsBySystem = useMemo(() => {
+        const map = new Map<number, UserToken[]>();
 
-    function disconnect(system_id: number){
-        const connectedAccountId = connectedAccounts?.filter(x => x.system_id === system_id)[0].id;
-
-        if(connectedAccountId){
-            router.delete(deleteMethod(connectedAccountId));
+        for (const account of connectedAccounts ?? []) {
+            const list = map.get(account.system_id) ?? [];
+            list.push(account);
+            map.set(account.system_id, list);
         }
 
-        router.flushAll();
+        return map;
+    }, [connectedAccounts]);
+
+    function connectPlatform(platform: System) {
+        window.location.href = oauth.redirect(platform.url_slug).url;
+    }
+
+    function disconnect(account: UserToken) {
+        router.delete(deleteMethod(account.id));
     }
 
     return (
         <>
             <Head title="Connected Accounts" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {systems.map((systems) => (
-                        <SocialPlatformCard
-                            key={systems.id}
-                            platform={systems}
-                            isConnected={connectedAccounts?.filter(x => x.system_id === systems.id)?.length ? connectedAccounts?.filter(x => x.system_id === systems.id)?.length > 0 : false}
-                            onConnect={(p) => connectPlatform(p.url_slug)}
-                            onDisconnect={(p) => disconnect(p.id)}
-                        />
-                    ))}
-                </div>
+            <div className="flex h-full flex-1 flex-col gap-3 overflow-x-auto rounded-xl p-4">
+                {systems.map((platform) => (
+                    <SocialPlatformRow
+                        key={platform.id}
+                        platform={platform}
+                        accounts={accountsBySystem.get(platform.id) ?? []}
+                        onConnect={connectPlatform}
+                        onDisconnect={disconnect}
+                    />
+                ))}
             </div>
         </>
     );

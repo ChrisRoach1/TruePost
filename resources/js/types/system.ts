@@ -1,7 +1,8 @@
 
 export type UserToken = {
-    system_id: number;
     id: number;
+    system_id: number;
+    user_name: string | null;
     system: System;
 }
 

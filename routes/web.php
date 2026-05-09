@@ -17,7 +17,7 @@ Route::inertia('/', 'welcome', [
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
-        $connectedAccounts = UserToken::query()->with('system')->get();
+        $connectedAccounts = UserToken::query()->where(['needs_reauthed' => false])->with('system')->get();
         $systems = System::query()->orderBy('id')->get();
 
         return Inertia::render('dashboard',[
@@ -27,7 +27,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('accounts', function () {
-        $connectedAccounts = UserToken::query()->get()->select('system_id', 'id');
+        $connectedAccounts = UserToken::query()
+            ->where('user_id', auth()->id())
+            ->get(['id', 'system_id', 'user_name']);
         $systems = System::query()->orderBy('id')->get();
 
         return Inertia::render('accounts', [
