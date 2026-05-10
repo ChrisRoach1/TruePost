@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(UserPost::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(UserToken::class);
             $table->text('override_content')->nullable(true);
+            $table->string('created_post_Id')->nullable(true);
             $table->timestamps();
         });
     }

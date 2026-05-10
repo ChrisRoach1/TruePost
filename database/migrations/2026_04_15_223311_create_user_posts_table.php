@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('media_url');
             $table->dateTime('post_at');
             $table->integer('job_id')->nullable(true);
+            $table->integer('days_to_track_metrics')->default(15);
             $table->timestamps();
         });
     }

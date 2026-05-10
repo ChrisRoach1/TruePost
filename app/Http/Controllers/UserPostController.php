@@ -46,7 +46,6 @@ class UserPostController extends Controller
             $encodedImage = Image::decode($file)
                 ->scaleDown(1440)->encodeUsingFileExtension('jpg');
 
-
             Storage::disk('r2')->put('media/'.$image, (string) $encodedImage, [
                 'visibility' => 'public',
                 'ContentType' => 'image/jpeg',
@@ -72,11 +71,15 @@ class UserPostController extends Controller
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
-        $job = (new SendPosts($userPostWithData))->delay($postDate);
-        $jobId = Bus::dispatch($job);
+        if ($request->input('is_scheduled') == true) {
+            $job = (new SendPosts($userPostWithData))->delay($postDate);
+            $jobId = Bus::dispatch($job);
 
-        $userPost->update(['job_id' => $jobId]);
-        $userPost->save();
+            $userPost->update(['job_id' => $jobId]);
+            $userPost->save();
+        } else {
+            SendPosts::dispatch($userPostWithData);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('dashboard');
 

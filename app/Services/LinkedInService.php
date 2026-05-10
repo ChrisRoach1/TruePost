@@ -3,19 +3,20 @@
 namespace App\Services;
 
 use App\Jobs\TokenRefresh;
+use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Http;
 
 class LinkedInService implements SocialServiceInterface
 {
-    public function createPost(string $authToken, string $content, ?string $user_token_id = null, ?string $media = null): void
+    public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
-        $personURN = "urn:li:person:{$user_token_id}";
-
+        $personURN = "urn:li:person:{$userPostSystem->userToken->user_token_id}";
+        $content = $userPostSystem->override_content ?? $content;
         if ($media != null) {
             $file = \Storage::disk('r2')->get($media);
 
-            $registerMediaResponse = Http::withToken($authToken)->post('https://api.linkedin.com/v2/assets?action=registerUpload', [
+            $registerMediaResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/assets?action=registerUpload', [
                 'registerUploadRequest' => [
                     'recipes' => [
                         'urn:li:digitalmediaRecipe:feedshare-image',
@@ -33,11 +34,11 @@ class LinkedInService implements SocialServiceInterface
             $mediaUploadURL = $registerMediaResponse->json()['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl'];
             $assetKey = $registerMediaResponse->json()['value']['asset'];
 
-            $mediaUploadResponse = Http::withToken($authToken)->attach('file', $file, 'media.jpg')->post($mediaUploadURL);
+            $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->attach('file', $file, 'media.jpg')->post($mediaUploadURL);
 
             // need to change shareMediaCategory when implementing videos
 
-            $response = Http::withToken($authToken)->post('https://api.linkedin.com/v2/ugcPosts',
+            $response = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/ugcPosts',
                 [
                     'author' => $personURN,
                     'lifecycleState' => 'PUBLISHED',
@@ -62,7 +63,7 @@ class LinkedInService implements SocialServiceInterface
 
         } else {
 
-            $response = Http::withToken($authToken)->post('https://api.linkedin.com/v2/ugcPosts',
+            $response = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/ugcPosts',
                 [
                     'author' => $personURN,
                     'lifecycleState' => 'PUBLISHED',
@@ -105,5 +106,10 @@ class LinkedInService implements SocialServiceInterface
         ]);
 
         TokenRefresh::dispatch($userToken)->delay(\Date::now()->addDays(55));
+    }
+
+    public function getPostMetrics(UserPostSystem $userPostSystem)
+    {
+        // TODO: Implement getPostMetrics() method.
     }
 }

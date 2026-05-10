@@ -9,3 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->everyMinute();
 
 Schedule::job(new InvalidateExpiringTokens)->daily();
+
+Schedule::job(new \App\Jobs\MetricCalculations())->everySecond();
+
+Artisan::command('test_metric_calculation', function () {
+    \App\Jobs\MetricCalculations::dispatch();
+});

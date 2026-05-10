@@ -3,17 +3,20 @@
 namespace App\Services;
 
 use App\Jobs\TokenRefresh;
+use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Http;
 
 class XService implements SocialServiceInterface
 {
-    public function createPost(string $authToken, string $content, ?string $user_token_id = null, ?string $media = null): void
+    public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
+
         if ($media != null) {
             $file = \Storage::disk('r2')->get($media);
 
-            $mediaUploadResponse = Http::withToken($authToken)->attach('media', $file, 'media.jpg')->post('https://api.x.com/2/media/upload',
+            $content = $userPostSystem->override_content ?? $content;
+            $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->attach('media', $file, 'media.jpg')->post('https://api.x.com/2/media/upload',
                 [
                     'media_category' => 'tweet_image',
                     'media_type' => 'image/jpeg',
@@ -27,7 +30,7 @@ class XService implements SocialServiceInterface
 
                 while (! $processed) {
                     $attempts++;
-                    $uploadStatusResponse = Http::withToken($authToken)->get('https://api.x.com/2/media/upload', ['media_id' => $mediaID]);
+                    $uploadStatusResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://api.x.com/2/media/upload', ['media_id' => $mediaID]);
                     if ($uploadStatusResponse['processing_info']['state'] === 'succeeded') {
                         $processed = true;
                     }
@@ -41,7 +44,7 @@ class XService implements SocialServiceInterface
 
             }
 
-            $response = Http::withToken($authToken)->post('https://api.x.com/2/tweets',
+            $response = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.x.com/2/tweets',
                 [
                     'text' => $content,
                     'media' => [
@@ -51,10 +54,12 @@ class XService implements SocialServiceInterface
                 ]);
 
         } else {
-            $response = Http::withToken($authToken)->post('https://api.x.com/2/tweets',
+            $response = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.x.com/2/tweets',
                 [
                     'text' => $content,
                 ]);
+
+            \Log::info($response->json());
 
         }
 
@@ -81,5 +86,15 @@ class XService implements SocialServiceInterface
         ]);
 
         TokenRefresh::dispatch($userToken)->delay(\Date::now()->addSeconds($user->expires_in - 60));
+    }
+
+    public function getPostMetrics(UserPostSystem $userPostSystem)
+    {
+        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://api.x.com/2/tweets/${userPostSystem->created_post_Id}',
+            [
+                'tweet.fields' => 'public_metrics'
+            ])->json();
+
+        dd($mediaUploadResponse);
     }
 }

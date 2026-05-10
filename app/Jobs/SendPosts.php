@@ -31,13 +31,13 @@ class SendPosts implements ShouldQueue
         foreach ($this->userPost->UserPostSystems as $platform) {
             switch ($platform->userToken->System->url_slug) {
                 case 'instagram':
-                    $instagramService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    $instagramService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     break;
                 case 'x':
-                    $xService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    $xService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     break;
                 case 'linkedin-openid':
-                    $linkedinService->createPost($platform->userToken->access_token, $this->userPost->original_content, $platform->userToken->user_token_id, $this->userPost->media_url);
+                    $linkedinService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     break;
                 default:
                     throw new \Exception('Unsupported platform: '.$platform->userToken->System->url_slug);
