@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
-import { CalendarDays, FileText, Plus, Send, Trash2 } from 'lucide-react';
+import { AlertTriangle, CalendarDays, FileText, Plus, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,29 @@ type Props = {
     userPosts?: userPosts[];
 };
 
-function PlatformPill({ system }: { system: { icon: string; background_color: string; icon_color: string; name: string } }) {
+function PlatformPill({
+    system,
+    failed = false,
+}: {
+    system: { icon: string; background_color: string; icon_color: string; name: string };
+    failed?: boolean;
+}) {
+    if (failed) {
+        return (
+            <div
+                className="relative flex items-center justify-center rounded-md size-7 bg-destructive/10 ring-1 ring-destructive/40"
+                title={`${system.name} — failed to post`}
+            >
+                <svg className="size-3.5 text-destructive" viewBox="0 0 24 24" fill="currentColor">
+                    <path d={system.icon} />
+                </svg>
+                <span className="absolute -right-1 -top-1 flex size-3 items-center justify-center rounded-full bg-destructive ring-2 ring-background">
+                    <AlertTriangle className="size-2 text-destructive-foreground" strokeWidth={3} />
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div
             className="flex items-center justify-center rounded-md size-7"
@@ -30,34 +52,66 @@ function PostCard({ post, index }: { post: userPosts; index: number }) {
 
     const posted = isPast(new Date(post.post_at));
     const scheduleDate = new Date(post.post_at);
+    const failedSystems = post.user_post_systems?.filter((ps) => ps.failed_to_post) ?? [];
+    const hasFailures = failedSystems.length > 0;
     return (
         <Card
-            className="group relative flex flex-col overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 animate-in fade-in slide-in-from-bottom-3"
+            className={`group relative flex flex-col overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 animate-in fade-in slide-in-from-bottom-3 ${
+                hasFailures ? 'ring-1 ring-destructive/30' : ''
+            }`}
             style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
         >
             <div
-                className={`h-1 w-full ${posted ? 'bg-muted-foreground/15' : 'bg-primary'}`}
+                className={`h-1 w-full ${
+                    hasFailures ? 'bg-destructive' : posted ? 'bg-muted-foreground/15' : 'bg-primary'
+                }`}
             />
 
             <CardContent className="flex flex-1 flex-col gap-4 p-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         {post.user_post_systems?.map((ps) => (
-                            <PlatformPill key={ps.id} system={ps.user_token.system} />
+                            <PlatformPill
+                                key={ps.id}
+                                system={ps.user_token.system}
+                                failed={ps.failed_to_post}
+                            />
                         ))}
                     </div>
 
-                    <Badge
-                        variant="outline"
-                        className={
-                            posted
-                                ? 'border-muted-foreground/20 bg-muted/50 text-muted-foreground'
-                                : 'border-primary/20 bg-primary/5 text-primary dark:border-primary/30 dark:bg-primary/10'
-                        }
-                    >
-                        {posted ? 'Posted' : 'Scheduled'}
-                    </Badge>
+                    {hasFailures ? (
+                        <Badge
+                            variant="outline"
+                            className="border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/15"
+                        >
+                            <AlertTriangle className="size-3" />
+                            {failedSystems.length} failed
+                        </Badge>
+                    ) : (
+                        <Badge
+                            variant="outline"
+                            className={
+                                posted
+                                    ? 'border-muted-foreground/20 bg-muted/50 text-muted-foreground'
+                                    : 'border-primary/20 bg-primary/5 text-primary dark:border-primary/30 dark:bg-primary/10'
+                            }
+                        >
+                            {posted ? 'Posted' : 'Scheduled'}
+                        </Badge>
+                    )}
                 </div>
+
+                {hasFailures && (
+                    <div className="flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
+                        <div className="leading-snug">
+                            <span className="font-medium">Failed to post</span> on{' '}
+                            <span className="font-medium">
+                                {failedSystems.map((ps) => ps.user_token.system.name).join(', ')}
+                            </span>
+                        </div>
+                    </div>
+                )}
 
                 <p className="flex-1 text-sm leading-relaxed line-clamp-4 text-foreground/90">
                     {post.content}

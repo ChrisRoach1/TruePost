@@ -16,6 +16,7 @@ class XService implements SocialServiceInterface
 {
     /**
      * @throws ConnectionException
+     * @throws Exception
      */
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
@@ -60,6 +61,10 @@ class XService implements SocialServiceInterface
                     'made_with_ai' => false,
                 ]);
 
+            if ($response->getStatusCode() != 201) {
+                throw new Exception('failed to create post');
+            }
+
             $responseId = $response['data']['id'];
 
         } else {
@@ -67,6 +72,10 @@ class XService implements SocialServiceInterface
                 [
                     'text' => $content,
                 ]);
+
+            if ($response->getStatusCode() != 201) {
+                throw new Exception('failed to create post');
+            }
 
             $responseId = $response['data']['id'];
         }

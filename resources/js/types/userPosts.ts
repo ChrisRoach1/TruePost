@@ -12,4 +12,5 @@ export type userPostSystems = {
     id: number;
     user_token: UserToken;
     user_token_id: number;
+    failed_to_post: boolean;
 }
