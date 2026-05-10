@@ -387,7 +387,7 @@ export default function Dashboard({
     return (
         <>
             <Head title="Dashboard" />
-            <div className="min-h-full px-4 py-7 text-foreground">
+            <div className="px-4 py-7 text-foreground">
                 <div className="mx-auto max-w-3xl">
                     <form
                         onSubmit={handleSubmit}

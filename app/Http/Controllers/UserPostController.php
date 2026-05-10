@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendPosts;
 use App\Models\UserPost;
+use DateTime;
+use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +24,10 @@ class UserPostController extends Controller
             ]);
     }
 
+    /**
+     * @throws \DateMalformedStringException
+     * @throws \DateInvalidTimeZoneException
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -35,8 +41,8 @@ class UserPostController extends Controller
             'timezone' => 'required|timezone',
         ]);
 
-        $userTz = new \DateTimeZone($request->timezone);
-        $postDate = new \DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
+        $userTz = new DateTimeZone($request->timezone);
+        $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
 
         if ($request->hasFile('image')) {
 
@@ -71,7 +77,7 @@ class UserPostController extends Controller
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
-        if ($request->input('is_scheduled') == true) {
+        if ($request->input('is_scheduled')) {
             $job = (new SendPosts($userPostWithData))->delay($postDate);
             $jobId = Bus::dispatch($job);
 

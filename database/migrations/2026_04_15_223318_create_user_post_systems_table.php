@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(UserToken::class);
             $table->text('override_content')->nullable(true);
             $table->string('created_post_Id')->nullable(true);
+            $table->boolean('failed_to_post')->default(false);
             $table->timestamps();
         });
     }

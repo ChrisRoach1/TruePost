@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Jobs\TokenRefresh;
 use App\Models\System;
 use App\Models\UserToken;
+use Date;
+use Http;
+use Illuminate\Http\Client\ConnectionException;
 use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends Controller
@@ -19,6 +22,9 @@ class OAuthController extends Controller
         return Socialite::driver($platform)->scopes($system->scopes)->redirect();
     }
 
+    /**
+     * @throws ConnectionException
+     */
     public function callback(string $platform)
     {
         $system = System::query()->where('url_slug', $platform)->firstOrFail();
@@ -33,17 +39,17 @@ class OAuthController extends Controller
                     'user_id' => auth()->id(),
                     'access_token' => $user->token,
                     'refresh_token' => $user->refreshToken,
-                    'expires_at' => \Date::now()->addSeconds($user->expiresIn),
+                    'expires_at' => Date::now()->addSeconds($user->expiresIn),
                 ]);
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(\Date::now()->addSeconds($user->expiresIn - 60));
+                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addSeconds($user->expiresIn - 60));
                 break;
             case 'instagram':
 
-                $longLivedToken = \Http::get('https://graph.instagram.com/access_token', [
+                $longLivedToken = Http::get('https://graph.instagram.com/access_token', [
                     'grant_type' => 'ig_exchange_token',
-                    'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
+                    'client_secret' => config('INSTAGRAM_CLIENT_SECRET'),
                     'access_token' => $user->token,
                 ])
                     ->json();
@@ -55,11 +61,11 @@ class OAuthController extends Controller
                     'user_id' => auth()->id(),
                     'access_token' => $longLivedToken['access_token'],
                     'refresh_token' => $user->refreshToken ?? '',
-                    'expires_at' => \Date::now()->addSeconds($longLivedToken['expires_in']),
+                    'expires_at' => Date::now()->addSeconds($longLivedToken['expires_in']),
                 ]);
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(\Date::now()->addDays(55));
+                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
                 break;
             case 'facebook':
                 UserToken::create([
@@ -79,11 +85,11 @@ class OAuthController extends Controller
                     'user_id' => auth()->id(),
                     'access_token' => $user->token,
                     'refresh_token' => $user->refreshToken ?? '',
-                    'expires_at' => \Date::now()->addSeconds($user->expiresIn),
+                    'expires_at' => Date::now()->addSeconds($user->expiresIn),
                 ]);
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(\Date::now()->addDays(55));
+                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
                 break;
             default:
                 break;

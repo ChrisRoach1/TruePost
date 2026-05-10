@@ -5,16 +5,22 @@ namespace App\Services;
 use App\Jobs\TokenRefresh;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
+use Date;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Storage;
 
 class LinkedInService implements SocialServiceInterface
 {
+    /**
+     * @throws ConnectionException
+     */
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
         $personURN = "urn:li:person:{$userPostSystem->userToken->user_token_id}";
         $content = $userPostSystem->override_content ?? $content;
         if ($media != null) {
-            $file = \Storage::disk('r2')->get($media);
+            $file = Storage::disk('r2')->get($media);
 
             $registerMediaResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/assets?action=registerUpload', [
                 'registerUploadRequest' => [
@@ -88,24 +94,27 @@ class LinkedInService implements SocialServiceInterface
         // TODO: Implement getPosts() method.
     }
 
-    public function refreshToken(UserToken $userToken)
+    /**
+     * @throws ConnectionException
+     */
+    public function refreshToken(UserToken $userToken): void
     {
         $response = Http::post('https://www.linkedin.com/oauth/v2/accessToken', [
             'grant_type' => 'refresh_token',
             'refresh_token' => $userToken->refresh_token,
-            'client_id' => env('LINKEDIN_CLIENT_ID'),
-            'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
+            'client_id' => config('LINKEDIN_CLIENT_ID'),
+            'client_secret' => config('LINKEDIN_CLIENT_SECRET'),
         ]);
         $user = $response->json();
 
         $userToken->update([
             'access_token' => $user['access_token'],
             'refresh_token' => $user['refresh_token'],
-            'expires_at' => \Date::now()->addSeconds($user['expires_in']),
-            'refresh_token_expires_at' => \Date::now()->addSeconds($user['refresh_token_expires_in']),
+            'expires_at' => Date::now()->addSeconds($user['expires_in']),
+            'refresh_token_expires_at' => Date::now()->addSeconds($user['refresh_token_expires_in']),
         ]);
 
-        TokenRefresh::dispatch($userToken)->delay(\Date::now()->addDays(55));
+        TokenRefresh::dispatch($userToken)->delay(Date::now()->addDays(55));
     }
 
     public function getPostMetrics(UserPostSystem $userPostSystem)
