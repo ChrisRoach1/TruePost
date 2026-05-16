@@ -1,4 +1,4 @@
-import type { UserToken } from "./system";
+import type { System, UserToken } from "./system";
 
 export type userPosts = {
     id: number;
@@ -18,3 +18,26 @@ export type userPostSystems = {
     override_content: string | null;
     failed_to_post: boolean;
 }
+
+export type UpNextItem = {
+    id: number | string;
+    time: Date | string;
+    channels: System[];
+    hasImage?: boolean;
+    content: string;
+};
+
+
+export type RecentlyPublishedMetric = {
+    system: System;
+    likes: number;
+    replies: number;
+};
+
+export type RecentlyPublishedItem = {
+    id: number | string;
+    time: Date | string;
+    content: string;
+    metrics: RecentlyPublishedMetric[];
+    trend?: 'up' | 'flat';
+};

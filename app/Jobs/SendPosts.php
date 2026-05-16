@@ -59,5 +59,8 @@ class SendPosts implements ShouldQueue
                     throw new Exception('Unsupported platform: '.$platform->userToken->System->url_slug);
             }
         }
+
+        $this->userPost->update(['has_posted' => true]);
+        $this->userPost->save();
     }
 }

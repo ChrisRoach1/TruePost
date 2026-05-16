@@ -21,6 +21,7 @@ return new class extends Migration
             $table->dateTime('post_at')->nullable(true);
             $table->integer('job_id')->nullable(true);
             $table->integer('days_to_track_metrics')->default(15);
+            $table->boolean('has_posted')->default(false);
             $table->timestamps();
         });
     }

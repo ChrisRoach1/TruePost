@@ -38,7 +38,7 @@ function SectionHeader({
     return (
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-border pb-2">
             <div className="flex items-baseline gap-2 text-[13px]">
-                <span className="font-mono font-semibold text-emerald-600">
+                <span className="font-mono font-semibold text-primary">
                     {number}
                 </span>
                 <span className="font-semibold text-foreground">{title}</span>
@@ -320,7 +320,6 @@ export default function CreatePost({
           : 'New dispatch · Draft · Just now';
 
     return (
-        <div className="mx-auto max-w-3xl">
         <form
             onSubmit={handleSubmit}
             className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
@@ -331,7 +330,7 @@ export default function CreatePost({
                         'text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors',
                         data.is_draft
                             ? 'text-amber-600'
-                            : 'text-emerald-600',
+                            : 'text-primary',
                     )}
                 >
                     {headerStatus}
@@ -681,7 +680,6 @@ export default function CreatePost({
                 </div>
             </div>
         </form>
-    </div>
     );
 }
 
