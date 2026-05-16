@@ -1,6 +1,6 @@
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, X } from 'lucide-react';
+import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -13,7 +13,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
 import { store } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
 
@@ -176,9 +175,10 @@ export default function CreatePost({
             customizing: boolean;
             channelContent: Record<number, string>;
             is_scheduled: boolean;
-            scheduled_date: Date;
-            scheduled_date_string: string;
-            scheduled_time: string;
+            is_draft: boolean;
+            scheduled_date?: Date;
+            scheduled_date_string?: string;
+            scheduled_time?: string;
             timezone: string;
             image: File | null;
         }>({
@@ -187,6 +187,7 @@ export default function CreatePost({
             customizing: false,
             channelContent: {},
             is_scheduled: false,
+            is_draft: false,
             scheduled_date: new Date(),
             scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
             scheduled_time: format(new Date(), 'HH:mm'),
@@ -235,10 +236,11 @@ export default function CreatePost({
 
     function openSchedule() {
         setScheduleOpen(true);
-
-        if (!data.is_scheduled) {
-            setData('is_scheduled', true);
-        }
+        setData((prev) => ({
+            ...prev,
+            is_scheduled: true,
+            is_draft: false,
+        }));
     }
 
     function clearSchedule() {
@@ -251,6 +253,30 @@ export default function CreatePost({
             scheduled_date_string: format(now, 'yyyy-MM-dd'),
             scheduled_time: format(now, 'HH:mm'),
         }));
+    }
+
+    function toggleDraft() {
+        if (!data.is_draft) {
+            setScheduleOpen(false);
+            setData((prev) => ({
+                ...prev,
+                is_draft: true,
+                is_scheduled: false,
+                scheduled_date: undefined,
+                scheduled_date_string: undefined,
+                scheduled_time: undefined
+            }));
+        } else {
+            const now = new Date();
+            setData((prev) => ({
+                ...prev,
+                is_draft: false,
+                is_scheduled: false,
+                scheduled_date: now,
+                scheduled_date_string: format(now, 'yyyy-MM-dd'),
+                scheduled_time: format(now, 'HH:mm'),
+            }));
+        }
     }
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -360,8 +386,8 @@ export default function CreatePost({
             data.userTokenIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
-            Boolean(data.scheduled_date) &&
-            Boolean(data.scheduled_time)
+            (!data.is_draft && Boolean(data.scheduled_date) && Boolean(data.scheduled_time) || data.is_draft)
+
         );
     }
 
@@ -383,35 +409,41 @@ export default function CreatePost({
     const counterOver = counterLimit > 0 && counterCount > counterLimit;
 
     const scheduleLabel = data.is_scheduled ? `Post now` : 'Schedule for later';
+    const draftLabel = data.is_draft ? 'Cancel draft' : 'Save as draft';
+    const submitLabel = data.is_draft
+        ? 'Save draft'
+        : data.is_scheduled
+          ? 'Schedule'
+          : 'Post now';
+    const headerStatus = data.is_draft
+        ? 'New dispatch · Saving as draft'
+        : data.is_scheduled
+          ? 'New dispatch · Scheduled · Just now'
+          : 'New dispatch · Draft · Just now';
 
     return (
         <div className="mx-auto max-w-3xl">
         <form
             onSubmit={handleSubmit}
-            className="overflow-hidden rounded-xl border border-border bg-card shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
         >
-            <div
-                className="border-b border-border px-7 pt-6 pb-5 animate-in fade-in slide-in-from-bottom-2 duration-500"
-                style={{
-                    animationDelay: '80ms',
-                    animationFillMode: 'backwards',
-                }}
-            >
-                <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase">
-                    New dispatch · Draft · Just now
+            <div className="border-b border-border px-7 pt-6 pb-5">
+                <p
+                    className={cn(
+                        'text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors',
+                        data.is_draft
+                            ? 'text-amber-600'
+                            : 'text-emerald-600',
+                    )}
+                >
+                    {headerStatus}
                 </p>
                 <h2 className="mt-2.5 text-2xl font-semibold tracking-tight text-foreground">
                     Compose once, land everywhere.
                 </h2>
             </div>
 
-            <div
-                className="px-7 pt-5 pb-5 animate-in fade-in slide-in-from-bottom-2 duration-500"
-                style={{
-                    animationDelay: '160ms',
-                    animationFillMode: 'backwards',
-                }}
-            >
+            <div className="px-7 pt-5 pb-5">
                 <SectionHeader
                     number="01"
                     title="Where"
@@ -447,13 +479,7 @@ export default function CreatePost({
                 )}
             </div>
 
-            <div
-                className="border-t border-border px-7 pt-5 pb-5 animate-in fade-in slide-in-from-bottom-2 duration-500"
-                style={{
-                    animationDelay: '240ms',
-                    animationFillMode: 'backwards',
-                }}
-            >
+            <div className="border-t border-border px-7 pt-5 pb-5">
                 <SectionHeader
                     number="02"
                     title="Compose"
@@ -630,13 +656,7 @@ export default function CreatePost({
                 )}
             </div>
 
-            <div
-                className="border-t border-border px-7 pt-5 pb-5 animate-in fade-in slide-in-from-bottom-2 duration-500"
-                style={{
-                    animationDelay: '320ms',
-                    animationFillMode: 'backwards',
-                }}
-            >
+            <div className="border-t border-border px-7 pt-5 pb-5">
                 <SectionHeader
                     number="03"
                     title="Media"
@@ -709,25 +729,20 @@ export default function CreatePost({
                 )}
             </div>
 
-            <div
-                className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-zinc-900 px-6 py-3.5 text-zinc-50 animate-in fade-in slide-in-from-bottom-2 duration-500 dark:bg-zinc-950"
-                style={{
-                    animationDelay: '400ms',
-                    animationFillMode: 'backwards',
-                }}
-            >
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-zinc-900 px-6 py-3.5 text-zinc-50 dark:bg-zinc-950">
                 <div className="flex flex-wrap items-center gap-2">
                     <Button
                         type="button"
                         variant="outline"
                         size="sm"
+                        disabled={data.is_draft}
                         onClick={
                             scheduleOpen
                                 ? clearSchedule
                                 : openSchedule
                         }
                         className={cn(
-                            'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50',
+                            'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50 disabled:opacity-40',
                             scheduleOpen &&
                                 'border-zinc-50/40 bg-zinc-50/10',
                         )}
@@ -735,7 +750,21 @@ export default function CreatePost({
                         <Clock className="size-3.5" />
                         {scheduleLabel}
                     </Button>
-                    {scheduleOpen && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleDraft}
+                        className={cn(
+                            'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50',
+                            data.is_draft &&
+                                'border-amber-400/60 bg-amber-400/10 text-amber-200 hover:bg-amber-400/15 hover:text-amber-100',
+                        )}
+                    >
+                        <FileText className="size-3.5" />
+                        {draftLabel}
+                    </Button>
+                    {scheduleOpen && !data.is_draft && (
                         <div className="flex items-center gap-1.5">
                             <Popover>
                                 <PopoverTrigger asChild>
@@ -746,7 +775,7 @@ export default function CreatePost({
                                         className="border-zinc-50/20 bg-transparent text-xs text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50"
                                     >
                                         {format(
-                                            data.scheduled_date,
+                                            data.scheduled_date ?? "",
                                             'MMM d, yyyy',
                                         )}
                                     </Button>
@@ -759,7 +788,7 @@ export default function CreatePost({
                                         mode="single"
                                         selected={
                                             new Date(
-                                                data.scheduled_date,
+                                                data.scheduled_date ?? "",
                                             )
                                         }
                                         onSelect={(e) => {
@@ -811,13 +840,18 @@ export default function CreatePost({
                     <Button
                         type="submit"
                         disabled={!canSubmit() || processing}
-                        className="bg-emerald-700 text-zinc-50 hover:bg-emerald-600"
+                        className={cn(
+                            'text-zinc-50',
+                            data.is_draft
+                                ? 'bg-amber-600 hover:bg-amber-500'
+                                : 'bg-emerald-700 hover:bg-emerald-600',
+                        )}
                     >
                         {processing
-                            ? 'Posting...'
-                            : data.is_scheduled
-                              ? 'Schedule'
-                              : 'Post now'}
+                            ? data.is_draft
+                                ? 'Saving...'
+                                : 'Posting...'
+                            : submitLabel}
                         {data.userTokenIds.length > 0 && (
                             <span className="grid size-[18px] place-items-center rounded-full bg-zinc-50/20 text-[11px] font-bold text-zinc-50">
                                 {data.userTokenIds.length}
@@ -830,3 +864,4 @@ export default function CreatePost({
     </div>
     );
 }
+

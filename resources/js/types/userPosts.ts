@@ -4,6 +4,7 @@ export type userPosts = {
     id: number;
     content: string;
     post_at: Date;
+    is_draft: boolean;
     created_at: Date;
     user_post_systems: userPostSystems[];
 }

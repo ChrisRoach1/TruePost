@@ -32,9 +32,7 @@ class UserPostController extends Controller
     {
         $request->validate([
             'content' => 'nullable|string',
-            'scheduled_date' => 'required',
-            'scheduled_date_string' => 'required',
-            'scheduled_time' => 'required',
+            'is_draft' => 'required|boolean',
             'channelContent' => 'nullable|array',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
@@ -66,7 +64,8 @@ class UserPostController extends Controller
         $userPost = UserPost::create([
             'original_content' => $request->input('content'),
             'user_id' => auth()->id(),
-            'post_at' => $postDate,
+            'is_draft' => $request->input('is_draft'),
+            'post_at' => $request->input('is_draft') ? null : $postDate,
             'media_url' => $mediaUrl,
         ]);
 
@@ -77,14 +76,16 @@ class UserPostController extends Controller
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
-        if ($request->input('is_scheduled')) {
-            $job = (new SendPosts($userPostWithData))->delay($postDate);
-            $jobId = Bus::dispatch($job);
+        if (! $request->input('is_draft')) {
+            if ($request->input('is_scheduled')) {
+                $job = (new SendPosts($userPostWithData))->delay($postDate);
+                $jobId = Bus::dispatch($job);
 
-            $userPost->update(['job_id' => $jobId]);
-            $userPost->save();
-        } else {
-            SendPosts::dispatch($userPostWithData);
+                $userPost->update(['job_id' => $jobId]);
+                $userPost->save();
+            } else {
+                SendPosts::dispatch($userPostWithData);
+            }
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('dashboard');

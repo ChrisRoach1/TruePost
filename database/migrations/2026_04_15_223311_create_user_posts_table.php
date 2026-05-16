@@ -15,9 +15,10 @@ return new class extends Migration
         Schema::create('user_posts', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class);
+            $table->boolean('is_draft')->default(false);
             $table->text('original_content')->nullable(true);
             $table->string('media_url');
-            $table->dateTime('post_at');
+            $table->dateTime('post_at')->nullable(true);
             $table->integer('job_id')->nullable(true);
             $table->integer('days_to_track_metrics')->default(15);
             $table->timestamps();
