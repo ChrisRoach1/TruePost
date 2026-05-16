@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('userPost', [UserPostController::class, "index"])->name('userPost.index');
     Route::post('userPost', [UserPostController::class, "store"])->name('userPost.store');
+    Route::put('userPost/{userPost}', [UserPostController::class, "update"])->name('userPost.update');
 });
 
 require __DIR__.'/settings.php';

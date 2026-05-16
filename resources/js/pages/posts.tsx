@@ -1,15 +1,20 @@
 import { Head, Link } from '@inertiajs/react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
-import { CalendarDays, FileText, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
+import { CalendarDays, FileText, NotebookPen, Pencil, Plus, Send, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import EditPost from '@/components/edit-post';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { dashboard } from '@/routes';
 import userPost from '@/routes/userPost';
+import type { System, UserToken } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
 type Props = {
     userPosts?: userPosts[];
+    connectedAccounts?: UserToken[];
+    systems?: System[];
 };
 
 function PlatformPill({ system }: { system: { icon: string; background_color: string; icon_color: string; name: string } }) {
@@ -26,11 +31,19 @@ function PlatformPill({ system }: { system: { icon: string; background_color: st
     );
 }
 
-function PostCard({ post, index }: { post: userPosts; index: number }) {
+function PostCard({
+    post,
+    index,
+    onEdit,
+}: {
+    post: userPosts;
+    index: number;
+    onEdit?: () => void;
+}) {
 
     const isDraft = post.is_draft;
-    const scheduleDate = new Date(post.post_at);
-    const posted = !isDraft && isPast(scheduleDate);
+    const scheduleDate = post.post_at ? new Date(post.post_at) : null;
+    const posted = !isDraft && scheduleDate !== null && isPast(scheduleDate);
 
     const accentClass = isDraft
         ? 'bg-amber-500'
@@ -67,7 +80,7 @@ function PostCard({ post, index }: { post: userPosts; index: number }) {
                 </div>
 
                 <p className="flex-1 text-sm leading-relaxed line-clamp-4 text-foreground/90">
-                    {post.content}
+                    {post.original_content ?? post.content}
                 </p>
 
                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
@@ -76,7 +89,7 @@ function PostCard({ post, index }: { post: userPosts; index: number }) {
                             <NotebookPen className="size-3.5 shrink-0" />
                             <span className="font-medium">Draft · not scheduled</span>
                         </div>
-                    ) : (
+                    ) : scheduleDate ? (
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <CalendarDays className="size-3.5 shrink-0" />
@@ -86,17 +99,31 @@ function PostCard({ post, index }: { post: userPosts; index: number }) {
                                 {formatDistanceToNow(scheduleDate, { addSuffix: true })}
                             </div>
                         </div>
-                    )}
+                    ) : null}
 
-                    {!posted && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="size-8 p-0 text-muted-foreground hover:text-destructive"
-                        >
-                            <Trash2 className="size-3.5" />
-                        </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                        {isDraft && onEdit && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={onEdit}
+                                className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                                aria-label="Edit draft"
+                            >
+                                <Pencil className="size-3.5" />
+                            </Button>
+                        )}
+                        {!posted && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="size-8 p-0 text-muted-foreground hover:text-destructive"
+                                aria-label="Delete post"
+                            >
+                                <Trash2 className="size-3.5" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -123,7 +150,13 @@ function EmptyState() {
     );
 }
 
-export default function Posts({ userPosts: posts = [] }: Props) {
+export default function Posts({
+    userPosts: posts = [],
+    connectedAccounts = [],
+    systems = [],
+}: Props) {
+    const [editingPost, setEditingPost] = useState<userPosts | null>(null);
+
     return (
         <>
             <Head title="Posts" />
@@ -145,12 +178,35 @@ export default function Posts({ userPosts: posts = [] }: Props) {
                     ) : (
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {posts.map((post, i) => (
-                                <PostCard key={post.id} post={post} index={i} />
+                                <PostCard
+                                    key={post.id}
+                                    post={post}
+                                    index={i}
+                                    onEdit={
+                                        post.is_draft
+                                            ? () => setEditingPost(post)
+                                            : undefined
+                                    }
+                                />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            {editingPost && (
+                <EditPost
+                    post={editingPost}
+                    connectedAccounts={connectedAccounts}
+                    systems={systems}
+                    open={!!editingPost}
+                    onOpenChange={(o) => {
+                        if (!o) {
+                            setEditingPost(null);
+                        }
+                    }}
+                />
+            )}
         </>
     );
 }

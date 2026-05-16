@@ -2,6 +2,9 @@ import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { ChannelCard } from '@/components/post-form/channel-card';
+import { ChannelTabs } from '@/components/post-form/channel-tabs';
+import { CounterRing } from '@/components/post-form/counter-ring';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -20,72 +23,6 @@ type Props = {
     connectedAccounts?: UserToken[];
     systems?: System[];
 };
-
-type CardProps = {
-    account: UserToken;
-    selected: boolean;
-    count: number;
-    onToggle: () => void;
-};
-
-function ChannelCard({ account, selected, count, onToggle }: CardProps) {
-    const limit = account.system.max_post_length;
-    const over = count > limit;
-    const left = Math.max(0, limit - count);
-
-    return (
-        <button
-            type="button"
-            onClick={onToggle}
-            className={cn(
-                'group relative flex items-center gap-3 rounded-xl border p-3 text-left transition-all',
-                selected
-                    ? 'border-foreground bg-card shadow-xs'
-                    : 'border-border bg-card opacity-55 hover:opacity-90',
-            )}
-        >
-            <span
-                className="grid size-10 shrink-0 place-items-center rounded-md text-white"
-                style={{ backgroundColor: account.system.background_color }}
-            >
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                >
-                    <path d={account.system.icon} />
-                </svg>
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                <span className="truncate text-[13px] font-semibold text-foreground">
-                    {account.system.name}
-                </span>
-                {account.user_name && (
-                    <span className="truncate text-[11px] text-muted-foreground">
-                        @{account.user_name}
-                    </span>
-                )}
-            </span>
-            <span className="flex shrink-0 flex-col items-end leading-none">
-                <span
-                    className={cn(
-                        'text-xl font-semibold tabular-nums',
-                        over ? 'text-destructive' : 'text-foreground',
-                    )}
-                >
-                    {over
-                        ? `−${(count - limit).toLocaleString()}`
-                        : left.toLocaleString()}
-                </span>
-                <span className="mt-1 text-[9px] font-semibold tracking-[0.18em] text-muted-foreground">
-                    LEFT
-                </span>
-            </span>
-            <span className="absolute top-2 right-2 size-2 rounded-full bg-emerald-500 ring-2 ring-card" />
-        </button>
-    );
-}
 
 function SectionHeader({
     number,
@@ -113,45 +50,6 @@ function SectionHeader({
             </div>
             {action && <div className="flex items-center">{action}</div>}
         </div>
-    );
-}
-
-function CounterRing({ pct, over }: { pct: number; over: boolean }) {
-    const r = 7;
-    const c = 2 * Math.PI * r;
-    const safePct = Math.max(0, Math.min(1, pct));
-    const dash = c * safePct;
-
-    return (
-        <svg
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            className={cn(
-                '-rotate-90',
-                over ? 'text-destructive' : 'text-foreground',
-            )}
-        >
-            <circle
-                cx="9"
-                cy="9"
-                r={r}
-                fill="none"
-                stroke="currentColor"
-                strokeOpacity="0.18"
-                strokeWidth="1.5"
-            />
-            <circle
-                cx="9"
-                cy="9"
-                r={r}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray={`${dash} ${c - dash}`}
-            />
-        </svg>
     );
 }
 
@@ -538,93 +436,15 @@ export default function CreatePost({
 
                 {data.customizing &&
                     data.userTokenIds.length > 0 && (
-                        <div className="mt-3 flex gap-0.5 overflow-x-auto border-b border-border">
-                            {connectedSystems
-                                .filter((account) =>
-                                    data.userTokenIds.includes(
-                                        account.id,
-                                    ),
-                                )
-                                .sort(
-                                    (a, b) =>
-                                        a.system.order -
-                                        b.system.order,
-                                )
-                                .map((account) => {
-                                    const tabActive =
-                                        effectiveTab === account.id;
-                                    const tabCount = getChipCount(
-                                        account.id,
-                                    );
-                                    const tabOver =
-                                        tabCount >
-                                        account.system
-                                            .max_post_length;
-
-                                    return (
-                                        <button
-                                            key={account.id}
-                                            type="button"
-                                            onClick={() =>
-                                                setActiveTab(
-                                                    account.id,
-                                                )
-                                            }
-                                            className={cn(
-                                                'relative flex items-center gap-2 border-b-2 px-3 py-2 text-[13px] transition-colors',
-                                                tabActive
-                                                    ? 'border-foreground font-semibold text-foreground'
-                                                    : 'border-transparent font-medium text-muted-foreground hover:text-foreground',
-                                            )}
-                                        >
-                                            <span
-                                                className="grid size-4 place-items-center"
-                                                style={{
-                                                    color: tabActive
-                                                        ? account
-                                                              .system
-                                                              .background_color
-                                                        : undefined,
-                                                }}
-                                            >
-                                                <span
-                                                    className={cn(
-                                                        'grid place-items-center',
-                                                        !tabActive &&
-                                                            'text-muted-foreground/60',
-                                                    )}
-                                                >
-                                                    <svg
-                                                        width="14"
-                                                        height="14"
-                                                        viewBox="0 0 24 24"
-                                                        fill="currentColor"
-                                                    >
-                                                        <path
-                                                            d={
-                                                                account
-                                                                    .system
-                                                                    .icon
-                                                            }
-                                                        />
-                                                    </svg>
-                                                </span>
-                                            </span>
-                                            {account.system.name}
-                                            {isModified(
-                                                account.id,
-                                            ) && (
-                                                <span className="size-1.5 rounded-full bg-primary" />
-                                            )}
-                                            {tabOver && (
-                                                <span className="text-[11px] font-bold text-destructive">
-                                                    !
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                        </div>
+                        <ChannelTabs
+                            accounts={connectedSystems.filter((account) =>
+                                data.userTokenIds.includes(account.id),
+                            )}
+                            activeTab={effectiveTab}
+                            onSelect={(id) => setActiveTab(id)}
+                            getCount={getChipCount}
+                            isModified={isModified}
+                        />
                     )}
 
                 <Textarea
