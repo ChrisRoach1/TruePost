@@ -8,6 +8,7 @@ use App\Models\UserPost;
 use App\Models\UserToken;
 use DateTime;
 use DateTimeZone;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -162,6 +163,36 @@ class UserPostController extends Controller
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Updated!')])->render('posts');
+
+        return redirect()->route('userPost.index');
+    }
+
+    public function delete(Request $request, UserPost $userPost)
+    {
+        abort_unless($userPost->user_id === auth()->id(), 403);
+
+        $userPost->delete();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Post deleted!')])->render('posts');
+
+        return redirect()->route('userPost.index');
+    }
+
+    public function postNow(Request $request, UserPost $userPost)
+    {
+        abort_unless($userPost->user_id === auth()->id(), 403);
+
+        if ($userPost->job_id) {
+            DB::table('jobs')->where('id', $userPost->job_id)->delete();
+        }
+
+        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+
+        SendPosts::dispatch($userPostWithData);
+
+        $userPost->update(['post_at' => now(), 'job_id' => null, 'has_posted' => true]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Posted!')])->render('posts');
 
         return redirect()->route('userPost.index');
     }

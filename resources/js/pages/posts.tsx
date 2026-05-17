@@ -1,13 +1,16 @@
-import { Head, Link } from '@inertiajs/react';
-import { format, formatDistanceToNow, isPast } from 'date-fns';
-import { CalendarDays, FileText, NotebookPen, Pencil, Plus, Send, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { isPast } from 'date-fns';
+import { FileText, Plus, Search, Send } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import EditPost from '@/components/edit-post';
-import { Badge } from '@/components/ui/badge';
+import DraftPostRow from '@/components/posts/draft-post-row';
+import PublishedPostRow from '@/components/posts/published-post-row';
+import ScheduledPostRow from '@/components/posts/scheduled-post-row';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import userPost from '@/routes/userPost';
+import userPost, { deleteMethod, postNow } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
@@ -17,118 +20,7 @@ type Props = {
     systems?: System[];
 };
 
-function PlatformPill({ system }: { system: { icon: string; background_color: string; icon_color: string; name: string } }) {
-    return (
-        <div
-            className="flex items-center justify-center rounded-md size-7"
-            style={{ backgroundColor: `${system.background_color}18` }}
-            title={system.name}
-        >
-            <svg className="size-3.5" viewBox="0 0 24 24" fill="currentColor" style={{ color: system.icon_color }}>
-                <path d={system.icon} />
-            </svg>
-        </div>
-    );
-}
-
-function PostCard({
-    post,
-    index,
-    onEdit,
-}: {
-    post: userPosts;
-    index: number;
-    onEdit?: () => void;
-}) {
-
-    const isDraft = post.is_draft;
-    const scheduleDate = post.post_at ? new Date(post.post_at) : null;
-    const posted = !isDraft && scheduleDate !== null && isPast(scheduleDate);
-
-    const accentClass = isDraft
-        ? 'bg-amber-500'
-        : posted
-            ? 'bg-muted-foreground/15'
-            : 'bg-primary';
-
-    const badgeClass = isDraft
-        ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
-        : posted
-            ? 'border-muted-foreground/20 bg-muted/50 text-muted-foreground'
-            : 'border-primary/20 bg-primary/5 text-primary dark:border-primary/30 dark:bg-primary/10';
-
-    const badgeLabel = isDraft ? 'Draft' : posted ? 'Posted' : 'Scheduled';
-
-    return (
-        <Card
-            className="group relative flex flex-col overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 animate-in fade-in slide-in-from-bottom-3"
-            style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
-        >
-            <div className={`h-1 w-full ${accentClass}`} />
-
-            <CardContent className="flex flex-1 flex-col gap-4 p-5">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                        {post.user_post_systems?.map((ps) => (
-                            <PlatformPill key={ps.id} system={ps.user_token.system} />
-                        ))}
-                    </div>
-
-                    <Badge variant="outline" className={badgeClass}>
-                        {badgeLabel}
-                    </Badge>
-                </div>
-
-                <p className="flex-1 text-sm leading-relaxed line-clamp-4 text-foreground/90">
-                    {post.original_content ?? post.content}
-                </p>
-
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    {isDraft ? (
-                        <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400">
-                            <NotebookPen className="size-3.5 shrink-0" />
-                            <span className="font-medium">Draft · not scheduled</span>
-                        </div>
-                    ) : scheduleDate ? (
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <CalendarDays className="size-3.5 shrink-0" />
-                                <span>{format(scheduleDate, 'MMM d, yyyy')} at {format(scheduleDate, 'h:mm a')}</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground/70">
-                                {formatDistanceToNow(scheduleDate, { addSuffix: true })}
-                            </div>
-                        </div>
-                    ) : null}
-
-                    <div className="flex items-center gap-1">
-                        {isDraft && onEdit && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={onEdit}
-                                className="size-8 p-0 text-muted-foreground hover:text-foreground"
-                                aria-label="Edit draft"
-                            >
-                                <Pencil className="size-3.5" />
-                            </Button>
-                        )}
-                        {!posted && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="size-8 p-0 text-muted-foreground hover:text-destructive"
-                                aria-label="Delete post"
-                            >
-                                <Trash2 className="size-3.5" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
+type FilterKey = 'all' | 'scheduled' | 'drafts' | 'posted';
 
 function EmptyState() {
     return (
@@ -150,46 +42,266 @@ function EmptyState() {
     );
 }
 
+function SectionHeader({
+    number,
+    label,
+    accent,
+    count,
+}: {
+    number: string;
+    label: string;
+    accent: string;
+    count: number;
+}) {
+    return (
+        <div className="flex items-baseline gap-2 px-1 pb-3">
+            <span className="font-mono text-[11px] font-semibold text-primary">
+                #{number}
+            </span>
+            <span className="text-[18px] font-semibold tracking-tight text-foreground">
+                {label}
+            </span>
+            <span className="font-serif text-[18px] italic text-primary">
+                {accent}
+            </span>
+            <span className="font-mono text-[11px] text-muted-foreground">
+                · {count}
+            </span>
+        </div>
+    );
+}
+
+function CountPill({ label, value }: { label: string; value: number }) {
+    return (
+        <span className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
+            <span className="text-foreground tabular-nums">{value}</span> {label}
+        </span>
+    );
+}
+
+function FilterTab({
+    active,
+    label,
+    count,
+    onClick,
+}: {
+    active: boolean;
+    label: string;
+    count: number;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                'flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium transition-colors',
+                active
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:text-foreground',
+            )}
+        >
+            <span>{label}</span>
+            <span className={cn('font-mono text-[10px] tabular-nums', active ? 'text-background/70' : 'text-muted-foreground/70')}>
+                {count}
+            </span>
+        </button>
+    );
+}
+
 export default function Posts({
     userPosts: posts = [],
     connectedAccounts = [],
     systems = [],
 }: Props) {
     const [editingPost, setEditingPost] = useState<userPosts | null>(null);
+    const [filter, setFilter] = useState<FilterKey>('all');
+
+    const { scheduled, drafts, published } = useMemo(() => {
+        const scheduledList: userPosts[] = [];
+        const draftList: userPosts[] = [];
+        const publishedList: userPosts[] = [];
+
+        for (const post of posts) {
+            if (post.is_draft) {
+                draftList.push(post);
+                continue;
+            }
+
+            const date = post.post_at ? new Date(post.post_at) : null;
+
+            if (date && !isPast(date)) {
+                scheduledList.push(post);
+            } else if (date) {
+                publishedList.push(post);
+            } else {
+                draftList.push(post);
+            }
+        }
+
+        scheduledList.sort((a, b) => {
+            const aT = a.post_at ? new Date(a.post_at).getTime() : 0;
+            const bT = b.post_at ? new Date(b.post_at).getTime() : 0;
+
+            return aT - bT;
+        });
+        publishedList.sort((a, b) => {
+            const aT = a.post_at ? new Date(a.post_at).getTime() : 0;
+            const bT = b.post_at ? new Date(b.post_at).getTime() : 0;
+
+            return bT - aT;
+        });
+
+        return { scheduled: scheduledList, drafts: draftList, published: publishedList };
+    }, [posts]);
+
+    const showScheduled = filter === 'all' || filter === 'scheduled';
+    const showDrafts = filter === 'all' || filter === 'drafts';
+    const showPublished = filter === 'all' || filter === 'posted';
+
+    function deletePost(postId: number): void {
+        router.delete(deleteMethod({userPost: postId}));
+    }
+
+    function handlePostNow(postId: number): void {
+        router.post(postNow(postId));
+    }
 
     return (
         <>
             <Head title="Posts" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
-                <div className="mx-auto w-full max-w-6xl space-y-6">
-                    <div className="flex items-end justify-between gap-4">
+            <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
+                <div className="mx-auto w-full max-w-6xl space-y-8">
+                    <header className="flex items-start justify-between gap-4 pt-2">
+                        <div className="space-y-2">
+                            <span className="font-mono text-[11px] font-semibold tracking-widest text-primary uppercase">
+                                The archive
+                            </span>
+                            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+                                Every <span className="font-serif italic text-primary">dispatch</span> you've ever made.
+                            </h1>
+                            <div className="flex items-center gap-4 pt-1">
+                                <CountPill label="All" value={posts.length} />
+                                <CountPill label="Drafts" value={drafts.length} />
+                                <CountPill label="Scheduled" value={scheduled.length} />
+                                <CountPill label="Posted" value={published.length} />
+                            </div>
+                        </div>
                         {posts.length > 0 && (
-                            <Button asChild size="sm">
+                            <Button asChild>
                                 <Link href={dashboard().url}>
                                     <Send className="size-3.5" />
-                                    New Post
+                                    New post
                                 </Link>
                             </Button>
                         )}
-                    </div>
+                    </header>
 
                     {posts.length === 0 ? (
                         <EmptyState />
                     ) : (
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {posts.map((post, i) => (
-                                <PostCard
-                                    key={post.id}
-                                    post={post}
-                                    index={i}
-                                    onEdit={
-                                        post.is_draft
-                                            ? () => setEditingPost(post)
-                                            : undefined
-                                    }
-                                />
-                            ))}
-                        </div>
+                        <>
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-dashed border-border py-3">
+                                <div className="flex items-center gap-1 rounded-full border border-border p-0.5">
+                                    <FilterTab
+                                        active={filter === 'all'}
+                                        label="All"
+                                        count={posts.length}
+                                        onClick={() => setFilter('all')}
+                                    />
+                                    <FilterTab
+                                        active={filter === 'scheduled'}
+                                        label="Scheduled"
+                                        count={scheduled.length}
+                                        onClick={() => setFilter('scheduled')}
+                                    />
+                                    <FilterTab
+                                        active={filter === 'drafts'}
+                                        label="Drafts"
+                                        count={drafts.length}
+                                        onClick={() => setFilter('drafts')}
+                                    />
+                                    <FilterTab
+                                        active={filter === 'posted'}
+                                        label="Posted"
+                                        count={published.length}
+                                        onClick={() => setFilter('posted')}
+                                    />
+                                </div>
+
+                                <div className="relative">
+                                    <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search posts"
+                                        className="h-8 w-56 pl-8 text-[12px]"
+                                    />
+                                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border px-1 font-mono text-[9px] text-muted-foreground">
+                                        /
+                                    </span>
+                                </div>
+                            </div>
+
+                            {showScheduled && scheduled.length > 0 && (
+                                <section>
+                                    <SectionHeader
+                                        number="01"
+                                        label="Scheduled"
+                                        accent="& queued"
+                                        count={scheduled.length}
+                                    />
+                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm divide-y divide-border">
+                                        {scheduled.map((post) => (
+                                            <ScheduledPostRow
+                                                key={post.id}
+                                                post={post}
+                                                onPostNow={() => handlePostNow(post.id)}
+                                            />
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
+
+                            {showDrafts && drafts.length > 0 && (
+                                <section>
+                                    <SectionHeader
+                                        number="02"
+                                        label="In"
+                                        accent="progress"
+                                        count={drafts.length}
+                                    />
+                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                        {drafts.map((post, i) => (
+                                            <DraftPostRow
+                                                key={post.id}
+                                                post={post}
+                                                index={i}
+                                                onEdit={() => setEditingPost(post)}
+                                                onDelete={() => deletePost(post.id)}
+                                            />
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
+
+                            {showPublished && published.length > 0 && (
+                                <section>
+                                    <SectionHeader
+                                        number="03"
+                                        label="Recently"
+                                        accent="published"
+                                        count={published.length}
+                                    />
+                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                        {published.map((post) => (
+                                            <PublishedPostRow
+                                                key={post.id}
+                                                post={post}
+                                            />
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

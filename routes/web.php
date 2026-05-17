@@ -6,6 +6,7 @@ use App\Models\System;
 use App\Models\UserPost;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -99,6 +100,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('userPost', [UserPostController::class, 'index'])->name('userPost.index');
     Route::post('userPost', [UserPostController::class, 'store'])->name('userPost.store');
     Route::put('userPost/{userPost}', [UserPostController::class, 'update'])->name('userPost.update');
+    Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
+    Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');
 });
 
 require __DIR__.'/settings.php';
