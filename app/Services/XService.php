@@ -96,7 +96,7 @@ class XService implements SocialServiceInterface
         $response = Http::post('https://api.x.com/2/oauth2/token', [
             'grant_type' => 'refresh_token',
             'refresh_token' => $userToken->refresh_token,
-            'client_id' => config('X_CLIENT_ID'),
+            'client_id' => env('X_CLIENT_ID'),
         ]);
         $user = $response->json();
 

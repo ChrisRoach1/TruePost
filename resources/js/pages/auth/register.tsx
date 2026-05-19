@@ -2,10 +2,12 @@ import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
+import TimezoneSelect from '@/components/timezone-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { getBrowserTimezone } from '@/lib/timezones';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
@@ -52,6 +54,17 @@ export default function Register() {
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="timezone">Timezone</Label>
+                                <TimezoneSelect
+                                    id="timezone"
+                                    name="timezone"
+                                    required
+                                    defaultValue={getBrowserTimezone()}
+                                />
+                                <InputError message={errors.timezone} />
                             </div>
 
                             <div className="grid gap-2">

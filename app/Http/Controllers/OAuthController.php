@@ -49,7 +49,7 @@ class OAuthController extends Controller
 
                 $longLivedToken = Http::get('https://graph.instagram.com/access_token', [
                     'grant_type' => 'ig_exchange_token',
-                    'client_secret' => config('INSTAGRAM_CLIENT_SECRET'),
+                    'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
                     'access_token' => $user->token,
                 ])
                     ->json();

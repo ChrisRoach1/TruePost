@@ -102,8 +102,8 @@ class LinkedInService implements SocialServiceInterface
         $response = Http::post('https://www.linkedin.com/oauth/v2/accessToken', [
             'grant_type' => 'refresh_token',
             'refresh_token' => $userToken->refresh_token,
-            'client_id' => config('LINKEDIN_CLIENT_ID'),
-            'client_secret' => config('LINKEDIN_CLIENT_SECRET'),
+            'client_id' => env('LINKEDIN_CLIENT_ID'),
+            'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
         ]);
         $user = $response->json();
 

@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { debounce } from '@tanstack/pacer';
 import { isPast } from 'date-fns';
 import { FileText, Plus, Search, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -10,9 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import userPost, { deleteMethod, postNow } from '@/routes/userPost';
+import userPost, { deleteMethod, index, postNow } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
 import type { userPosts } from '@/types/userPosts';
+
 
 type Props = {
     userPosts?: userPosts[];
@@ -116,6 +118,12 @@ export default function Posts({
 }: Props) {
     const [editingPost, setEditingPost] = useState<userPosts | null>(null);
     const [filter, setFilter] = useState<FilterKey>('all');
+
+    const debouncedSearch = debounce((searchTerm: string) => {
+        router.get(index({"query": {'search': searchTerm}}), undefined, {preserveState: true, preserveScroll: true})
+    }, {
+        wait: 500,
+      });
 
     const { scheduled, drafts, published } = useMemo(() => {
         const scheduledList: userPosts[] = [];
@@ -234,6 +242,7 @@ export default function Posts({
                                     <Input
                                         placeholder="Search posts"
                                         className="h-8 w-56 pl-8 text-[12px]"
+                                        onChange={(e) => debouncedSearch(e.target.value)}
                                     />
                                     <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border px-1 font-mono text-[9px] text-muted-foreground">
                                         /

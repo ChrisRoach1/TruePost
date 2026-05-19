@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -77,7 +77,6 @@ export default function CreatePost({
             scheduled_date?: Date;
             scheduled_date_string?: string;
             scheduled_time?: string;
-            timezone: string;
             image: File | null;
         }>({
             content: '',
@@ -89,7 +88,6 @@ export default function CreatePost({
             scheduled_date: new Date(),
             scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
             scheduled_time: format(new Date(), 'HH:mm'),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             image: null,
         });
 
@@ -184,6 +182,7 @@ export default function CreatePost({
         clearImage();
         setScheduleOpen(false);
         setActiveTab('all');
+        router.flushAll();
     }
 
     const effectiveTab: 'all' | number =

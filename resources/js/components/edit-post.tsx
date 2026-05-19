@@ -79,7 +79,6 @@ export default function EditPost({
             scheduled_date?: Date;
             scheduled_date_string?: string;
             scheduled_time?: string;
-            timezone: string;
             image: File | null;
         }>({
             _method: 'put',
@@ -94,7 +93,6 @@ export default function EditPost({
             scheduled_date: initialPostAt,
             scheduled_date_string: format(initialPostAt, 'yyyy-MM-dd'),
             scheduled_time: format(initialPostAt, 'HH:mm'),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             image: null,
         });
 

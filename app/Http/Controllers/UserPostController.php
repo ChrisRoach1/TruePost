@@ -9,6 +9,7 @@ use App\Models\UserToken;
 use DateTime;
 use DateTimeZone;
 use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -17,11 +18,17 @@ use Intervention\Image\Laravel\Facades\Image;
 
 class UserPostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+
+        $searchQuery = $request->query('search');
+
         $userPosts = UserPost::query()
             ->with('UserPostSystems.userToken.system')
             ->where('user_id', auth()->id())
+            ->when($searchQuery, function (Builder $query, $searchQuery) {
+                $query->where('original_content', 'like', '%'.$searchQuery.'%');
+            })
             ->orderBy('id', 'desc')
             ->get();
 
@@ -52,10 +59,9 @@ class UserPostController extends Controller
             'channelContent' => 'nullable|array',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
-            'timezone' => 'required|timezone',
         ]);
 
-        $userTz = new DateTimeZone($request->timezone);
+        $userTz = new DateTimeZone(auth()->user()->getTimezone());
         $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
 
         if ($request->hasFile('image')) {
@@ -64,8 +70,9 @@ class UserPostController extends Controller
             $mediaUrl = '';
         }
 
+        $firstKey = array_key_first($request->input('channelContent')) ?? null;
         $userPost = UserPost::create([
-            'original_content' => $request->input('content'),
+            'original_content' => $request->input('content') ?? $request->input('channelContent')[$firstKey],
             'user_id' => auth()->id(),
             'is_draft' => $request->input('is_draft'),
             'post_at' => $request->input('is_draft') ? null : $postDate,
@@ -110,10 +117,9 @@ class UserPostController extends Controller
             'channelContent' => 'nullable|array',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
-            'timezone' => 'required|timezone',
         ]);
 
-        $userTz = new DateTimeZone($request->timezone);
+        $userTz = new DateTimeZone(auth()->user()->getTimezone());
         $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
 
         if ($request->hasFile('image')) {
@@ -186,11 +192,13 @@ class UserPostController extends Controller
             DB::table('jobs')->where('id', $userPost->job_id)->delete();
         }
 
+        $userTz = new DateTimeZone(auth()->user()->getTimezone());
+        $postDate = new DateTime(now($userTz));
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
         SendPosts::dispatch($userPostWithData);
 
-        $userPost->update(['post_at' => now(), 'job_id' => null, 'has_posted' => true]);
+        $userPost->update(['post_at' => $postDate, 'job_id' => null, 'has_posted' => true]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Posted!')])->render('posts');
 

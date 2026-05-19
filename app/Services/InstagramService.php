@@ -22,7 +22,7 @@ class InstagramService implements SocialServiceInterface
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
         $content = $userPostSystem->override_content ?? $content;
-        $media_url = config('R2_PUBLIC_ENDPOINT').'/'.$media;
+        $media_url = env('R2_PUBLIC_ENDPOINT').'/'.$media;
         $containerCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media',
             [
                 'caption' => $content,
@@ -56,7 +56,7 @@ class InstagramService implements SocialServiceInterface
         $response = Http::get('https://graph.instagram.com/refresh_access_token', [
             'grant_type' => 'ig_refresh_token',
             'refresh_token' => $userToken->access_token,
-            'client_id' => config('X_CLIENT_ID'),
+            'client_id' => env('X_CLIENT_ID'),
         ]);
 
         $user = $response->json();
