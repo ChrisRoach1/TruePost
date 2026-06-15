@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_token_id', 'user_post_id', 'override_content', 'failed_to_post'])]
+#[Fillable(['user_token_id', 'user_post_id', 'override_content', 'failed_to_post', 'likes', 'replies', 'impressions'])]
 class UserPostSystem extends Model
 {
     public function UserPost(): BelongsTo

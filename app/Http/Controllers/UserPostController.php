@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\MetricCalculations;
 use App\Jobs\SendPosts;
 use App\Models\System;
 use App\Models\UserPost;
@@ -12,6 +13,7 @@ use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Intervention\Image\Laravel\Facades\Image;
@@ -62,7 +64,11 @@ class UserPostController extends Controller
         ]);
 
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
+        if($request->input('is_scheduled')){
+            $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
+        }else{
+            $postDate = Date::now($userTz);
+        }
 
         if ($request->hasFile('image')) {
             $mediaUrl = $this->storeImage($request);
@@ -70,9 +76,8 @@ class UserPostController extends Controller
             $mediaUrl = '';
         }
 
-        $firstKey = array_key_first($request->input('channelContent')) ?? null;
         $userPost = UserPost::create([
-            'original_content' => $request->input('content') ?? $request->input('channelContent')[$firstKey],
+            'original_content' => $request->input('content') ?? null,
             'user_id' => auth()->id(),
             'is_draft' => $request->input('is_draft'),
             'post_at' => $request->input('is_draft') ? null : $postDate,
@@ -203,6 +208,16 @@ class UserPostController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Posted!')])->render('posts');
 
         return redirect()->route('userPost.index');
+    }
+
+    public function refreshMetrics(Request $request)
+    {
+        MetricCalculations::dispatch(auth()->id());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Metrics are refreshing!')])->render('posts');
+
+        return redirect()->route('userPost.index');
+
     }
 
     private function storeImage(Request $request): string

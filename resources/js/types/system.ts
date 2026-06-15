@@ -3,6 +3,9 @@ export type UserToken = {
     id: number;
     system_id: number;
     user_name: string | null;
+    expires_at: string | null;
+    needs_reauthed: boolean | null;
+    created_at: string;
     system: System;
 }
 

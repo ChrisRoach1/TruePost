@@ -68,7 +68,7 @@ export default function CreatePost({
 
     const { data, setData, processing, submit, reset, errors, clearErrors } =
         useForm<{
-            content: string;
+            content: string | null;
             userTokenIds: number[];
             customizing: boolean;
             channelContent: Record<number, string>;
@@ -130,6 +130,38 @@ export default function CreatePost({
         );
     }
 
+    function customizePerChannel(checked: boolean) {
+        if (!checked) {
+            setData((prev) => ({
+                ...prev,
+                channelContent: {},
+                customizing: false,
+            }));
+            setActiveTab('all');
+
+            return;
+        }
+
+        const sortedConnectedSystems = connectedSystems
+            .filter((account) => data.userTokenIds.includes(account.id))
+            .sort((a, b) => a.system.order - b.system.order);
+
+        const firstId = sortedConnectedSystems[0]?.id;
+        const seed = data.content ?? '';
+
+        setData((prev) => ({
+            ...prev,
+            customizing: true,
+            content: null,
+            channelContent:
+                firstId !== undefined ? { [firstId]: seed } : {},
+        }));
+
+        if (firstId !== undefined) {
+            setActiveTab(firstId);
+        }
+    }
+
     function openSchedule() {
         setScheduleOpen(true);
         setData((prev) => ({
@@ -160,7 +192,7 @@ export default function CreatePost({
                 is_scheduled: false,
                 scheduled_date: undefined,
                 scheduled_date_string: undefined,
-                scheduled_time: undefined
+                scheduled_time: undefined,
             }));
         } else {
             const now = new Date();
@@ -190,7 +222,7 @@ export default function CreatePost({
             ? activeTab
             : 'all';
 
-    function getContent(tab: 'all' | number): string {
+    function getContent(tab: 'all' | number): string | null {
         if (!data.customizing || tab === 'all') {
             return data.content;
         }
@@ -198,13 +230,13 @@ export default function CreatePost({
         return data.channelContent[tab] ?? data.content;
     }
 
-    function setContent(tab: 'all' | number, value: string) {
+    function setContent(tab: 'all' | number, value: string | null) {
         if (tab === 'all' || !data.customizing) {
             setData('content', value);
         } else {
             setData('channelContent', {
                 ...data.channelContent,
-                [tab]: value,
+                [tab]: value ?? '',
             });
         }
     }
@@ -218,7 +250,7 @@ export default function CreatePost({
             }
         }
 
-        return data.content.length;
+        return data.content?.length ?? 0;
     }
 
     function isModified(id: number): boolean {
@@ -261,7 +293,7 @@ export default function CreatePost({
                     (a) => a.id === systemId,
                 );
 
-                if (connectedSystem) {
+                if (connectedSystem && data.content) {
                     if (
                         data.content.trim().length >
                         connectedSystem.system.max_post_length
@@ -273,7 +305,7 @@ export default function CreatePost({
         }
 
         return (
-            (data.content.trim().length > 0 ||
+            (data.content && data.content.trim().length > 0 ||
                 (data.customizing &&
                     Object.keys(data.channelContent).length ===
                         data.userTokenIds.length &&
@@ -283,8 +315,10 @@ export default function CreatePost({
             data.userTokenIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
-            (!data.is_draft && Boolean(data.scheduled_date) && Boolean(data.scheduled_time) || data.is_draft)
-
+            ((!data.is_draft &&
+                Boolean(data.scheduled_date) &&
+                Boolean(data.scheduled_time)) ||
+                data.is_draft)
         );
     }
 
@@ -296,13 +330,10 @@ export default function CreatePost({
     const counterLimit =
         activeAccount?.system.max_post_length ??
         (selectedSystems.length > 0
-            ? Math.min(
-                  ...selectedSystems.map((s) => s.system.max_post_length),
-              )
+            ? Math.min(...selectedSystems.map((s) => s.system.max_post_length))
             : 0);
-    const counterCount = currentText.length;
-    const counterPct =
-        counterLimit > 0 ? counterCount / counterLimit : 0;
+    const counterCount = currentText?.length ?? 0;
+    const counterPct = counterLimit > 0 ? counterCount / counterLimit : 0;
     const counterOver = counterLimit > 0 && counterCount > counterLimit;
 
     const scheduleLabel = data.is_scheduled ? `Post now` : 'Schedule for later';
@@ -327,9 +358,7 @@ export default function CreatePost({
                 <p
                     className={cn(
                         'text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors',
-                        data.is_draft
-                            ? 'text-amber-600'
-                            : 'text-primary',
+                        data.is_draft ? 'text-amber-600' : 'text-primary',
                     )}
                 >
                     {headerStatus}
@@ -349,10 +378,7 @@ export default function CreatePost({
                 {connectedSystems.length > 0 ? (
                     <div className="mt-4 grid gap-2.5 sm:grid-cols-2 md:grid-cols-3">
                         {connectedSystems
-                            .sort(
-                                (a, b) =>
-                                    a.system.order - b.system.order,
-                            )
+                            .sort((a, b) => a.system.order - b.system.order)
                             .map((account) => (
                                 <ChannelCard
                                     key={account.id}
@@ -361,16 +387,14 @@ export default function CreatePost({
                                         account.id,
                                     )}
                                     count={getChipCount(account.id)}
-                                    onToggle={() =>
-                                        togglePlatform(account.id)
-                                    }
+                                    onToggle={() => togglePlatform(account.id)}
                                 />
                             ))}
                     </div>
                 ) : (
                     <div className="mt-4 rounded-lg border border-dashed border-border/70 p-3.5 text-center text-[13px] text-muted-foreground">
-                        No accounts connected. Connect an account
-                        to start posting.
+                        No accounts connected. Connect an account to start
+                        posting.
                     </div>
                 )}
             </div>
@@ -386,45 +410,7 @@ export default function CreatePost({
                                 <Switch
                                     size="sm"
                                     checked={data.customizing}
-                                    onCheckedChange={(checked) => {
-                                        if (!checked) {
-                                            setData(
-                                                'channelContent',
-                                                {},
-                                            );
-                                            setActiveTab('all');
-                                        } else {
-                                            const sortedConnectedSystems =
-                                                connectedSystems
-                                                    .filter(
-                                                        (account) =>
-                                                            data.userTokenIds.includes(
-                                                                account.id,
-                                                            ),
-                                                    )
-                                                    .sort(
-                                                        (a, b) =>
-                                                            a.system
-                                                                .order -
-                                                            b.system
-                                                                .order,
-                                                    );
-
-                                            setActiveTab(
-                                                sortedConnectedSystems[0]
-                                                    .id,
-                                            );
-                                            setContent(
-                                                effectiveTab,
-                                                data.content,
-                                            );
-                                        }
-
-                                        setData(
-                                            'customizing',
-                                            checked,
-                                        );
-                                    }}
+                                    onCheckedChange={(checked) => customizePerChannel(checked)}
                                 />
                                 Customize per channel
                             </label>
@@ -432,24 +418,21 @@ export default function CreatePost({
                     }
                 />
 
-                {data.customizing &&
-                    data.userTokenIds.length > 0 && (
-                        <ChannelTabs
-                            accounts={connectedSystems.filter((account) =>
-                                data.userTokenIds.includes(account.id),
-                            )}
-                            activeTab={effectiveTab}
-                            onSelect={(id) => setActiveTab(id)}
-                            getCount={getChipCount}
-                            isModified={isModified}
-                        />
-                    )}
+                {data.customizing && data.userTokenIds.length > 0 && (
+                    <ChannelTabs
+                        accounts={connectedSystems.filter((account) =>
+                            data.userTokenIds.includes(account.id),
+                        )}
+                        activeTab={effectiveTab}
+                        onSelect={(id) => setActiveTab(id)}
+                        getCount={getChipCount}
+                        isModified={isModified}
+                    />
+                )}
 
                 <Textarea
-                    value={currentText}
-                    onChange={(e) =>
-                        setContent(effectiveTab, e.target.value)
-                    }
+                    value={currentText ?? ''}
+                    onChange={(e) => setContent(effectiveTab, e.target.value)}
                     placeholder="What do you want to say?"
                     className="mt-4 min-h-40 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
                 />
@@ -466,10 +449,7 @@ export default function CreatePost({
                         >
                             {counterCount} / {counterLimit}
                         </span>
-                        <CounterRing
-                            pct={counterPct}
-                            over={counterOver}
-                        />
+                        <CounterRing pct={counterPct} over={counterOver} />
                     </div>
                 )}
             </div>
@@ -518,9 +498,7 @@ export default function CreatePost({
                 ) : (
                     <button
                         type="button"
-                        onClick={() =>
-                            fileInputRef.current?.click()
-                        }
+                        onClick={() => fileInputRef.current?.click()}
                         className="mt-4 flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-[1.5px] border-dashed border-amber-500/60 bg-transparent px-6 py-10 text-center transition-colors hover:border-amber-500 hover:bg-amber-500/[0.03]"
                     >
                         <span className="text-lg text-muted-foreground">
@@ -554,15 +532,10 @@ export default function CreatePost({
                         variant="outline"
                         size="sm"
                         disabled={data.is_draft}
-                        onClick={
-                            scheduleOpen
-                                ? clearSchedule
-                                : openSchedule
-                        }
+                        onClick={scheduleOpen ? clearSchedule : openSchedule}
                         className={cn(
                             'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50 disabled:opacity-40',
-                            scheduleOpen &&
-                                'border-zinc-50/40 bg-zinc-50/10',
+                            scheduleOpen && 'border-zinc-50/40 bg-zinc-50/10',
                         )}
                     >
                         <Clock className="size-3.5" />
@@ -593,7 +566,7 @@ export default function CreatePost({
                                         className="border-zinc-50/20 bg-transparent text-xs text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50"
                                     >
                                         {format(
-                                            data.scheduled_date ?? "",
+                                            data.scheduled_date ?? '',
                                             'MMM d, yyyy',
                                         )}
                                     </Button>
@@ -605,34 +578,20 @@ export default function CreatePost({
                                     <Calendar
                                         mode="single"
                                         selected={
-                                            new Date(
-                                                data.scheduled_date ?? "",
-                                            )
+                                            new Date(data.scheduled_date ?? '')
                                         }
                                         onSelect={(e) => {
-                                            const next =
-                                                e ?? new Date();
-                                            setData(
-                                                'scheduled_date',
-                                                next,
-                                            );
+                                            const next = e ?? new Date();
+                                            setData('scheduled_date', next);
                                             setData(
                                                 'scheduled_date_string',
-                                                format(
-                                                    next,
-                                                    'yyyy-MM-dd',
-                                                ),
+                                                format(next, 'yyyy-MM-dd'),
                                             );
                                         }}
                                         disabled={(date) =>
                                             date <
                                             new Date(
-                                                new Date().setHours(
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                ),
+                                                new Date().setHours(0, 0, 0, 0),
                                             )
                                         }
                                     />
@@ -643,10 +602,7 @@ export default function CreatePost({
                                 step="60"
                                 value={data.scheduled_time}
                                 onChange={(e) =>
-                                    setData(
-                                        'scheduled_time',
-                                        e.target.value,
-                                    )
+                                    setData('scheduled_time', e.target.value)
                                 }
                                 className="h-8 w-28 appearance-none border-zinc-50/20 bg-transparent text-xs text-zinc-50 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:invert"
                             />
@@ -681,4 +637,3 @@ export default function CreatePost({
         </form>
     );
 }
-

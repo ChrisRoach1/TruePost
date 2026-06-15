@@ -19,7 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
 
-        $connectedAccounts = UserToken::query()->where(['needs_reauthed' => false])->with('system')->get();
+        $connectedAccounts = UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
         $systems = System::query()->orderBy('id')->get();
         $upNextItems = UserPost::query()
             ->with('UserPostSystems.userToken.System')
@@ -75,8 +75,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('accounts', function () {
         $connectedAccounts = UserToken::query()
             ->where('user_id', auth()->id())
-            ->get(['id', 'system_id', 'user_name']);
-        $systems = System::query()->orderBy('id')->get();
+            ->get(['id', 'system_id', 'user_name', 'expires_at', 'needs_reauthed', 'created_at']);
+        $systems = System::query()->orderBy('order')->get();
 
         return Inertia::render('accounts', [
             'connectedAccounts' => $connectedAccounts,
@@ -96,9 +96,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('auth/{platform}/redirect', [OAuthController::class, 'redirect'])->name('oauth.redirect');
     Route::get('auth/{platform}/callback', [OAuthController::class, 'callback'])->name('oauth.callback');
+    Route::post('auth/{userToken}/refresh', [OAuthController::class, 'refreshToken'])->name('oauth.refreshToken');
 
     Route::get('userPost', [UserPostController::class, 'index'])->name('userPost.index');
     Route::post('userPost', [UserPostController::class, 'store'])->name('userPost.store');
+    Route::post('userPost/refreshMetrics', [UserPostController::class, 'refreshMetrics'])->name('userPost.metrics-refresh');
     Route::put('userPost/{userPost}', [UserPostController::class, 'update'])->name('userPost.update');
     Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
     Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');

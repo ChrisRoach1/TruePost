@@ -17,6 +17,9 @@ export type userPostSystems = {
     user_token_id: number;
     override_content: string | null;
     failed_to_post: boolean;
+    impressions: number;
+    likes: number;
+    replies: number;
 }
 
 export type UpNextItem = {

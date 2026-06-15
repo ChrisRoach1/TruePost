@@ -15,7 +15,9 @@ return new class extends Migration
         Schema::create('post_metrics', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(UserPostSystem::class);
-            $table->integer('impressions')->default(0);
+            $table->integer('impressions');
+            $table->integer('likes');
+            $table->integer('replies');
             $table->timestamps();
         });
     }

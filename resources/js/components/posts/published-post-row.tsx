@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
+import ChannelMiniRow from '@/components/posts/channel-mini-row';
 import type { userPosts } from '@/types/userPosts';
 
 type Props = {
@@ -18,13 +19,38 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
     );
 }
 
+function formatMetric(value: number): string {
+    return value > 0 ? value.toLocaleString() : '—';
+}
+
 export function PublishedPostRow({ post }: Props) {
     const date = post.post_at ? new Date(post.post_at) : null;
-    const content = post.original_content ?? post.content ?? '';
+    const sharedContent = post.original_content?.trim() ?? '';
+    const usesShared = sharedContent.length > 0;
+    const channels = post.user_post_systems ?? [];
+
+    const totals = channels.reduce(
+        (acc, ps) => {
+            acc.impressions += ps.impressions ?? 0;
+            acc.likes += ps.likes ?? 0;
+            acc.replies += ps.replies ?? 0;
+
+            return acc;
+        },
+        { impressions: 0, likes: 0, replies: 0 },
+    );
+
+    const metrics = (
+        <div className="flex shrink-0 items-center gap-5 pl-3">
+            <MetricColumn label="Impressions" value={formatMetric(totals.impressions)} />
+            <MetricColumn label="Likes" value={formatMetric(totals.likes)} />
+            <MetricColumn label="Replies" value={formatMetric(totals.replies)} />
+        </div>
+    );
 
     return (
-        <li className="group flex items-center gap-4 border-b border-dashed border-border px-5 py-3 last:border-b-0 hover:bg-accent/30">
-            <div className="flex w-28 shrink-0 flex-col leading-tight">
+        <li className="group flex items-stretch gap-4 border-b border-border bg-card py-3 transition-colors last:border-b-0 hover:bg-accent/30">
+            <div className="flex w-32 shrink-0 flex-col leading-tight pl-5 pt-2">
                 <span className="font-serif text-[13px] italic text-foreground">
                     {date ? `${formatDistanceToNow(date)} ago` : '—'}
                 </span>
@@ -35,36 +61,39 @@ export function PublishedPostRow({ post }: Props) {
                 )}
             </div>
 
-            <div className="flex shrink-0 items-center gap-1">
-                {post.user_post_systems?.map((ps) => (
-                    <span
-                        key={ps.id}
-                        className="grid size-5 place-items-center rounded text-white"
-                        style={{ backgroundColor: ps.user_token.system.background_color }}
-                        title={ps.user_token.system.name}
-                    >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                            <path d={ps.user_token.system.icon} />
-                        </svg>
-                    </span>
-                ))}
-                {post.media_url && (
-                    <span className="rounded border border-border px-1.5 py-px font-mono text-[9px] font-semibold tracking-widest text-muted-foreground uppercase">
-                        img
-                    </span>
+            <div className="flex min-w-0 flex-1 flex-col">
+                {usesShared ? (
+                    <ChannelMiniRow
+                        systems={channels.map((c) => c.user_token.system)}
+                        name={
+                            channels.length > 0
+                                ? channels.map((c) => c.user_token.system.name).join(' · ')
+                                : 'All channels'
+                        }
+                        text={sharedContent}
+                        badge="USES SHARED"
+                        trailing={metrics}
+                        isFirst
+                    />
+                ) : channels.length > 0 ? (
+                    channels.map((ps, i) => (
+                        <ChannelMiniRow
+                            key={ps.id}
+                            system={ps.user_token.system}
+                            text={ps.override_content}
+                            trailing={i === 0 ? metrics : null}
+                            isFirst={i === 0}
+                        />
+                    ))
+                ) : (
+                    <ChannelMiniRow
+                        name="No channels"
+                        text={null}
+                        trailing={metrics}
+                        isFirst
+                    />
                 )}
             </div>
-
-            <p className="min-w-0 flex-1 truncate text-[13px] leading-snug text-foreground/90">
-                {content || <span className="italic text-muted-foreground">No content</span>}
-            </p>
-
-            <div className="flex shrink-0 items-center gap-5">
-                <MetricColumn label="Impressions" value="—" />
-                <MetricColumn label="Likes" value="—" />
-                <MetricColumn label="Replies" value="—" />
-            </div>
-
         </li>
     );
 }

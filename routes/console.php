@@ -8,7 +8,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->everyMinute();
 
-Schedule::job(new InvalidateExpiringTokens)->daily();
+Schedule::job(new InvalidateExpiringTokens)->everyMinute();
 
 Schedule::job(new \App\Jobs\MetricCalculations())->everySecond();
 

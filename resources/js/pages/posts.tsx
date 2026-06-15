@@ -1,8 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { debounce } from '@tanstack/pacer';
 import { isPast } from 'date-fns';
-import { FileText, Plus, Search, Send } from 'lucide-react';
+import { RefreshCw, Search, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { refreshMetrics } from '@/actions/App/Http/Controllers/UserPostController';
 import EditPost from '@/components/edit-post';
 import DraftPostRow from '@/components/posts/draft-post-row';
 import PublishedPostRow from '@/components/posts/published-post-row';
@@ -23,26 +24,6 @@ type Props = {
 };
 
 type FilterKey = 'all' | 'scheduled' | 'drafts' | 'posted';
-
-function EmptyState() {
-    return (
-        <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/5 ring-1 ring-primary/10 mb-5">
-                <FileText className="size-7 text-primary/60" />
-            </div>
-            <h3 className="text-lg font-semibold tracking-tight mb-1.5">No posts yet</h3>
-            <p className="text-sm text-muted-foreground text-center max-w-xs mb-6">
-                Create your first post and schedule it to go live across your connected platforms.
-            </p>
-            <Button asChild>
-                <Link href={dashboard().url}>
-                    <Plus className="size-4" />
-                    Create your first post
-                </Link>
-            </Button>
-        </div>
-    );
-}
 
 function SectionHeader({
     number,
@@ -175,6 +156,10 @@ export default function Posts({
         router.post(postNow(postId));
     }
 
+    function handleRefreshMetrics(): void {
+        router.post(refreshMetrics());
+    }
+
     return (
         <>
             <Head title="Posts" />
@@ -195,122 +180,122 @@ export default function Posts({
                                 <CountPill label="Posted" value={published.length} />
                             </div>
                         </div>
-                        {posts.length > 0 && (
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={handleRefreshMetrics}>
+                                <RefreshCw className="size-3.5" />
+                                Refresh metrics
+                            </Button>
                             <Button asChild>
                                 <Link href={dashboard().url}>
                                     <Send className="size-3.5" />
                                     New post
                                 </Link>
                             </Button>
-                        )}
+                        </div>
                     </header>
 
-                    {posts.length === 0 ? (
-                        <EmptyState />
-                    ) : (
-                        <>
-                            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-dashed border-border py-3">
-                                <div className="flex items-center gap-1 rounded-full border border-border p-0.5">
-                                    <FilterTab
-                                        active={filter === 'all'}
-                                        label="All"
-                                        count={posts.length}
-                                        onClick={() => setFilter('all')}
-                                    />
-                                    <FilterTab
-                                        active={filter === 'scheduled'}
-                                        label="Scheduled"
-                                        count={scheduled.length}
-                                        onClick={() => setFilter('scheduled')}
-                                    />
-                                    <FilterTab
-                                        active={filter === 'drafts'}
-                                        label="Drafts"
-                                        count={drafts.length}
-                                        onClick={() => setFilter('drafts')}
-                                    />
-                                    <FilterTab
-                                        active={filter === 'posted'}
-                                        label="Posted"
-                                        count={published.length}
-                                        onClick={() => setFilter('posted')}
-                                    />
-                                </div>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-y border-dashed border-border py-3">
+                        <div className="flex items-center gap-1 rounded-full border border-border p-0.5">
+                            <FilterTab
+                                active={filter === 'all'}
+                                label="All"
+                                count={posts.length}
+                                onClick={() => setFilter('all')}
+                            />
+                            <FilterTab
+                                active={filter === 'scheduled'}
+                                label="Scheduled"
+                                count={scheduled.length}
+                                onClick={() => setFilter('scheduled')}
+                            />
+                            <FilterTab
+                                active={filter === 'drafts'}
+                                label="Drafts"
+                                count={drafts.length}
+                                onClick={() => setFilter('drafts')}
+                            />
+                            <FilterTab
+                                active={filter === 'posted'}
+                                label="Posted"
+                                count={published.length}
+                                onClick={() => setFilter('posted')}
+                            />
+                        </div>
 
-                                <div className="relative">
-                                    <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search posts"
-                                        className="h-8 w-56 pl-8 text-[12px]"
-                                        onChange={(e) => debouncedSearch(e.target.value)}
-                                    />
-                                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border px-1 font-mono text-[9px] text-muted-foreground">
-                                        /
-                                    </span>
-                                </div>
-                            </div>
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Search posts"
+                                className="h-8 w-56 pl-8 text-[12px]"
+                                onChange={(e) => debouncedSearch(e.target.value)}
+                            />
+                            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border px-1 font-mono text-[9px] text-muted-foreground">
+                                /
+                            </span>
+                        </div>
+                    </div>
 
-                            {showScheduled && scheduled.length > 0 && (
-                                <section>
-                                    <SectionHeader
-                                        number="01"
-                                        label="Scheduled"
-                                        accent="& queued"
-                                        count={scheduled.length}
+                    {showScheduled && scheduled.length > 0 && (
+                        <section>
+                            <SectionHeader
+                                number="01"
+                                label="Scheduled"
+                                accent="& queued"
+                                count={scheduled.length}
+                            />
+                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm divide-y divide-border">
+                                {scheduled.map((post) => (
+                                    <ScheduledPostRow
+                                        key={post.id}
+                                        post={post}
+                                        onEdit={() => setEditingPost(post)}
+                                        onDelete={() => deletePost(post.id)}
+                                        onPostNow={() => handlePostNow(post.id)}
                                     />
-                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm divide-y divide-border">
-                                        {scheduled.map((post) => (
-                                            <ScheduledPostRow
-                                                key={post.id}
-                                                post={post}
-                                                onPostNow={() => handlePostNow(post.id)}
-                                            />
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
+                                ))}
+                            </ul>
+                        </section>
+                    )}
 
-                            {showDrafts && drafts.length > 0 && (
-                                <section>
-                                    <SectionHeader
-                                        number="02"
-                                        label="In"
-                                        accent="progress"
-                                        count={drafts.length}
+                    {showDrafts && drafts.length > 0 && (
+                        <section>
+                            <SectionHeader
+                                number="02"
+                                label="In"
+                                accent="progress"
+                                count={drafts.length}
+                            />
+                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                {drafts.map((post, i) => (
+                                    <DraftPostRow
+                                        key={post.id}
+                                        post={post}
+                                        index={i}
+                                        onEdit={() => setEditingPost(post)}
+                                        onDelete={() => deletePost(post.id)}
                                     />
-                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                                        {drafts.map((post, i) => (
-                                            <DraftPostRow
-                                                key={post.id}
-                                                post={post}
-                                                index={i}
-                                                onEdit={() => setEditingPost(post)}
-                                                onDelete={() => deletePost(post.id)}
-                                            />
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
+                                ))}
+                            </ul>
+                        </section>
+                    )}
 
-                            {showPublished && published.length > 0 && (
-                                <section>
-                                    <SectionHeader
-                                        number="03"
-                                        label="Recently"
-                                        accent="published"
-                                        count={published.length}
+                    {showPublished && published.length > 0 && (
+                        <section>
+                            <SectionHeader
+                                number="03"
+                                label="Recently"
+                                accent="published"
+                                count={published.length}
+                            />
+                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                {published.map((post) => (
+                                    <PublishedPostRow
+                                        key={post.id}
+                                        post={post}
                                     />
-                                    <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                                        {published.map((post) => (
-                                            <PublishedPostRow
-                                                key={post.id}
-                                                post={post}
-                                            />
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
-                        </>
+                                ))}
+                            </ul>
+                        </section>
                     )}
                 </div>
             </div>

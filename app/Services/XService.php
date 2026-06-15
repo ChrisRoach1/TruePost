@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\TokenRefresh;
+use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Date;
@@ -106,7 +107,7 @@ class XService implements SocialServiceInterface
             'expires_at' => Date::now()->addSeconds($user['expires_in']),
         ]);
 
-        TokenRefresh::dispatch($userToken)->delay(Date::now()->addSeconds($user->expires_in - 60));
+        TokenRefresh::dispatch($userToken)->delay(Date::now()->addSeconds($user['expires_in'] - 60));
     }
 
     /**
@@ -115,11 +116,33 @@ class XService implements SocialServiceInterface
     #[NoReturn]
     public function getPostMetrics(UserPostSystem $userPostSystem): void
     {
-        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://api.x.com/2/tweets/${userPostSystem->created_post_Id}',
+
+        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://api.x.com/2/tweets/'.$userPostSystem->created_post_Id,
             [
                 'tweet.fields' => 'public_metrics',
             ])->json();
 
-        dd($mediaUploadResponse);
+        if (array_key_exists('errors', $mediaUploadResponse)) {
+            return;
+        }
+
+        $likeCount = $mediaUploadResponse['data']['public_metrics']['like_count'];
+        $impressionCount = $mediaUploadResponse['data']['public_metrics']['impression_count'];
+        $replyCount = $mediaUploadResponse['data']['public_metrics']['reply_count'];
+
+        PostMetric::create([
+            'likes' => $userPostSystem->likes ?? 0,
+            'replies' => $userPostSystem->replies ?? 0,
+            'impressions' => $userPostSystem->impressions ?? 0,
+            'user_post_system_id' => $userPostSystem->id,
+        ]);
+
+        $userPostSystem->update([
+            'likes' => $likeCount,
+            'replies' => $replyCount,
+            'impressions' => $impressionCount,
+        ]);
+
+        $userPostSystem->save();
     }
 }
