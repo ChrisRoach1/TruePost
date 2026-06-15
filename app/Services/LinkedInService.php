@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\TokenRefresh;
+use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Date;
@@ -119,6 +120,29 @@ class LinkedInService implements SocialServiceInterface
 
     public function getPostMetrics(UserPostSystem $userPostSystem)
     {
-        // TODO: Implement getPostMetrics() method.
-    }
+        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://graph.instagram.com/'.$userPostSystem->created_post_Id.'/insights',
+            [
+                'metric' => 'likes,comments,views',
+            ])->json();
+
+        if (array_key_exists('error', $mediaUploadResponse)) {
+            return;
+        }
+
+        $likeCount = (int) $mediaUploadResponse['data'][0]['values'][0]['value'];
+        $impressionCount = (int) $mediaUploadResponse['data'][2]['values'][0]['value'];
+        $replyCount = (int) $mediaUploadResponse['data'][1]['values'][0]['value'];
+
+        PostMetric::create([
+            'likes' => $userPostSystem->likes ?? 0,
+            'replies' => $userPostSystem->replies ?? 0,
+            'impressions' => $userPostSystem->impressions ?? 0,
+            'user_post_system_id' => $userPostSystem->id,
+        ]);
+
+        UserPostSystem::find($userPostSystem->id)->update([
+            'likes' => $likeCount,
+            'replies' => $replyCount,
+            'impressions' => $impressionCount,
+        ]);    }
 }
