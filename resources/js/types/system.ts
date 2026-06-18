@@ -1,4 +1,3 @@
-
 export type UserToken = {
     id: number;
     system_id: number;
@@ -7,7 +6,7 @@ export type UserToken = {
     needs_reauthed: boolean | null;
     created_at: string;
     system: System;
-}
+};
 
 export type System = {
     id: number;
@@ -19,4 +18,11 @@ export type System = {
     background_color: string;
     icon_color: string;
     url_slug: string;
-}
+};
+
+export type FacebookPages = {
+    id: string;
+    name: string;
+    system_id: number;
+    access_token: string;
+};

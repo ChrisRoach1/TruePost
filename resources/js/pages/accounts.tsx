@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import AccountsAvailablePlatforms from '@/components/accounts/available-platforms';
 import AccountsPlatformSection from '@/components/accounts/platform-section';
@@ -14,6 +14,8 @@ type Props = {
 };
 
 export default function Accounts({ connectedAccounts = [], systems }: Props) {
+    const { pagesToSelect } = usePage().props;
+
     const accountsBySystem = useMemo(() => {
         const map = new Map<number, UserToken[]>();
 
@@ -32,12 +34,19 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
     );
 
     const connectedSystems = useMemo(
-        () => orderedSystems.filter((system) => (accountsBySystem.get(system.id)?.length ?? 0) > 0),
+        () =>
+            orderedSystems.filter(
+                (system) => (accountsBySystem.get(system.id)?.length ?? 0) > 0,
+            ),
         [orderedSystems, accountsBySystem],
     );
 
     const availableSystems = useMemo(
-        () => orderedSystems.filter((system) => (accountsBySystem.get(system.id)?.length ?? 0) === 0),
+        () =>
+            orderedSystems.filter(
+                (system) =>
+                    (accountsBySystem.get(system.id)?.length ?? 0) === 0,
+            ),
         [orderedSystems, accountsBySystem],
     );
 
@@ -85,10 +94,15 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                 Configuration · Accounts
                             </span>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-                                The <span className="font-serif italic text-primary">roster</span>
+                                The{' '}
+                                <span className="font-serif text-primary italic">
+                                    roster
+                                </span>
                             </h1>
                             <p className="max-w-xl text-[13px] text-muted-foreground">
-                                Every account TruePost can dispatch on your behalf — with the keys, scopes, and quiet renewals that keep them working.
+                                Every account TruePost can dispatch on your
+                                behalf — with the keys, scopes, and quiet
+                                renewals that keep them working.
                             </p>
                         </div>
 
@@ -107,7 +121,9 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                 <AccountsPlatformSection
                                     key={platform.id}
                                     platform={platform}
-                                    accounts={accountsBySystem.get(platform.id) ?? []}
+                                    accounts={
+                                        accountsBySystem.get(platform.id) ?? []
+                                    }
                                     index={i}
                                     onConnect={connectPlatform}
                                     onDisconnect={disconnect}
@@ -127,7 +143,10 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                             Fine print
                         </span>
                         <p className="max-w-2xl text-[12px] leading-relaxed text-muted-foreground">
-                            TruePost never stores your password. We use OAuth scoped to the permissions you grant — and we ask for the minimum each platform allows. Revoke access anytime from this page or from the platform itself.
+                            TruePost never stores your password. We use OAuth
+                            scoped to the permissions you grant — and we ask for
+                            the minimum each platform allows. Revoke access
+                            anytime from this page or from the platform itself.
                         </p>
                     </footer>
                 </div>
@@ -172,7 +191,9 @@ function Stat({
 
     return (
         <div className="flex min-w-[88px] flex-col items-center justify-center gap-1 px-4 py-3">
-            <span className={`text-2xl font-semibold tabular-nums ${valueColor}`}>
+            <span
+                className={`text-2xl font-semibold tabular-nums ${valueColor}`}
+            >
                 {value}
             </span>
             <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
@@ -185,11 +206,12 @@ function Stat({
 function EmptyState() {
     return (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 py-16 text-center">
-            <span className="font-serif text-[20px] italic text-foreground">
+            <span className="font-serif text-[20px] text-foreground italic">
                 The roster is empty
             </span>
             <p className="max-w-sm text-[12px] text-muted-foreground">
-                Connect your first account below to start dispatching on its behalf.
+                Connect your first account below to start dispatching on its
+                behalf.
             </p>
         </div>
     );

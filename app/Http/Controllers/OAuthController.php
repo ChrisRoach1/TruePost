@@ -12,6 +12,8 @@ use App\Services\XService;
 use Date;
 use Http;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends Controller
@@ -90,14 +92,55 @@ class OAuthController extends Controller
                 break;
             case 'facebook':
 
-                UserToken::create([
-                    'system_id' => $system->id,
-                    'user_name' => $user->user['name'],
-                    'user_token_id' => $user->id,
-                    'user_id' => auth()->id(),
+                $longLivedToken = Http::get('https://graph.facebook.com/v25.0/oauth/access_token', [
+                    'grant_type' => 'fb_exchange_token',
+                    'client_id' => env('FACEBOOK_CLIENT_ID'),
+                    'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+                    'fb_exchange_token' => $user->token,
+                ])->json();
+
+//                $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
+//
+//                if ($userToken != null) {
+//                    $userToken->update([
+//                        'access_token' => $longLivedToken['access_token'],
+//                        'refresh_token' => $user->refreshToken ?? '',
+//                        'expires_at' => null,
+//                    ]);
+//                } else {
+//                    $userToken = UserToken::create([
+//                        'system_id' => $system->id,
+//                        'user_name' => $user->user['name'],
+//                        'user_token_id' => $user->id,
+//                        'user_id' => auth()->id(),
+//                        'access_token' => $longLivedToken['access_token'],
+//                        'refresh_token' => $user->refreshToken ?? '',
+//                        'expires_at' => null,
+//                    ]);
+//                }
+
+//                $tokenWithSystem = UserToken::with('system')->find($userToken->id);
+//                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
+
+                $pages = Http::get('https://graph.facebook.com/v25.0/me/accounts', [
                     'access_token' => $user->token,
-                    'refresh_token' => $user->refreshToken ?? '',
-                ]);
+                ])->json();
+
+                $pagesToSelect = [];
+
+                if (array_key_exists('data', $pages)) {
+                    foreach ($pages['data'] as $page) {
+                        array_push($pagesToSelect, [
+                            'id' => $page['id'],
+                            'name' => $page['name'],
+                            'access_token' => $page['access_token'],
+                            'system_id' => $system->id,
+                        ]);
+                    }
+                }
+
+                return redirect('accounts')->with('pagesToSelect', $pagesToSelect);
+
                 break;
             case 'linkedin-openid':
 
@@ -131,6 +174,8 @@ class OAuthController extends Controller
         return redirect('accounts');
     }
 
+    public function finishAccountCreation(Request $request) {}
+
     public function refreshToken(UserToken $userToken, XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService)
     {
         $system = System::query()->where('id', $userToken->system_id)->firstOrFail();
@@ -143,7 +188,7 @@ class OAuthController extends Controller
                 $instagramService->refreshToken($userToken);
                 break;
             case 'facebook':
-                //$facebookService->refreshToken($userToken);
+                // $facebookService->refreshToken($userToken);
                 break;
             case 'linkedin-openid':
                 $linkedInService->refreshToken($userToken);

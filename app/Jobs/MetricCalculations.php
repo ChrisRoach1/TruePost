@@ -4,10 +4,12 @@ namespace App\Jobs;
 
 use App\Models\UserPost;
 use App\Services\InstagramService;
+use App\Services\LinkedInService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\ConnectionException;
 
 class MetricCalculations implements ShouldQueue
 {
@@ -23,13 +25,14 @@ class MetricCalculations implements ShouldQueue
 
     /**
      * Execute the job.
+     * @throws ConnectionException
      */
-    public function handle(XService $xService, InstagramService $instagramService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService): void
     {
 
         UserPost::query()->with('UserPostSystems.UserToken.System')->when($this->userId, function (Builder $query, $userId) {
             $query->where(['user_id' => $userId]);
-        })->get()->each(function ($post) use ($xService, $instagramService) {
+        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService) {
             foreach ($post->UserPostSystems as $systemPost) {
                 switch ($systemPost->userToken->System->url_slug) {
                     case 'instagram':
@@ -39,7 +42,7 @@ class MetricCalculations implements ShouldQueue
                         $xService->getPostMetrics($systemPost);
                         break;
                     case 'linkedin-openid':
-                        // $linkedinService->createPost($systemPost->userToken->access_token, $this->userPost->original_content, $systemPost->userToken->user_token_id, $this->userPost->media_url);
+                        $linkedInService->getPostMetrics($systemPost);
                         break;
                     default:
                         throw new \Exception('Unsupported platform: '.$systemPost->userToken->System->url_slug);

@@ -144,5 +144,6 @@ class LinkedInService implements SocialServiceInterface
             'likes' => $likeCount,
             'replies' => $replyCount,
             'impressions' => $impressionCount,
-        ]);    }
+        ]);
+    }
 }

@@ -17,7 +17,7 @@ export default function Dashboard({
     connectedAccounts = [],
     systems = [],
     upNextItems = [],
-    recentlyPublishedItems = []
+    recentlyPublishedItems = [],
 }: Props) {
     return (
         <>
