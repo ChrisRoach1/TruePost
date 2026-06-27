@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
+import { TagInput } from '@/components/post-form/tag-input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -47,6 +48,32 @@ function buildInitialChannelContent(post: userPosts): Record<number, string> {
     return map;
 }
 
+function buildInitialCollaborators(
+    post: userPosts,
+): Record<number, string[]> {
+    const map: Record<number, string[]> = {};
+
+    for (const system of post.user_post_systems ?? []) {
+        if (system.collaborators != null && system.collaborators.length > 0) {
+            map[system.user_token_id] = system.collaborators;
+        }
+    }
+
+    return map;
+}
+
+function buildInitialTags(post: userPosts): Record<number, string[]> {
+    const map: Record<number, string[]> = {};
+
+    for (const system of post.user_post_systems ?? []) {
+        if (system.tags != null && system.tags.length > 0) {
+            map[system.user_token_id] = system.tags;
+        }
+    }
+
+    return map;
+}
+
 export default function EditPost({
     post,
     connectedAccounts,
@@ -66,6 +93,8 @@ export default function EditPost({
     const initialPostAt = post.post_at ? new Date(post.post_at) : new Date();
     const initialChannelContent = buildInitialChannelContent(post);
     const initialCustomizing = Object.keys(initialChannelContent).length > 0;
+    const initialCollaborators = buildInitialCollaborators(post);
+    const initialTags = buildInitialTags(post);
 
     const { data, setData, processing, post: postForm, errors, clearErrors, reset } =
         useForm<{
@@ -74,6 +103,8 @@ export default function EditPost({
             userTokenIds: number[];
             customizing: boolean;
             channelContent: Record<number, string>;
+            collaborators: Record<number, string[]>;
+            tags: Record<number, string[]>;
             is_scheduled: boolean;
             is_draft: boolean;
             scheduled_date?: Date;
@@ -88,6 +119,8 @@ export default function EditPost({
             ),
             customizing: initialCustomizing,
             channelContent: initialChannelContent,
+            collaborators: initialCollaborators,
+            tags: initialTags,
             is_scheduled: false,
             is_draft: true,
             scheduled_date: initialPostAt,
@@ -223,6 +256,14 @@ export default function EditPost({
                 [tab]: value,
             });
         }
+    }
+
+    function setCollaborators(tokenId: number, next: string[]) {
+        setData('collaborators', { ...data.collaborators, [tokenId]: next });
+    }
+
+    function setTags(tokenId: number, next: string[]) {
+        setData('tags', { ...data.tags, [tokenId]: next });
     }
 
     function getChipCount(id: number): number {
@@ -463,6 +504,94 @@ export default function EditPost({
                             </div>
                         )}
                     </section>
+
+                    {selectedSystems.some(
+                        (s) =>
+                            s.system.can_collaborate || s.system.can_tag,
+                    ) && (
+                        <section className="space-y-3">
+                            <div className="text-sm font-medium text-foreground">
+                                Tags & Collaborators
+                            </div>
+                            {selectedSystems
+                                .filter(
+                                    (account) =>
+                                        account.system.can_collaborate ||
+                                        account.system.can_tag,
+                                )
+                                .slice()
+                                .sort(
+                                    (a, b) =>
+                                        a.system.order - b.system.order,
+                                )
+                                .map((account) => (
+                                    <div
+                                        key={account.id}
+                                        className="rounded-lg border border-border/70 p-3.5"
+                                    >
+                                        <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+                                            <span
+                                                className="grid size-4 place-items-center"
+                                                style={{
+                                                    color: account.system
+                                                        .background_color,
+                                                }}
+                                            >
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="currentColor"
+                                                >
+                                                    <path
+                                                        d={account.system.icon}
+                                                    />
+                                                </svg>
+                                            </span>
+                                            {account.system.name}
+                                        </div>
+
+                                        <div className="mt-3 space-y-3">
+                                            {account.system
+                                                .can_collaborate && (
+                                                <TagInput
+                                                    label="Collaborators"
+                                                    placeholder="Add a collaborator"
+                                                    values={
+                                                        data.collaborators[
+                                                            account.id
+                                                        ] ?? []
+                                                    }
+                                                    onChange={(next) =>
+                                                        setCollaborators(
+                                                            account.id,
+                                                            next,
+                                                        )
+                                                    }
+                                                />
+                                            )}
+                                            {account.system.can_tag && (
+                                                <TagInput
+                                                    label="Tags"
+                                                    placeholder="Add a tag"
+                                                    values={
+                                                        data.tags[
+                                                            account.id
+                                                        ] ?? []
+                                                    }
+                                                    onChange={(next) =>
+                                                        setTags(
+                                                            account.id,
+                                                            next,
+                                                        )
+                                                    }
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                        </section>
+                    )}
 
                     <section className="space-y-2">
                         <div className="flex items-center justify-between">

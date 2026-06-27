@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
+import { TagInput } from '@/components/post-form/tag-input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -72,6 +73,8 @@ export default function CreatePost({
             userTokenIds: number[];
             customizing: boolean;
             channelContent: Record<number, string>;
+            collaborators: Record<number, string[]>;
+            tags: Record<number, string[]>;
             is_scheduled: boolean;
             is_draft: boolean;
             scheduled_date?: Date;
@@ -83,6 +86,8 @@ export default function CreatePost({
             userTokenIds: [],
             customizing: false,
             channelContent: {},
+            collaborators: {},
+            tags: {},
             is_scheduled: false,
             is_draft: false,
             scheduled_date: new Date(),
@@ -239,6 +244,14 @@ export default function CreatePost({
                 [tab]: value ?? '',
             });
         }
+    }
+
+    function setCollaborators(tokenId: number, next: string[]) {
+        setData('collaborators', { ...data.collaborators, [tokenId]: next });
+    }
+
+    function setTags(tokenId: number, next: string[]) {
+        setData('tags', { ...data.tags, [tokenId]: next });
     }
 
     function getChipCount(id: number): number {
@@ -454,9 +467,89 @@ export default function CreatePost({
                 )}
             </div>
 
+            {selectedSystems.some(
+                (s) => s.system.can_collaborate || s.system.can_tag,
+            ) && (
+                <div className="border-t border-border px-7 pt-5 pb-5">
+                    <SectionHeader
+                        number="03"
+                        title="Tags & Collaborators"
+                        description="add collaborators and tags per channel"
+                    />
+
+                    <div className="mt-4 space-y-4">
+                        {selectedSystems
+                            .filter(
+                                (account) =>
+                                    account.system.can_collaborate ||
+                                    account.system.can_tag,
+                            )
+                            .sort((a, b) => a.system.order - b.system.order)
+                            .map((account) => (
+                                <div
+                                    key={account.id}
+                                    className="rounded-lg border border-border/70 p-3.5"
+                                >
+                                    <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+                                        <span
+                                            className="grid size-4 place-items-center"
+                                            style={{
+                                                color: account.system
+                                                    .background_color,
+                                            }}
+                                        >
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="currentColor"
+                                            >
+                                                <path d={account.system.icon} />
+                                            </svg>
+                                        </span>
+                                        {account.system.name}
+                                    </div>
+
+                                    <div className="mt-3 space-y-3">
+                                        {account.system.can_collaborate && (
+                                            <TagInput
+                                                label="Collaborators"
+                                                placeholder="Add a collaborator"
+                                                values={
+                                                    data.collaborators[
+                                                        account.id
+                                                    ] ?? []
+                                                }
+                                                onChange={(next) =>
+                                                    setCollaborators(
+                                                        account.id,
+                                                        next,
+                                                    )
+                                                }
+                                            />
+                                        )}
+                                        {account.system.can_tag && (
+                                            <TagInput
+                                                label="Tags"
+                                                placeholder="Add a tag"
+                                                values={
+                                                    data.tags[account.id] ?? []
+                                                }
+                                                onChange={(next) =>
+                                                    setTags(account.id, next)
+                                                }
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                </div>
+            )}
+
             <div className="border-t border-border px-7 pt-5 pb-5">
                 <SectionHeader
-                    number="03"
+                    number="04"
                     title="Media"
                     description="drop images"
                     action={

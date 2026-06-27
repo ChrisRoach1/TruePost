@@ -6,7 +6,7 @@ use App\Models\System;
 use App\Models\UserPost;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
-use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -19,8 +19,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
 
-        $connectedAccounts = UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
-        $systems = System::query()->orderBy('id')->get();
+        $systems = Cache::remember('systems', 6000, function () {
+            return System::query()->orderBy('id')->get();
+        });
+
+        $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
+            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
+        });
+
         $upNextItems = UserPost::query()
             ->with('UserPostSystems.userToken.System')
             ->where(['user_id' => auth()->id(), 'has_posted' => false, 'is_draft' => false])
@@ -73,10 +79,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('accounts', function () {
-        $connectedAccounts = UserToken::query()
-            ->where('user_id', auth()->id())
-            ->get(['id', 'system_id', 'user_name', 'expires_at', 'needs_reauthed', 'created_at']);
-        $systems = System::query()->orderBy('order')->get();
+
+        $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
+            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
+        });
+
+        $systems = Cache::remember('systems', 6000, function () {
+            return System::query()->orderBy('id')->get();
+        });
 
         return Inertia::render('accounts', [
             'connectedAccounts' => $connectedAccounts,
@@ -91,6 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         UserPost::query()->whereIn('id', $postIds)->delete();
 
+        Cache::delete(auth()->id().'-connectedSystem');
         return redirect()->route('accounts')->with('success', 'Account deleted successfully');
     })->name('accounts.delete');
 

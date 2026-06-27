@@ -12,8 +12,6 @@ use App\Services\XService;
 use Date;
 use Http;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends Controller
@@ -33,6 +31,8 @@ class OAuthController extends Controller
      */
     public function callback(string $platform)
     {
+        Cache::delete(auth()->id().'-connectedSystem');
+
         $system = System::query()->where('url_slug', $platform)->firstOrFail();
         $user = Socialite::driver($platform)->user();
         switch ($platform) {
@@ -124,23 +124,8 @@ class OAuthController extends Controller
 
                 $pages = Http::get('https://graph.facebook.com/v25.0/me/accounts', [
                     'access_token' => $user->token,
-                ])->json();
-
-                $pagesToSelect = [];
-
-                if (array_key_exists('data', $pages)) {
-                    foreach ($pages['data'] as $page) {
-                        array_push($pagesToSelect, [
-                            'id' => $page['id'],
-                            'name' => $page['name'],
-                            'access_token' => $page['access_token'],
-                            'system_id' => $system->id,
-                        ]);
-                    }
-                }
-
-                return redirect('accounts')->with('pagesToSelect', $pagesToSelect);
-
+                    'refresh_token' => $user->refreshToken ?? '',
+                ]);
                 break;
             case 'linkedin-openid':
 
@@ -188,7 +173,7 @@ class OAuthController extends Controller
                 $instagramService->refreshToken($userToken);
                 break;
             case 'facebook':
-                // $facebookService->refreshToken($userToken);
+                //$facebookService->refreshToken($userToken);
                 break;
             case 'linkedin-openid':
                 $linkedInService->refreshToken($userToken);

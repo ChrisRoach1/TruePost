@@ -59,6 +59,12 @@ class UserPostController extends Controller
             'content' => 'nullable|string',
             'is_draft' => 'required|boolean',
             'channelContent' => 'nullable|array',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'array|max:5',
+            'collaborators.*.*' => 'string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'array|max:5',
+            'tags.*.*' => 'string',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
         ]);
@@ -86,7 +92,14 @@ class UserPostController extends Controller
 
         foreach ($request->input('userTokenIds') as $userTokenId) {
             $overrideText = $request->input('channelContent')[$userTokenId] ?? null;
-            $userPost->UserPostSystems()->create(['user_token_id' => $userTokenId, 'override_content' => $overrideText]);
+            $collaborators = $request->input('collaborators')[$userTokenId] ?? null;
+            $tags = $request->input('tags')[$userTokenId] ?? null;
+            $userPost->UserPostSystems()->create([
+                'user_token_id' => $userTokenId,
+                'override_content' => $overrideText,
+                'collaborators' => $collaborators,
+                'tags' => $tags,
+            ]);
         }
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
@@ -120,6 +133,12 @@ class UserPostController extends Controller
             'content' => 'nullable|string',
             'is_draft' => 'required|boolean',
             'channelContent' => 'nullable|array',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'array|max:5',
+            'collaborators.*.*' => 'string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'array|max:5',
+            'tags.*.*' => 'string',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
         ]);
@@ -142,6 +161,8 @@ class UserPostController extends Controller
 
         $incomingTokenIds = collect($request->input('userTokenIds'))->map(fn ($id) => (int) $id)->all();
         $channelContent = $request->input('channelContent') ?? [];
+        $collaborators = $request->input('collaborators') ?? [];
+        $tags = $request->input('tags') ?? [];
 
         $userPost->UserPostSystems()->whereNotIn('user_token_id', $incomingTokenIds)->delete();
 
@@ -149,12 +170,20 @@ class UserPostController extends Controller
 
         foreach ($incomingTokenIds as $userTokenId) {
             $overrideText = $channelContent[$userTokenId] ?? null;
+            $tokenCollaborators = $collaborators[$userTokenId] ?? null;
+            $tokenTags = $tags[$userTokenId] ?? null;
             if ($existing->has($userTokenId)) {
-                $existing[$userTokenId]->update(['override_content' => $overrideText]);
+                $existing[$userTokenId]->update([
+                    'override_content' => $overrideText,
+                    'collaborators' => $tokenCollaborators,
+                    'tags' => $tokenTags,
+                ]);
             } else {
                 $userPost->UserPostSystems()->create([
                     'user_token_id' => $userTokenId,
                     'override_content' => $overrideText,
+                    'collaborators' => $tokenCollaborators,
+                    'tags' => $tokenTags,
                 ]);
             }
         }

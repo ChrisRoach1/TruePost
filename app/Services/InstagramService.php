@@ -24,13 +24,48 @@ class InstagramService implements SocialServiceInterface
     {
         $content = $userPostSystem->override_content ?? $content;
         $media_url = env('R2_PUBLIC_ENDPOINT').'/'.$media;
-        $containerCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media',
-            [
-                'caption' => $content,
-                'image_url' => $media_url,
-            ]);
 
-        $containerId = $containerCreationResponse->json()['id'];
+        $payload = [
+            'caption' => $content,
+            'image_url' => $media_url,
+        ];
+
+        $collaborators = array_values(array_filter($userPostSystem->collaborators ?? []));
+        if (! empty($collaborators)) {
+            $payload['collaborators'] = json_encode($collaborators);
+        }
+
+        $usersToTag = array_values(array_unique(array_merge(
+            array_filter($userPostSystem->tags ?? []),
+            $collaborators,
+        )));
+
+        if (! empty($usersToTag)) {
+            $userTags = [];
+            foreach ($usersToTag as $index => $username) {
+                $userTags[] = [
+                    'username' => $username,
+                    // Images require x/y coordinates (0-1). Spread tags vertically so no two
+                    // tags share the same point, which Instagram rejects.
+                    'x' => 0.5,
+                    'y' => round(min(0.9, 0.1 + ($index * 0.15)), 2),
+                ];
+            }
+            $payload['user_tags'] = json_encode($userTags);
+        }
+
+        $endpoint = 'https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media';
+
+        $containerCreationResponse = Http::withToken($userPostSystem->userToken->access_token)
+            ->post($endpoint, $payload);
+
+        if (isset($payload['user_tags']) && array_key_exists('error', $containerCreationResponse->json() ?? [])) {
+            unset($payload['user_tags']);
+            $containerCreationResponse = Http::withToken($userPostSystem->userToken->access_token)
+                ->post($endpoint, $payload);
+        }
+
+        $containerId = $containerCreationResponse->json()['id'] ?? null;
 
         $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media_publish?creation_id='.$containerId);
 
@@ -45,7 +80,8 @@ class InstagramService implements SocialServiceInterface
             }
         }
 
-        $responseId = $postCreationResponse->json()['id'];
+        $responseId = $postCreationResponse->json()['id'] ?? null;
+
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
 

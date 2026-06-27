@@ -21,6 +21,8 @@ return new class extends Migration
             $table->boolean('image_required')->nullable(false);
             $table->string('icon_color')->nullable(true);
             $table->string('url_slug')->unique();
+            $table->boolean('can_collaborate')->default(false);
+            $table->boolean('can_tag')->default(false);
             $table->json('scopes');
             $table->timestamps();
         });
