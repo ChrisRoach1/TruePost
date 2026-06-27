@@ -12,6 +12,7 @@ use App\Services\XService;
 use Date;
 use Http;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends Controller
@@ -163,6 +164,8 @@ class OAuthController extends Controller
 
     public function refreshToken(UserToken $userToken, XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService)
     {
+        Cache::delete(auth()->id().'-connectedSystem');
+
         $system = System::query()->where('id', $userToken->system_id)->firstOrFail();
 
         switch ($system->url_slug) {
