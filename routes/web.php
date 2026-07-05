@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('auth/{platform}/redirect', [OAuthController::class, 'redirect'])->name('oauth.redirect');
     Route::get('auth/{platform}/callback', [OAuthController::class, 'callback'])->name('oauth.callback');
     Route::post('auth/{userToken}/refresh', [OAuthController::class, 'refreshToken'])->name('oauth.refreshToken');
+    Route::post('auth/finishAccountCreation', [OAuthController::class, 'finishAccountCreation'])->name('oauth.finishAccountCreation');
 
     Route::get('userPost', [UserPostController::class, 'index'])->name('userPost.index');
     Route::post('userPost', [UserPostController::class, 'store'])->name('userPost.store');

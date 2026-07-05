@@ -1,6 +1,7 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import AccountsAvailablePlatforms from '@/components/accounts/available-platforms';
+import PageSelectDialog from '@/components/accounts/page-select-dialog';
 import AccountsPlatformSection from '@/components/accounts/platform-section';
 import { getTokenStatus } from '@/components/accounts/token-status';
 import { accounts } from '@/routes';
@@ -15,6 +16,7 @@ type Props = {
 
 export default function Accounts({ connectedAccounts = [], systems }: Props) {
     const { pagesToSelect } = usePage().props;
+    const [pageSelectDismissed, setPageSelectDismissed] = useState(false);
 
     const accountsBySystem = useMemo(() => {
         const map = new Map<number, UserToken[]>();
@@ -86,6 +88,13 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
     return (
         <>
             <Head title="Connected Accounts" />
+            {pagesToSelect != null && (
+                <PageSelectDialog
+                    pages={pagesToSelect}
+                    open={!pageSelectDismissed}
+                    onOpenChange={(open) => setPageSelectDismissed(!open)}
+                />
+            )}
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="mx-auto w-full max-w-6xl space-y-8">
                     <header className="flex flex-col gap-4 pt-2 md:flex-row md:items-start md:justify-between">

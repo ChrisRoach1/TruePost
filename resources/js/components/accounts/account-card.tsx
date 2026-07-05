@@ -39,11 +39,9 @@ export function AccountCard({
 
     const handle = account.user_name?.trim() || 'Account';
 
-    let microLine: string;
+    let microLine: string | null = null;
     if (status === 'needs_attention') {
-        microLine = expiresAt
-            ? 'Reconnect to restore dispatch'
-            : 'Reconnect to restore dispatch';
+        microLine = 'Reconnect to restore dispatch';
     } else if (status === 'expiring' && days !== null) {
         const dayWord = days === 1 ? 'day' : 'days';
         microLine = days <= 0 ? 'Refresh now' : `Refresh in ${days} ${dayWord}`;
@@ -86,9 +84,11 @@ export function AccountCard({
                             >
                                 {statusLabel[status]}
                             </span>
-                            <span className="truncate font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-                                {microLine}
-                            </span>
+                            {microLine !== null && (
+                                <span className="truncate font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+                                    {microLine}
+                                </span>
+                            )}
                         </div>
                     </div>
 

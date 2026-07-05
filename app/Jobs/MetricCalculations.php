@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\UserPost;
+use App\Services\FacebookService;
 use App\Services\InstagramService;
 use App\Services\LinkedInService;
 use App\Services\XService;
@@ -27,12 +28,12 @@ class MetricCalculations implements ShouldQueue
      * Execute the job.
      * @throws ConnectionException
      */
-    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService): void
     {
 
         UserPost::query()->with('UserPostSystems.UserToken.System')->when($this->userId, function (Builder $query, $userId) {
             $query->where(['user_id' => $userId]);
-        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService) {
+        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService, $facebookService) {
             foreach ($post->UserPostSystems as $systemPost) {
                 switch ($systemPost->userToken->System->url_slug) {
                     case 'instagram':
