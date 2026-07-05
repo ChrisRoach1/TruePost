@@ -7,10 +7,11 @@ use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Date;
+use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
-class InstagramService implements SocialServiceInterface
+class InstagramService implements ISocialService
 {
     public function getPosts()
     {
@@ -19,6 +20,7 @@ class InstagramService implements SocialServiceInterface
 
     /**
      * @throws ConnectionException
+     * @throws Exception
      */
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
@@ -77,6 +79,10 @@ class InstagramService implements SocialServiceInterface
                     break;
                 }
                 $attempts++;
+            }
+
+            if ($attempts > 10) {
+                throw new Exception('Failed to upload media after 10 attempts');
             }
         }
 

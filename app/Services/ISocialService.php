@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
 
-interface SocialServiceInterface
+interface ISocialService
 {
     public function getPosts();
 

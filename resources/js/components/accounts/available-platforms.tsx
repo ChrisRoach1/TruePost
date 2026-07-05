@@ -21,7 +21,7 @@ export function AvailablePlatforms({ systems, onConnect }: Props) {
                 <span className="text-[18px] font-semibold tracking-tight text-foreground">
                     Not yet
                 </span>
-                <span className="font-serif text-[18px] italic text-primary">
+                <span className="font-serif text-[18px] text-primary">
                     connected
                 </span>
             </header>

@@ -92,7 +92,7 @@ export function ChannelMiniRow({
                 {trimmedText ? (
                     trimmedText
                 ) : (
-                    <span className="font-serif italic text-muted-foreground">
+                    <span className="font-serif   text-muted-foreground">
                         No content yet
                     </span>
                 )}

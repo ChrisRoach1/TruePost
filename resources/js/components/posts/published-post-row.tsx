@@ -51,7 +51,7 @@ export function PublishedPostRow({ post }: Props) {
     return (
         <li className="group flex items-stretch gap-4 border-b border-border bg-card py-3 transition-colors last:border-b-0 hover:bg-accent/30">
             <div className="flex w-32 shrink-0 flex-col leading-tight pl-5 pt-2">
-                <span className="font-serif text-[13px] italic text-foreground">
+                <span className="font-serif text-[13px]   text-foreground">
                     {date ? `${formatDistanceToNow(date)} ago` : '—'}
                 </span>
                 {date && (
@@ -71,7 +71,7 @@ export function PublishedPostRow({ post }: Props) {
                                 : 'All channels'
                         }
                         text={sharedContent}
-                        badge="USES SHARED"
+                        badge={channels.length > 1 ? "USES SHARED" : ""}
                         trailing={metrics}
                         isFirst
                     />

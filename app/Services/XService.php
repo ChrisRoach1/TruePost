@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 use JetBrains\PhpStorm\NoReturn;
 use Storage;
 
-class XService implements SocialServiceInterface
+class XService implements ISocialService
 {
     /**
      * @throws ConnectionException
@@ -43,12 +43,10 @@ class XService implements SocialServiceInterface
                     if ($uploadStatusResponse['processing_info']['state'] === 'succeeded') {
                         $processed = true;
                     }
-                }
 
-                if ($attempts > 10) {
-                    throw new Exception(
-                        'Failed to upload media after 10 attempts'
-                    );
+                    if ($attempts > 10) {
+                        throw new Exception('Failed to upload media after 10 attempts');
+                    }
                 }
 
             }

@@ -17,6 +17,9 @@ class SendPosts implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public $tries = 1;
+
+
     /**
      * Create a new job instance.
      */
@@ -39,6 +42,7 @@ class SendPosts implements ShouldQueue
                         $instagramService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     } catch (Exception $e) {
                         $platform->update(['failed_to_post' => true]);
+                        \Log::error($e);
                     }
                     break;
                 case 'x':
@@ -46,6 +50,7 @@ class SendPosts implements ShouldQueue
                         $xService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     } catch (Exception $e) {
                         $platform->update(['failed_to_post' => true]);
+                        \Log::error($e);
                     }
                     break;
                 case 'linkedin-openid':
@@ -53,6 +58,7 @@ class SendPosts implements ShouldQueue
                         $linkedinService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
                     } catch (Exception $e) {
                         $platform->update(['failed_to_post' => true]);
+                        \Log::error($e);
                     }
                     break;
                 default:

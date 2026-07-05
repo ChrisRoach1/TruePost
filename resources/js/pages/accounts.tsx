@@ -95,7 +95,7 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                             </span>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
                                 The{' '}
-                                <span className="font-serif text-primary italic">
+                                <span className="font-serif text-primary  ">
                                     roster
                                 </span>
                             </h1>
@@ -206,7 +206,7 @@ function Stat({
 function EmptyState() {
     return (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 py-16 text-center">
-            <span className="font-serif text-[20px] text-foreground italic">
+            <span className="font-serif text-[20px] text-foreground  ">
                 The roster is empty
             </span>
             <p className="max-w-sm text-[12px] text-muted-foreground">

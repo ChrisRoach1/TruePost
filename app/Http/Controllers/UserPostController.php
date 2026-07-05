@@ -70,9 +70,9 @@ class UserPostController extends Controller
         ]);
 
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        if($request->input('is_scheduled')){
+        if ($request->input('is_scheduled')) {
             $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
-        }else{
+        } else {
             $postDate = Date::now($userTz);
         }
 

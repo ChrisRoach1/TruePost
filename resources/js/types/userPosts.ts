@@ -9,6 +9,7 @@ export type userPosts = {
     media_url: string | null;
     created_at: Date;
     user_post_systems: userPostSystems[];
+    has_posted: boolean;
 }
 
 export type userPostSystems = {

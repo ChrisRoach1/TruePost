@@ -32,7 +32,7 @@ export function PlatformSection({
             <header className="flex items-center justify-between gap-3 border-b border-dashed border-border pb-3">
                 <div className="flex items-center gap-3">
                     <span className="font-mono text-[11px] font-semibold text-primary">
-                        #{indexLabel}
+                        {indexLabel}
                     </span>
                     <div
                         className="flex size-7 shrink-0 items-center justify-center rounded-md"
@@ -87,7 +87,7 @@ export function PlatformSection({
                     <span className="grid size-7 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors group-hover:text-foreground">
                         <Plus className="size-3.5" />
                     </span>
-                    <span className="font-serif text-[15px] italic text-foreground/80">
+                    <span className="font-serif text-[15px]   text-foreground/80">
                         Add another {platform.name} account
                     </span>
                     <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">

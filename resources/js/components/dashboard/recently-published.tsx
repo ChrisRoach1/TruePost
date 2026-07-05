@@ -23,7 +23,7 @@ export function RecentlyPublished({
                 <span className="text-[15px] font-semibold text-foreground">
                     Recently
                 </span>
-                <span className="font-serif text-[15px] italic text-primary">
+                <span className="font-serif text-[15px]   text-primary">
                     published
                 </span>
             </div>

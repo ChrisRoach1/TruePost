@@ -11,10 +11,11 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Storage;
 
-class LinkedInService implements SocialServiceInterface
+class LinkedInService implements ISocialService
 {
     /**
      * @throws ConnectionException
+     * @throws \Exception
      */
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null): void
     {
@@ -88,6 +89,10 @@ class LinkedInService implements SocialServiceInterface
                 ]);
 
         }
+
+        $responseId = $response->json()['id'] ?? throw new \Exception('Failed to post.');
+
+        UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
 
     public function getPosts()
