@@ -5,10 +5,7 @@ export default function AppLogo() {
         <>
             <AppLogoIcon className="size-8 rounded-md" />
             <div className="ml-1 grid flex-1 text-left">
-                <span
-                    className="truncate text-lg leading-none font-semibold tracking-tight"
-                    style={{ fontFamily: '"DM Sans", system-ui, sans-serif' }}
-                >
+                <span className="truncate font-brand text-lg leading-none font-semibold tracking-tight">
                     <span className="text-foreground">True</span>
                     <span className="text-primary">Post</span>
                 </span>

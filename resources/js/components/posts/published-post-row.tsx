@@ -9,7 +9,7 @@ type Props = {
 function MetricColumn({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex w-14 flex-col items-end leading-tight">
-            <span className="font-serif text-[14px] tabular-nums text-foreground">
+            <span className="font-sans text-[14px] tabular-nums text-foreground">
                 {value}
             </span>
             <span className="font-mono text-[9px] font-semibold tracking-widest text-muted-foreground uppercase">
@@ -51,7 +51,7 @@ export function PublishedPostRow({ post }: Props) {
     return (
         <li className="group flex items-stretch gap-4 border-b border-border bg-card py-3 transition-colors last:border-b-0 hover:bg-accent/30">
             <div className="flex w-32 shrink-0 flex-col leading-tight pl-5 pt-2">
-                <span className="font-serif text-[13px]   text-foreground">
+                <span className="font-sans text-[13px] text-foreground">
                     {date ? `${formatDistanceToNow(date)} ago` : '—'}
                 </span>
                 {date && (

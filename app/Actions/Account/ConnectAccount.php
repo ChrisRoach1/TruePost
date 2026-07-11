@@ -1,37 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Actions\Account;
 
 use App\Jobs\TokenRefresh;
 use App\Models\System;
 use App\Models\UserToken;
-use App\Services\FacebookService;
-use App\Services\InstagramService;
-use App\Services\LinkedInService;
-use App\Services\XService;
-use Http;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
 
-class OAuthController extends Controller
+class ConnectAccount
 {
-    /**
-     * Redirect user to a correct platform.
-     */
-    public function redirect(string $platform)
-    {
-        $system = System::query()->where('url_slug', $platform)->firstOrFail();
-
-        return Socialite::driver($platform)->scopes($system->scopes)->redirect();
-    }
-
-    /**
-     * @throws ConnectionException
-     */
-    public function callback(string $platform)
+    public function handle(string $platform): ?array
     {
         Cache::delete(auth()->id().'-connectedSystem');
 
@@ -118,7 +99,7 @@ class OAuthController extends Controller
                     }
                 }
 
-                return redirect('accounts')->with('pagesToSelect', $pagesToSelect);
+                return $pagesToSelect;
                 break;
             case 'linkedin-openid':
 
@@ -148,68 +129,6 @@ class OAuthController extends Controller
             default:
                 break;
         }
-
-        return redirect('accounts');
     }
 
-    public function finishAccountCreation(HttpRequest $request) {
-        $request->validate([
-            'id' => 'string',
-            'name' => 'string',
-            'system_id' => 'integer',
-            'access_token' => 'string',
-        ]);
-
-        $userToken = UserToken::where(
-            ['system_id' => $request->input('system_id'),
-            'user_token_id' => $request->input('id')])->first();
-
-        if ($userToken != null) {
-            $userToken->update([
-                'access_token' => $request->input('access_token'),
-                'refresh_token' => $request->input('refresh_token') ?? '',
-                'expires_at' => null,
-            ]);
-        } else {
-            $userToken = UserToken::create([
-                'system_id' => $request->input('system_id'),
-                'user_name' => $request->input('name'),
-                'user_token_id' => $request->input('id'),
-                'user_id' => auth()->id(),
-                'access_token' => $request->input('access_token'),
-                'refresh_token' => '',
-                'expires_at' => null,
-            ]);
-        }
-
-        $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-        TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
-
-        return redirect('accounts');
-
-    }
-
-    public function refreshToken(UserToken $userToken, XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService)
-    {
-        Cache::delete(auth()->id().'-connectedSystem');
-
-        $system = System::query()->where('id', $userToken->system_id)->firstOrFail();
-
-        switch ($system->url_slug) {
-            case 'x':
-                $xService->refreshToken($userToken);
-                break;
-            case 'instagram':
-                $instagramService->refreshToken($userToken);
-                break;
-            case 'facebook':
-                //$facebookService->refreshToken($userToken);
-                break;
-            case 'linkedin-openid':
-                $linkedInService->refreshToken($userToken);
-                break;
-            default:
-                break;
-        }
-    }
 }

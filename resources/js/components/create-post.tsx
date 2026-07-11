@@ -281,6 +281,11 @@ export default function CreatePost({
     );
     const requiresImage = requiringSystems.length > 0;
     const isMissingRequiredImage = requiresImage && !data.image;
+    const showTagsSection = selectedSystems.some(
+        (s) => s.system.can_collaborate || s.system.can_tag,
+    );
+    const step = (n: number) => String(n).padStart(2, '0');
+    const mediaStep = showTagsSection ? 4 : 3;
 
     function canSubmit(): boolean {
         let isOverLimit = false;
@@ -370,7 +375,7 @@ export default function CreatePost({
             <div className="border-b border-border px-7 pt-6 pb-5">
                 <p
                     className={cn(
-                        'text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors',
+                        'text-[11px] font-semibold tracking-widest uppercase transition-colors',
                         data.is_draft ? 'text-amber-600' : 'text-primary',
                     )}
                 >
@@ -383,7 +388,7 @@ export default function CreatePost({
 
             <div className="px-7 pt-5 pb-5">
                 <SectionHeader
-                    number="01"
+                    number={step(1)}
                     title="Where"
                     description="pick the channels this dispatch goes out to"
                 />
@@ -414,7 +419,7 @@ export default function CreatePost({
 
             <div className="border-t border-border px-7 pt-5 pb-5">
                 <SectionHeader
-                    number="02"
+                    number={step(2)}
                     title="Compose"
                     description="one message, every channel"
                     action={
@@ -467,12 +472,10 @@ export default function CreatePost({
                 )}
             </div>
 
-            {selectedSystems.some(
-                (s) => s.system.can_collaborate || s.system.can_tag,
-            ) && (
+            {showTagsSection && (
                 <div className="border-t border-border px-7 pt-5 pb-5">
                     <SectionHeader
-                        number="03"
+                        number={step(3)}
                         title="Tags & Collaborators"
                         description="add collaborators and tags per channel"
                     />
@@ -549,12 +552,12 @@ export default function CreatePost({
 
             <div className="border-t border-border px-7 pt-5 pb-5">
                 <SectionHeader
-                    number="04"
+                    number={step(mediaStep)}
                     title="Media"
                     description="drop images"
                     action={
                         requiresImage && (
-                            <span className="text-[11px] font-semibold tracking-[0.18em] text-amber-600 uppercase">
+                            <span className="text-[11px] font-semibold tracking-widest text-amber-600 uppercase">
                                 Required by{' '}
                                 {requiringSystems
                                     .map((s) => s.system.name)

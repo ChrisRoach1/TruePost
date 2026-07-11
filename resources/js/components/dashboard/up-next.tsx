@@ -20,7 +20,7 @@ export function UpNext({ items = [], subtitle }: Props) {
                 <span className="text-[15px] font-semibold text-foreground">
                     Up
                 </span>
-                <span className="font-serif text-[15px] text-primary  ">
+                <span className="font-sans text-[15px] text-primary">
                     next
                 </span>
             </div>

@@ -64,9 +64,9 @@ export function ScheduledPostRow({ post, onEdit, onDelete, onPostNow }: Props) {
     );
 
     return (
-        <li className="group relative flex items-stretch gap-4 border-l-2 border-primary/60 bg-card py-3 transition-colors hover:bg-accent/30">
+        <li className="group relative flex items-stretch gap-4 bg-card py-3 transition-colors hover:bg-accent/30">
             <div className="flex w-32 shrink-0 flex-col leading-tight pl-5 pt-2">
-                <span className="font-serif text-[15px] text-foreground">
+                <span className="font-sans text-[15px] text-foreground">
                     {date ? formatWhen(date) : 'Unscheduled'}
                 </span>
                 {date && (

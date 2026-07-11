@@ -87,7 +87,7 @@ export function PlatformSection({
                     <span className="grid size-7 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors group-hover:text-foreground">
                         <Plus className="size-3.5" />
                     </span>
-                    <span className="font-serif text-[15px]   text-foreground/80">
+                    <span className="font-sans text-[15px] text-foreground/80">
                         Add another {platform.name} account
                     </span>
                     <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">

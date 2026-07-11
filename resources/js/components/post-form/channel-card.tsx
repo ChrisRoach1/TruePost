@@ -58,7 +58,7 @@ export function ChannelCard({ account, selected, count, onToggle }: Props) {
                         ? `−${(count - limit).toLocaleString()}`
                         : left.toLocaleString()}
                 </span>
-                <span className="mt-1 text-[9px] font-semibold tracking-[0.18em] text-muted-foreground">
+                <span className="mt-1 text-[9px] font-semibold tracking-widest text-muted-foreground">
                     LEFT
                 </span>
             </span>

@@ -43,7 +43,7 @@ export function DraftPostRow({ post, index, onEdit, onDelete }: Props) {
     return (
         <li className="group flex items-stretch gap-4 border-b border-border bg-card py-3 transition-colors last:border-b-0 hover:bg-accent/30">
             <div className="flex w-32 shrink-0 flex-col leading-tight pl-5 pt-2">
-                <span className="font-serif text-[15px] text-foreground">
+                <span className="font-sans text-[15px] text-foreground">
                     Draft
                 </span>
                 <span className="mt-1 font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">

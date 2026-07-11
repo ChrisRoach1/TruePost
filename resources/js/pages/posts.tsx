@@ -44,7 +44,7 @@ function SectionHeader({
             <span className="text-[18px] font-semibold tracking-tight text-foreground">
                 {label}
             </span>
-            <span className="font-serif text-[18px] text-primary">
+            <span className="font-sans text-[18px] text-primary">
                 {accent}
             </span>
             <span className="font-mono text-[11px] text-muted-foreground">
@@ -171,7 +171,7 @@ export default function Posts({
                                 The archive
                             </span>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-                                Every <span className="font-serif text-primary">dispatch</span> you've ever made.
+                                Every <span className="font-sans text-primary">dispatch</span> you've ever made.
                             </h1>
                             <div className="flex items-center gap-4 pt-1">
                                 <CountPill label="All" value={posts.length} />

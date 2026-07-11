@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Actions\UserPost;
+
+use App\Jobs\SendPosts;
+use App\Models\UserPost;
+use DateTime;
+use DateTimeZone;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
+
+class CreateUserPost
+{
+    /**
+     * @throws \DateInvalidTimeZoneException
+     * @throws \DateMalformedStringException
+     */
+    public function handle(array $data, ?UploadedFile $file): UserPost
+    {
+        $userTz = new DateTimeZone(auth()->user()->getTimezone());
+
+        if ($data['is_scheduled'] ?? false) {
+            $postDate = new DateTime($data['scheduled_date_string'].' '.$data['scheduled_time'], $userTz);
+        } else {
+            $postDate = Date::now($userTz);
+        }
+
+        if ($file) {
+            $image = pathinfo($file->hashName(), PATHINFO_FILENAME).'.jpg';
+
+            $encodedImage = Image::decode($file)
+                ->scaleDown(1440)->encodeUsingFileExtension('jpg');
+
+            Storage::disk('r2')->put('media/'.$image, (string) $encodedImage, [
+                'visibility' => 'public',
+                'ContentType' => 'image/jpeg',
+                'CacheControl' => 'public, max-age=31536000',
+            ]);
+
+            $mediaUrl = '/media/'.$image;
+        } else {
+            $mediaUrl = '';
+        }
+
+        $userPost = UserPost::create([
+            'original_content' => $data['content'] ?? null,
+            'user_id' => auth()->id(),
+            'is_draft' => $data['is_draft'] ?? false,
+            'post_at' => $data['is_draft'] ? null : $postDate,
+            'media_url' => $mediaUrl,
+        ]);
+
+        foreach ($data['userTokenIds'] as $userTokenId) {
+            $overrideText = $data['channelContent'][$userTokenId] ?? null;
+            $collaborators = $data['collaborators'][$userTokenId] ?? null;
+            $tags = $data['tags'][$userTokenId] ?? null;
+            $userPost->UserPostSystems()->create([
+                'user_token_id' => $userTokenId,
+                'override_content' => $overrideText,
+                'collaborators' => $collaborators,
+                'tags' => $tags,
+            ]);
+        }
+
+        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+
+        if (! $data['is_draft']) {
+            if ($data['is_scheduled'] ?? false) {
+                $job = (new SendPosts($userPostWithData))->delay($postDate);
+                $jobId = Bus::dispatch($job);
+
+                $userPost->update(['job_id' => $jobId]);
+                $userPost->save();
+            } else {
+                SendPosts::dispatch($userPostWithData);
+            }
+        }
+        return $userPostWithData;
+    }
+}

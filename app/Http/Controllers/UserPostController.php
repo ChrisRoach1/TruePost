@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\UserPost\CreateUserPost;
+use App\Actions\UserPost\PostNow;
+use App\Actions\UserPost\UpdateUserPost;
 use App\Jobs\MetricCalculations;
-use App\Jobs\SendPosts;
 use App\Models\System;
 use App\Models\UserPost;
 use App\Models\UserToken;
-use DateTime;
-use DateTimeZone;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Intervention\Image\Laravel\Facades\Image;
 
 class UserPostController extends Controller
 {
@@ -53,9 +49,9 @@ class UserPostController extends Controller
      * @throws \DateMalformedStringException
      * @throws \DateInvalidTimeZoneException
      */
-    public function store(Request $request)
+    public function store(Request $request, CreateUserPost $createUserPost)
     {
-        $request->validate([
+        $validated = $request->validate([
             'content' => 'nullable|string',
             'is_draft' => 'required|boolean',
             'channelContent' => 'nullable|array',
@@ -67,54 +63,12 @@ class UserPostController extends Controller
             'tags.*.*' => 'string',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
+            'is_scheduled' => 'required|boolean',
+            'scheduled_date_string' => 'nullable|string',
+            'scheduled_time' => 'nullable|string',
         ]);
 
-        $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        if ($request->input('is_scheduled')) {
-            $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
-        } else {
-            $postDate = Date::now($userTz);
-        }
-
-        if ($request->hasFile('image')) {
-            $mediaUrl = $this->storeImage($request);
-        } else {
-            $mediaUrl = '';
-        }
-
-        $userPost = UserPost::create([
-            'original_content' => $request->input('content') ?? null,
-            'user_id' => auth()->id(),
-            'is_draft' => $request->input('is_draft'),
-            'post_at' => $request->input('is_draft') ? null : $postDate,
-            'media_url' => $mediaUrl,
-        ]);
-
-        foreach ($request->input('userTokenIds') as $userTokenId) {
-            $overrideText = $request->input('channelContent')[$userTokenId] ?? null;
-            $collaborators = $request->input('collaborators')[$userTokenId] ?? null;
-            $tags = $request->input('tags')[$userTokenId] ?? null;
-            $userPost->UserPostSystems()->create([
-                'user_token_id' => $userTokenId,
-                'override_content' => $overrideText,
-                'collaborators' => $collaborators,
-                'tags' => $tags,
-            ]);
-        }
-
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
-
-        if (! $request->input('is_draft')) {
-            if ($request->input('is_scheduled')) {
-                $job = (new SendPosts($userPostWithData))->delay($postDate);
-                $jobId = Bus::dispatch($job);
-
-                $userPost->update(['job_id' => $jobId]);
-                $userPost->save();
-            } else {
-                SendPosts::dispatch($userPostWithData);
-            }
-        }
+        $createUserPost->handle($validated, $request->file('image'));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('dashboard');
 
@@ -125,11 +79,11 @@ class UserPostController extends Controller
      * @throws \DateMalformedStringException
      * @throws \DateInvalidTimeZoneException
      */
-    public function update(Request $request, UserPost $userPost)
+    public function update(Request $request, UserPost $userPost, UpdateUserPost $updateUserPost)
     {
         abort_unless($userPost->user_id === auth()->id() && $userPost->is_draft, 403);
 
-        $request->validate([
+        $validated = $request->validate([
             'content' => 'nullable|string',
             'is_draft' => 'required|boolean',
             'channelContent' => 'nullable|array',
@@ -141,73 +95,19 @@ class UserPostController extends Controller
             'tags.*.*' => 'string',
             'userTokenIds' => 'required|array',
             'image' => 'nullable|image',
+            'is_scheduled' => 'required|boolean',
+            'scheduled_date_string' => 'nullable|string',
+            'scheduled_time' => 'nullable|string',
         ]);
 
-        $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        $postDate = new DateTime($request->scheduled_date_string.' '.$request->scheduled_time, $userTz);
-
-        if ($request->hasFile('image')) {
-            $mediaUrl = $this->storeImage($request);
-        } else {
-            $mediaUrl = $userPost->media_url ?? '';
-        }
-
-        $userPost->update([
-            'original_content' => $request->input('content'),
-            'is_draft' => $request->input('is_draft'),
-            'post_at' => $request->input('is_draft') ? null : $postDate,
-            'media_url' => $mediaUrl,
-        ]);
-
-        $incomingTokenIds = collect($request->input('userTokenIds'))->map(fn ($id) => (int) $id)->all();
-        $channelContent = $request->input('channelContent') ?? [];
-        $collaborators = $request->input('collaborators') ?? [];
-        $tags = $request->input('tags') ?? [];
-
-        $userPost->UserPostSystems()->whereNotIn('user_token_id', $incomingTokenIds)->delete();
-
-        $existing = $userPost->UserPostSystems()->get()->keyBy('user_token_id');
-
-        foreach ($incomingTokenIds as $userTokenId) {
-            $overrideText = $channelContent[$userTokenId] ?? null;
-            $tokenCollaborators = $collaborators[$userTokenId] ?? null;
-            $tokenTags = $tags[$userTokenId] ?? null;
-            if ($existing->has($userTokenId)) {
-                $existing[$userTokenId]->update([
-                    'override_content' => $overrideText,
-                    'collaborators' => $tokenCollaborators,
-                    'tags' => $tokenTags,
-                ]);
-            } else {
-                $userPost->UserPostSystems()->create([
-                    'user_token_id' => $userTokenId,
-                    'override_content' => $overrideText,
-                    'collaborators' => $tokenCollaborators,
-                    'tags' => $tokenTags,
-                ]);
-            }
-        }
-
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
-
-        if (! $request->input('is_draft')) {
-            if ($request->input('is_scheduled')) {
-                $job = (new SendPosts($userPostWithData))->delay($postDate);
-                $jobId = Bus::dispatch($job);
-
-                $userPost->update(['job_id' => $jobId]);
-                $userPost->save();
-            } else {
-                SendPosts::dispatch($userPostWithData);
-            }
-        }
+        $updateUserPost->handle($userPost, $validated, $request->file('image'));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Updated!')])->render('posts');
 
         return redirect()->route('userPost.index');
     }
 
-    public function delete(Request $request, UserPost $userPost)
+    public function delete(UserPost $userPost)
     {
         abort_unless($userPost->user_id === auth()->id(), 403);
 
@@ -218,21 +118,15 @@ class UserPostController extends Controller
         return redirect()->route('userPost.index');
     }
 
-    public function postNow(Request $request, UserPost $userPost)
+    /**
+     * @throws \DateInvalidTimeZoneException
+     * @throws \DateMalformedStringException
+     */
+    public function postNow(UserPost $userPost, PostNow $postNow)
     {
         abort_unless($userPost->user_id === auth()->id(), 403);
 
-        if ($userPost->job_id) {
-            DB::table('jobs')->where('id', $userPost->job_id)->delete();
-        }
-
-        $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        $postDate = new DateTime(now($userTz));
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
-
-        SendPosts::dispatch($userPostWithData);
-
-        $userPost->update(['post_at' => $postDate, 'job_id' => null, 'has_posted' => true]);
+        $postNow->handle($userPost);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Posted!')])->render('posts');
 
@@ -247,22 +141,5 @@ class UserPostController extends Controller
 
         return redirect()->route('userPost.index');
 
-    }
-
-    private function storeImage(Request $request): string
-    {
-        $file = $request->file('image');
-        $image = pathinfo($file->hashName(), PATHINFO_FILENAME).'.jpg';
-
-        $encodedImage = Image::decode($file)
-            ->scaleDown(1440)->encodeUsingFileExtension('jpg');
-
-        Storage::disk('r2')->put('media/'.$image, (string) $encodedImage, [
-            'visibility' => 'public',
-            'ContentType' => 'image/jpeg',
-            'CacheControl' => 'public, max-age=31536000',
-        ]);
-
-        return '/media/'.$image;
     }
 }
