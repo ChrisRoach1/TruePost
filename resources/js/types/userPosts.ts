@@ -33,17 +33,10 @@ export type UpNextItem = {
     content: string;
 };
 
-
-export type RecentlyPublishedMetric = {
-    system: System;
-    likes: number;
-    replies: number;
-};
-
 export type RecentlyPublishedItem = {
     id: number | string;
     time: Date | string;
     content: string;
-    metrics: RecentlyPublishedMetric[];
+    user_post_systems: userPostSystems[];
     trend?: 'up' | 'flat';
 };

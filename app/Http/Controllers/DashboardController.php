@@ -52,26 +52,16 @@ class DashboardController extends Controller
             });
 
         $recentlyPublished = UserPost::query()
-            ->with('UserPostSystems.userToken.System')
+            ->with('UserPostSystems.userToken.system')
             ->where(['user_id' => auth()->id(), 'has_posted' => true])
             ->orderBy('post_at', 'desc')
             ->take(4)
             ->get()->map(function (UserPost $userPost) {
-                $systems = [];
-                foreach ($userPost->UserPostSystems as $postSystem) {
-                    array_push($systems, [
-                        'system' => $postSystem->userToken->System,
-                        'reach' => 'up',
-                        'likes' => 1000,
-                        'replies' => 1000,
-                    ]);
-                }
-
                 return [
                     'id' => $userPost->id,
                     'time' => $userPost->post_at,
-                    'metrics' => $systems,
                     'content' => $userPost->original_content,
+                    'user_post_systems' => $userPost->UserPostSystems,
                 ];
             });
 

@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, FileText, X } from 'lucide-react';
+import { Clock, FileText, Sparkles, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
@@ -66,6 +66,8 @@ export default function CreatePost({
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
+    // Placeholder — wire to backend later
+    const [aiCustomizePerChannel, setAiCustomizePerChannel] = useState(false);
 
     const { data, setData, processing, submit, reset, errors, clearErrors } =
         useForm<{
@@ -147,6 +149,8 @@ export default function CreatePost({
             return;
         }
 
+        setAiCustomizePerChannel(false);
+
         const sortedConnectedSystems = connectedSystems
             .filter((account) => data.userTokenIds.includes(account.id))
             .sort((a, b) => a.system.order - b.system.order);
@@ -164,6 +168,19 @@ export default function CreatePost({
 
         if (firstId !== undefined) {
             setActiveTab(firstId);
+        }
+    }
+
+    function toggleAiCustomizePerChannel(checked: boolean) {
+        setAiCustomizePerChannel(checked);
+
+        if (checked && data.customizing) {
+            setData((prev) => ({
+                ...prev,
+                channelContent: {},
+                customizing: false,
+            }));
+            setActiveTab('all');
         }
     }
 
@@ -219,6 +236,7 @@ export default function CreatePost({
         clearImage();
         setScheduleOpen(false);
         setActiveTab('all');
+        setAiCustomizePerChannel(false);
         router.flushAll();
     }
 
@@ -421,17 +439,38 @@ export default function CreatePost({
                 <SectionHeader
                     number={step(2)}
                     title="Compose"
-                    description="one message, every channel"
+                    description={
+                        aiCustomizePerChannel
+                            ? 'write once — AI adapts each channel'
+                            : data.customizing
+                              ? 'tune each channel yourself'
+                              : 'one message, every channel'
+                    }
                     action={
                         data.userTokenIds.length > 1 && (
-                            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
-                                <Switch
-                                    size="sm"
-                                    checked={data.customizing}
-                                    onCheckedChange={(checked) => customizePerChannel(checked)}
-                                />
-                                Customize per channel
-                            </label>
+                            <div className="flex flex-col items-end gap-2">
+                                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
+                                    <Switch
+                                        size="sm"
+                                        checked={data.customizing}
+                                        onCheckedChange={customizePerChannel}
+                                    />
+                                    Customize manually
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
+                                    <Switch
+                                        size="sm"
+                                        checked={aiCustomizePerChannel}
+                                        onCheckedChange={
+                                            toggleAiCustomizePerChannel
+                                        }
+                                    />
+                                    <span className="inline-flex items-center gap-1">
+                                        <Sparkles className="size-3 text-primary" />
+                                        Let AI adapt each channel
+                                    </span>
+                                </label>
+                            </div>
                         )
                     }
                 />
@@ -448,10 +487,27 @@ export default function CreatePost({
                     />
                 )}
 
+                {aiCustomizePerChannel && (
+                    <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-dashed border-primary/35 bg-primary/[0.04] px-3.5 py-2.5 text-[13px] text-muted-foreground">
+                        <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                        <p>
+                            AI will rewrite your post for each selected channel
+                            before publishing.
+                            <span className="ml-1 text-muted-foreground/70">
+                                (placeholder — not wired up yet)
+                            </span>
+                        </p>
+                    </div>
+                )}
+
                 <Textarea
                     value={currentText ?? ''}
                     onChange={(e) => setContent(effectiveTab, e.target.value)}
-                    placeholder="What do you want to say?"
+                    placeholder={
+                        aiCustomizePerChannel
+                            ? 'Write your core message — AI will tailor it per channel…'
+                            : 'What do you want to say?'
+                    }
                     className="mt-4 min-h-40 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
                 />
 

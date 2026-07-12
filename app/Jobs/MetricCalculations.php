@@ -45,6 +45,9 @@ class MetricCalculations implements ShouldQueue
                     case 'linkedin-openid':
                         $linkedInService->getPostMetrics($systemPost);
                         break;
+                    case 'facebook':
+                        $facebookService->getPostMetrics($systemPost);
+                        break;
                     default:
                         throw new \Exception('Unsupported platform: '.$systemPost->userToken->System->url_slug);
                 }

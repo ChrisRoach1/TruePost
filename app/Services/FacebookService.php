@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
 use Exception;
@@ -58,7 +59,28 @@ class FacebookService implements ISocialService
 
     public function getPostMetrics(UserPostSystem $userPostSystem)
     {
-        // TODO: Implement getPostMetrics() method.
+        $metricsResponse = Http::withToken($userPostSystem->userToken->access_token)
+            ->get('https://graph.facebook.com/v25.0/'.$userPostSystem->created_post_Id.'?fields=reactions.limit(0).summary(true),comments.limit(0).summary(true)')
+            ->json();
+
+        if (array_key_exists('error', $metricsResponse)) {
+            return;
+        }
+
+        $likeCount = (int) $metricsResponse['reactions']['summary']['total_count'];
+        $replyCount = (int) $metricsResponse['comments']['summary']['total_count'];
+
+        PostMetric::create([
+            'likes' => $userPostSystem->likes ?? 0,
+            'replies' => $userPostSystem->replies ?? 0,
+            'impressions' => $userPostSystem->impressions ?? 0,
+            'user_post_system_id' => $userPostSystem->id,
+        ]);
+
+        UserPostSystem::find($userPostSystem->id)->update([
+            'likes' => $likeCount,
+            'replies' => $replyCount,
+        ]);
     }
 
     public function SendPostRequest(UserPostSystem $userPostSystem, string $content, ?string $media_url = null): LazyPromise|PromiseInterface|Response

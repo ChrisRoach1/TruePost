@@ -9,9 +9,9 @@ use App\Jobs\MetricCalculations;
 use App\Models\System;
 use App\Models\UserPost;
 use App\Models\UserToken;
-use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class UserPostController extends Controller
@@ -36,7 +36,9 @@ class UserPostController extends Controller
             ->with('system')
             ->get();
 
-        $systems = System::query()->orderBy('id')->get();
+        $systems = Cache::remember('systems', 6000, function () {
+            return System::query()->orderBy('id')->get();
+        });
 
         return Inertia::render('posts', [
             'userPosts' => $userPosts,

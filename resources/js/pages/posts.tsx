@@ -144,9 +144,19 @@ export default function Posts({
         return { scheduled: scheduledList, drafts: draftList, published: publishedList };
     }, [posts]);
 
-    const showScheduled = filter === 'all' || filter === 'scheduled';
-    const showDrafts = filter === 'all' || filter === 'drafts';
-    const showPublished = filter === 'all' || filter === 'posted';
+    const showScheduled = (filter === 'all' || filter === 'scheduled') && scheduled.length > 0;
+    const showDrafts = (filter === 'all' || filter === 'drafts') && drafts.length > 0;
+    const showPublished = (filter === 'all' || filter === 'posted') && published.length > 0;
+
+    const sectionNumber = (() => {
+        let n = 0;
+        const next = () => String(++n).padStart(2, '0');
+        return {
+            scheduled: showScheduled ? next() : '',
+            drafts: showDrafts ? next() : '',
+            published: showPublished ? next() : '',
+        };
+    })();
 
     function deletePost(postId: number): void {
         router.delete(deleteMethod({userPost: postId}));
@@ -235,10 +245,10 @@ export default function Posts({
                         </div>
                     </div>
 
-                    {showScheduled && scheduled.length > 0 && (
+                    {showScheduled && (
                         <section>
                             <SectionHeader
-                                number="01"
+                                number={sectionNumber.scheduled}
                                 label="Scheduled"
                                 accent="& queued"
                                 count={scheduled.length}
@@ -257,10 +267,10 @@ export default function Posts({
                         </section>
                     )}
 
-                    {showDrafts && drafts.length > 0 && (
+                    {showDrafts && (
                         <section>
                             <SectionHeader
-                                number="02"
+                                number={sectionNumber.drafts}
                                 label="In"
                                 accent="progress"
                                 count={drafts.length}
@@ -279,10 +289,10 @@ export default function Posts({
                         </section>
                     )}
 
-                    {showPublished && published.length > 0 && (
+                    {showPublished && (
                         <section>
                             <SectionHeader
-                                number="03"
+                                number={sectionNumber.published}
                                 label="Recently"
                                 accent="published"
                                 count={published.length}
