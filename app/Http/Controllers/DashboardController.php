@@ -23,7 +23,6 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-
         $systems = Cache::remember('systems', 6000, function () {
             return System::query()->orderBy('id')->get();
         });

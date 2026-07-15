@@ -86,7 +86,6 @@ export default function EditPost({
     );
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
 
@@ -144,24 +143,10 @@ export default function EditPost({
 
         clearErrors('image');
         setData('image', file);
-        setImagePreview((prev) => {
-            if (prev) {
-                URL.revokeObjectURL(prev);
-            }
-
-            return file ? URL.createObjectURL(file) : null;
-        });
     }
 
     function clearImage() {
         setData('image', null);
-        setImagePreview((prev) => {
-            if (prev) {
-                URL.revokeObjectURL(prev);
-            }
-
-            return null;
-        });
         clearErrors('image');
 
         if (fileInputRef.current) {
@@ -612,23 +597,24 @@ export default function EditPost({
                             ref={fileInputRef}
                             id="edit-post-image"
                             type="file"
-                            accept="image/jpeg"
+                            accept="image/jpeg,video/mp4,video/quicktime,.jpg,.jpeg,.mp4,.mov"
                             className="hidden"
                             onChange={handleImageChange}
                         />
 
-                        {imagePreview ? (
-                            <div className="relative w-fit">
-                                <img
-                                    src={imagePreview}
-                                    alt="Selected"
-                                    className="block max-h-48 rounded-lg border border-border object-contain"
-                                />
+                        {data.image ? (
+                            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-sm">
+                                <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
+                                    <FileText className="size-4 shrink-0" />
+                                    <span className="truncate">
+                                        {data.image.name}
+                                    </span>
+                                </div>
                                 <button
                                     type="button"
                                     onClick={clearImage}
-                                    className="absolute top-2 right-2 grid size-7 place-items-center rounded-full border-none bg-foreground/70 text-background"
-                                    aria-label="Remove image"
+                                    className="grid size-7 shrink-0 place-items-center rounded-full border-none bg-foreground/70 text-background"
+                                    aria-label="Remove file"
                                 >
                                     <X size={14} />
                                 </button>
@@ -637,7 +623,7 @@ export default function EditPost({
                             <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-sm">
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <ImageIcon className="size-4" />
-                                    <span>Image attached</span>
+                                    <span>Media attached</span>
                                 </div>
                                 <Button
                                     type="button"
@@ -657,10 +643,10 @@ export default function EditPost({
                                 className="flex w-full flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] border-dashed border-border bg-transparent px-6 py-6 text-center transition-colors hover:border-foreground/30 hover:bg-muted/30"
                             >
                                 <span className="text-sm text-muted-foreground">
-                                    Add an image
+                                    Add media
                                 </span>
                                 <span className="text-[11px] text-muted-foreground/70">
-                                    jpg
+                                    jpg, mp4, mov
                                 </span>
                             </button>
                         )}

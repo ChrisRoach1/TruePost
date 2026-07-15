@@ -9,11 +9,11 @@ use DateTimeZone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
 
 class CreateUserPost
 {
+    public function __construct(public UploadFile $uploadFile) {}
+
     /**
      * @throws \DateInvalidTimeZoneException
      * @throws \DateMalformedStringException
@@ -28,22 +28,7 @@ class CreateUserPost
             $postDate = Date::now($userTz);
         }
 
-        if ($file) {
-            $image = pathinfo($file->hashName(), PATHINFO_FILENAME).'.jpg';
-
-            $encodedImage = Image::decode($file)
-                ->scaleDown(1440)->encodeUsingFileExtension('jpg');
-
-            Storage::disk('r2')->put('media/'.$image, (string) $encodedImage, [
-                'visibility' => 'public',
-                'ContentType' => 'image/jpeg',
-                'CacheControl' => 'public, max-age=31536000',
-            ]);
-
-            $mediaUrl = '/media/'.$image;
-        } else {
-            $mediaUrl = '';
-        }
+        $mediaUrl = $this->uploadFile->handle($file);
 
         $userPost = UserPost::create([
             'original_content' => $data['content'] ?? null,
@@ -78,6 +63,7 @@ class CreateUserPost
                 SendPosts::dispatch($userPostWithData);
             }
         }
+
         return $userPostWithData;
     }
 }

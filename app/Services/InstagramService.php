@@ -10,6 +10,9 @@ use Date;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
+
+use function PHPUnit\Framework\stringContains;
 
 class InstagramService implements ISocialService
 {
@@ -29,8 +32,14 @@ class InstagramService implements ISocialService
 
         $payload = [
             'caption' => $content,
-            'image_url' => $media_url,
         ];
+
+        if (stringContains($media_url, '.mov') || stringContains($media_url, '.mp4')) {
+            $payload['video_url'] = $media_url;
+            $payload['media_type'] = 'REELS';
+        } else {
+            $payload['image_url'] = $media_url;
+        }
 
         $collaborators = array_values(array_filter($userPostSystem->collaborators ?? []));
         if (! empty($collaborators)) {
@@ -72,6 +81,7 @@ class InstagramService implements ISocialService
         $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media_publish?creation_id='.$containerId);
 
         if (array_key_exists('error', $postCreationResponse->json())) {
+            Sleep::for(20)->second();
             $attempts = 0;
             while ($attempts < 10) {
                 $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media_publish?creation_id='.$containerId);
