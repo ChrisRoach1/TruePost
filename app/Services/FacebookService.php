@@ -27,7 +27,7 @@ class FacebookService implements ISocialService
         $media_url = $media ? env('R2_PUBLIC_ENDPOINT').'/'.$media : null;
 
         $postCreationResponse = $this->SendPostRequest($userPostSystem, $content, $media_url);
-        
+
         if (array_key_exists('error', $postCreationResponse->json())) {
             $attempts = 0;
             while ($attempts < 10) {
@@ -95,8 +95,6 @@ class FacebookService implements ISocialService
             ]);
         }
 
-        // Video and image posts go to different Graph API endpoints. The /feed
-        // endpoint ignores media parameters, which results in a text-only post.
         if (str_contains($media_url, '.mov') || str_contains($media_url, '.mp4')) {
             return Http::withToken($token)->post('https://graph.facebook.com/v25.0/'.$pageId.'/videos', [
                 'description' => $content,

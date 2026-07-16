@@ -53,6 +53,7 @@ class UserPostController extends Controller
      */
     public function store(Request $request, CreateUserPost $createUserPost)
     {
+
         $validated = $request->validate([
             'content' => 'nullable|string',
             'is_draft' => 'required|boolean',
@@ -64,7 +65,7 @@ class UserPostController extends Controller
             'tags.*' => 'array|max:5',
             'tags.*.*' => 'string',
             'userTokenIds' => 'required|array',
-            'image' => 'nullable|file|mimes:jpg,jpeg,mp4,mov,qt|max:512000',
+            'image' => 'nullable|file|mimes:jpg,jpeg,mp4,mov,qt,octet-stream|max:512000',
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
