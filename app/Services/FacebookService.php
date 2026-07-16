@@ -24,10 +24,10 @@ class FacebookService implements ISocialService
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null)
     {
         $content = $userPostSystem->override_content ?? $content;
-        $media_url = env('R2_PUBLIC_ENDPOINT').'/'.$media;
+        $media_url = $media ? env('R2_PUBLIC_ENDPOINT').'/'.$media : null;
 
         $postCreationResponse = $this->SendPostRequest($userPostSystem, $content, $media_url);
-
+        
         if (array_key_exists('error', $postCreationResponse->json())) {
             $attempts = 0;
             while ($attempts < 10) {
@@ -86,17 +86,27 @@ class FacebookService implements ISocialService
     public function SendPostRequest(UserPostSystem $userPostSystem, string $content, ?string $media_url = null): LazyPromise|PromiseInterface|Response
     {
 
+        $token = $userPostSystem->userToken->access_token;
+        $pageId = $userPostSystem->userToken->user_token_id;
+
         if (! $media_url) {
-            $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.facebook.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/feed', [
+            return Http::withToken($token)->post('https://graph.facebook.com/v25.0/'.$pageId.'/feed', [
                 'message' => $content,
-            ]);
-        } else {
-            $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.facebook.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/feed', [
-                'message' => $content,
-                'url' => $media_url,
             ]);
         }
 
-        return $postCreationResponse;
+        // Video and image posts go to different Graph API endpoints. The /feed
+        // endpoint ignores media parameters, which results in a text-only post.
+        if (str_contains($media_url, '.mov') || str_contains($media_url, '.mp4')) {
+            return Http::withToken($token)->post('https://graph.facebook.com/v25.0/'.$pageId.'/videos', [
+                'description' => $content,
+                'file_url' => $media_url,
+            ]);
+        }
+
+        return Http::withToken($token)->post('https://graph.facebook.com/v25.0/'.$pageId.'/photos', [
+            'caption' => $content,
+            'url' => $media_url,
+        ]);
     }
 }
