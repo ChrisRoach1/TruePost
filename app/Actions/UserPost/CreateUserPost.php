@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Date;
 
 class CreateUserPost
 {
-    public function __construct(public UploadFile $uploadFile) {}
+    public function __construct(public UploadFile $uploadFile, public CustomizeWithAI $customizeWithAI) {}
 
     /**
      * @throws \DateInvalidTimeZoneException
@@ -38,16 +38,32 @@ class CreateUserPost
             'media_url' => $mediaUrl,
         ]);
 
-        foreach ($data['userTokenIds'] as $userTokenId) {
-            $overrideText = $data['channelContent'][$userTokenId] ?? null;
-            $collaborators = $data['collaborators'][$userTokenId] ?? null;
-            $tags = $data['tags'][$userTokenId] ?? null;
-            $userPost->UserPostSystems()->create([
-                'user_token_id' => $userTokenId,
-                'override_content' => $overrideText,
-                'collaborators' => $collaborators,
-                'tags' => $tags,
-            ]);
+        if ($data['aiCustomize']) {
+            $customizedContent = $this->customizeWithAI->handle($data);
+            foreach ($data['userTokenIds'] as $userTokenId) {
+                $overrideText = $customizedContent[$userTokenId] ?? null;
+                $collaborators = $data['collaborators'][$userTokenId] ?? null;
+                $tags = $data['tags'][$userTokenId] ?? null;
+                $userPost->UserPostSystems()->create([
+                    'user_token_id' => $userTokenId,
+                    'override_content' => $overrideText,
+                    'collaborators' => $collaborators,
+                    'tags' => $tags,
+                ]);
+            }
+
+        } else {
+            foreach ($data['userTokenIds'] as $userTokenId) {
+                $overrideText = $data['channelContent'][$userTokenId] ?? null;
+                $collaborators = $data['collaborators'][$userTokenId] ?? null;
+                $tags = $data['tags'][$userTokenId] ?? null;
+                $userPost->UserPostSystems()->create([
+                    'user_token_id' => $userTokenId,
+                    'override_content' => $overrideText,
+                    'collaborators' => $collaborators,
+                    'tags' => $tags,
+                ]);
+            }
         }
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);

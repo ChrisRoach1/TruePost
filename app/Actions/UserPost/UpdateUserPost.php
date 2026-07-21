@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Date;
 
 class UpdateUserPost
 {
-    public function __construct(public UploadFile $uploadFile) {}
+    public function __construct(public UploadFile $uploadFile, public CustomizeWithAI $customizeWithAI) {}
 
     /**
      * @throws \DateInvalidTimeZoneException
@@ -41,12 +41,17 @@ class UpdateUserPost
         $collaborators = $data['collaborators'] ?? [];
         $tags = $data['tags'] ?? [];
 
+        $aiCustomize = $data['aiCustomize'] ?? false;
+        $customizedContent = $aiCustomize ? $this->customizeWithAI->handle($data) : [];
+
         $userPost->UserPostSystems()->whereNotIn('user_token_id', $incomingTokenIds)->delete();
 
         $existing = $userPost->UserPostSystems()->get()->keyBy('user_token_id');
 
         foreach ($incomingTokenIds as $userTokenId) {
-            $overrideText = $channelContent[$userTokenId] ?? null;
+            $overrideText = $aiCustomize
+                ? ($customizedContent[$userTokenId] ?? null)
+                : ($channelContent[$userTokenId] ?? null);
             $tokenCollaborators = $collaborators[$userTokenId] ?? null;
             $tokenTags = $tags[$userTokenId] ?? null;
             if ($existing->has($userTokenId)) {

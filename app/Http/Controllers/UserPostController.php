@@ -69,6 +69,7 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
+            'aiCustomize' => 'boolean|required',
         ]);
 
         $createUserPost->handle($validated, $request->file('image'));
@@ -101,6 +102,7 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
+            'aiCustomize' => 'boolean|required',
         ]);
 
         $updateUserPost->handle($userPost, $validated, $request->file('image'));

@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, FileText, ImageIcon, X } from 'lucide-react';
+import { Clock, FileText, ImageIcon, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
@@ -110,6 +110,7 @@ export default function EditPost({
             scheduled_date_string?: string;
             scheduled_time?: string;
             image: File | null;
+            aiCustomize: boolean;
         }>({
             _method: 'put',
             content: post.original_content ?? '',
@@ -126,6 +127,7 @@ export default function EditPost({
             scheduled_date_string: format(initialPostAt, 'yyyy-MM-dd'),
             scheduled_time: format(initialPostAt, 'HH:mm'),
             image: null,
+            aiCustomize: false,
         });
 
     useEffect(() => {
@@ -161,6 +163,51 @@ export default function EditPost({
                 ? data.userTokenIds.filter((id) => id !== userTokenId)
                 : [...data.userTokenIds, userTokenId],
         );
+    }
+
+    function customizePerChannel(checked: boolean) {
+        if (!checked) {
+            setData((prev) => ({
+                ...prev,
+                channelContent: {},
+                customizing: false,
+            }));
+            setActiveTab('all');
+
+            return;
+        }
+
+        setData('aiCustomize', false);
+
+        const sortedConnectedSystems = connectedSystems
+            .filter((account) => data.userTokenIds.includes(account.id))
+            .sort((a, b) => a.system.order - b.system.order);
+
+        const firstId = sortedConnectedSystems[0]?.id;
+        const seed = data.content;
+
+        setData((prev) => ({
+            ...prev,
+            customizing: true,
+            channelContent: firstId !== undefined ? { [firstId]: seed } : {},
+        }));
+
+        if (firstId !== undefined) {
+            setActiveTab(firstId);
+        }
+    }
+
+    function toggleAiCustomizePerChannel(checked: boolean) {
+        setData('aiCustomize', checked);
+
+        if (checked && data.customizing) {
+            setData((prev) => ({
+                ...prev,
+                channelContent: {},
+                customizing: false,
+            }));
+            setActiveTab('all');
+        }
     }
 
     function openSchedule() {
@@ -404,48 +451,34 @@ export default function EditPost({
                     </section>
 
                     <section className="space-y-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between">
                             <div className="text-sm font-medium text-foreground">
                                 Content
                             </div>
                             {data.userTokenIds.length > 1 && (
-                                <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
-                                    <Switch
-                                        size="sm"
-                                        checked={data.customizing}
-                                        onCheckedChange={(checked) => {
-                                            if (!checked) {
-                                                setData('channelContent', {});
-                                                setActiveTab('all');
-                                            } else {
-                                                const sortedConnectedSystems =
-                                                    connectedSystems
-                                                        .filter((account) =>
-                                                            data.userTokenIds.includes(
-                                                                account.id,
-                                                            ),
-                                                        )
-                                                        .sort(
-                                                            (a, b) =>
-                                                                a.system.order -
-                                                                b.system.order,
-                                                        );
-
-                                                setActiveTab(
-                                                    sortedConnectedSystems[0]
-                                                        .id,
-                                                );
-                                                setContent(
-                                                    effectiveTab,
-                                                    data.content,
-                                                );
+                                <div className="flex flex-col items-end gap-2">
+                                    <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
+                                        <Switch
+                                            size="sm"
+                                            checked={data.customizing}
+                                            onCheckedChange={customizePerChannel}
+                                        />
+                                        Customize per channel
+                                    </label>
+                                    <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
+                                        <Switch
+                                            size="sm"
+                                            checked={data.aiCustomize}
+                                            onCheckedChange={
+                                                toggleAiCustomizePerChannel
                                             }
-
-                                            setData('customizing', checked);
-                                        }}
-                                    />
-                                    Customize per channel
-                                </label>
+                                        />
+                                        <span className="inline-flex items-center gap-1">
+                                            <Sparkles className="size-3 text-primary" />
+                                            Let AI adapt each channel
+                                        </span>
+                                    </label>
+                                </div>
                             )}
                         </div>
 
@@ -466,7 +499,11 @@ export default function EditPost({
                             onChange={(e) =>
                                 setContent(effectiveTab, e.target.value)
                             }
-                            placeholder="What do you want to say?"
+                            placeholder={
+                                data.aiCustomize
+                                    ? 'Write your core message — AI will tailor it per channel…'
+                                    : 'What do you want to say?'
+                            }
                             className="min-h-32 resize-y text-[15px] leading-relaxed"
                         />
 

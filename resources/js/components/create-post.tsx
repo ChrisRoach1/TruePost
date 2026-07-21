@@ -65,8 +65,6 @@ export default function CreatePost({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
-    // Placeholder — wire to backend later
-    const [aiCustomizePerChannel, setAiCustomizePerChannel] = useState(false);
 
     const { data, setData, processing, submit, reset, errors, clearErrors } =
         useForm<{
@@ -82,6 +80,7 @@ export default function CreatePost({
             scheduled_date_string?: string;
             scheduled_time?: string;
             image: File | null;
+            aiCustomize: boolean;
         }>({
             content: '',
             userTokenIds: [],
@@ -95,6 +94,7 @@ export default function CreatePost({
             scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
             scheduled_time: format(new Date(), 'HH:mm'),
             image: null,
+            aiCustomize: false
         });
 
     function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -134,7 +134,7 @@ export default function CreatePost({
             return;
         }
 
-        setAiCustomizePerChannel(false);
+        setData("aiCustomize", false);
 
         const sortedConnectedSystems = connectedSystems
             .filter((account) => data.userTokenIds.includes(account.id))
@@ -157,7 +157,7 @@ export default function CreatePost({
     }
 
     function toggleAiCustomizePerChannel(checked: boolean) {
-        setAiCustomizePerChannel(checked);
+        setData("aiCustomize", checked);
 
         if (checked && data.customizing) {
             setData((prev) => ({
@@ -221,7 +221,6 @@ export default function CreatePost({
         clearImage();
         setScheduleOpen(false);
         setActiveTab('all');
-        setAiCustomizePerChannel(false);
         router.flushAll();
     }
 
@@ -425,7 +424,7 @@ export default function CreatePost({
                     number={step(2)}
                     title="Compose"
                     description={
-                        aiCustomizePerChannel
+                        data.aiCustomize
                             ? 'write once — AI adapts each channel'
                             : data.customizing
                               ? 'tune each channel yourself'
@@ -445,7 +444,7 @@ export default function CreatePost({
                                 <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
                                     <Switch
                                         size="sm"
-                                        checked={aiCustomizePerChannel}
+                                        checked={data.aiCustomize}
                                         onCheckedChange={
                                             toggleAiCustomizePerChannel
                                         }
@@ -472,24 +471,11 @@ export default function CreatePost({
                     />
                 )}
 
-                {aiCustomizePerChannel && (
-                    <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-dashed border-primary/35 bg-primary/[0.04] px-3.5 py-2.5 text-[13px] text-muted-foreground">
-                        <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                        <p>
-                            AI will rewrite your post for each selected channel
-                            before publishing.
-                            <span className="ml-1 text-muted-foreground/70">
-                                (placeholder — not wired up yet)
-                            </span>
-                        </p>
-                    </div>
-                )}
-
                 <Textarea
                     value={currentText ?? ''}
                     onChange={(e) => setContent(effectiveTab, e.target.value)}
                     placeholder={
-                        aiCustomizePerChannel
+                        data.aiCustomize
                             ? 'Write your core message — AI will tailor it per channel…'
                             : 'What do you want to say?'
                     }

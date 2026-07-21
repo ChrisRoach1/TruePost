@@ -25,14 +25,6 @@ export type userPostSystems = {
     replies: number;
 }
 
-export type UpNextItem = {
-    id: number | string;
-    time: Date | string;
-    channels: System[];
-    hasImage?: boolean;
-    content: string;
-};
-
 export type RecentlyPublishedItem = {
     id: number | string;
     time: Date | string;
