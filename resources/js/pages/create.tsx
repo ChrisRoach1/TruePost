@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import CreatePost from '@/components/create-post';
 import RecentlyPublished from '@/components/dashboard/recently-published';
-import { dashboard } from '@/routes';
+import { create } from '@/routes';
 import type { System, UserToken } from '@/types';
 import type { RecentlyPublishedItem } from '@/types/userPosts';
 
@@ -18,7 +18,7 @@ export default function Dashboard({
 }: Props) {
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title="Create" />
             <div className="px-4 py-7 text-foreground">
                 <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
                     <div className="w-full max-w-4xl">
@@ -39,8 +39,8 @@ export default function Dashboard({
 Dashboard.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
-            href: dashboard(),
+            title: 'Create',
+            href: create(),
         },
     ],
 };

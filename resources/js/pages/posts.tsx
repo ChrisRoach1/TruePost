@@ -11,7 +11,7 @@ import ScheduledPostRow from '@/components/posts/scheduled-post-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { create, dashboard } from '@/routes';
 import userPost, { deleteMethod, index, postNow } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
 import type { userPosts } from '@/types/userPosts';
@@ -54,13 +54,6 @@ function SectionHeader({
     );
 }
 
-function CountPill({ label, value }: { label: string; value: number }) {
-    return (
-        <span className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
-            <span className="text-foreground tabular-nums">{value}</span> {label}
-        </span>
-    );
-}
 
 function FilterTab({
     active,
@@ -183,12 +176,6 @@ export default function Posts({
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
                                 Every <span className="font-sans text-primary">dispatch</span> you've ever made.
                             </h1>
-                            <div className="flex items-center gap-4 pt-1">
-                                <CountPill label="All" value={posts.length} />
-                                <CountPill label="Drafts" value={drafts.length} />
-                                <CountPill label="Scheduled" value={scheduled.length} />
-                                <CountPill label="Posted" value={published.length} />
-                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button variant="outline" onClick={handleRefreshMetrics}>
@@ -196,7 +183,7 @@ export default function Posts({
                                 Refresh metrics
                             </Button>
                             <Button asChild>
-                                <Link href={dashboard().url}>
+                                <Link href={create().url}>
                                     <Send className="size-3.5" />
                                     New post
                                 </Link>

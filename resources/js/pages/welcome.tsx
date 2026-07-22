@@ -1,21 +1,26 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { IconType } from 'react-icons';
+import {
+    FaFacebookF,
+    FaInstagram,
+    FaLinkedinIn,
+    FaXTwitter,
+} from 'react-icons/fa6';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { dashboard, login, register } from '@/routes';
+import { create, login, register } from '@/routes';
 
 // ── Channel definitions (external brand colors kept as-is) ──────────────────
-type Channel = { id: string; name: string; color: string; letter: string };
+type Channel = { id: string; name: string; color: string; icon: IconType };
 
 const CHANNELS: Channel[] = [
-    { id: 'facebook', name: 'Facebook', color: '#1877F2', letter: 'f' },
-    { id: 'instagram', name: 'Instagram', color: '#E4405F', letter: 'Ig' },
-    { id: 'x', name: 'X', color: '#000000', letter: '𝕏' },
-    { id: 'linkedin', name: 'LinkedIn', color: '#0A66C2', letter: 'in' },
-    { id: 'threads', name: 'Threads', color: '#000000', letter: '@' },
-    { id: 'youtube', name: 'YouTube Shorts', color: '#FF0033', letter: '▶' },
+    { id: 'facebook', name: 'Facebook', color: '#1877F2', icon: FaFacebookF },
+    { id: 'instagram', name: 'Instagram', color: '#E4405F', icon: FaInstagram },
+    { id: 'x', name: 'X', color: '#000000', icon: FaXTwitter },
+    { id: 'linkedin', name: 'LinkedIn', color: '#0A66C2', icon: FaLinkedinIn },
 ];
 
 const channelById = (id: string) => CHANNELS.find((c) => c.id === id);
@@ -154,11 +159,12 @@ function ChannelPip({
     className?: string;
 }) {
     const isBlack = channel.color === '#000000';
+    const Icon = channel.icon;
 
     return (
         <span
             className={cn(
-                'inline-grid shrink-0 place-items-center font-brand font-bold text-white',
+                'inline-grid shrink-0 place-items-center text-white',
                 isBlack && 'bg-neutral-900 dark:bg-neutral-700',
                 className,
             )}
@@ -166,11 +172,10 @@ function ChannelPip({
                 width: size,
                 height: size,
                 borderRadius: Math.round(size * 0.3),
-                fontSize: Math.round(size * 0.5),
                 ...(isBlack ? {} : { background: channel.color }),
             }}
         >
-            {channel.letter}
+            <Icon size={Math.round(size * 0.52)} />
         </span>
     );
 }
@@ -236,7 +241,7 @@ const FANOUT = {
     cards: [
         {
             id: 'x',
-            text: 'Shipped: per-channel AI rewrites. One draft → 6 native posts. No copy-paste tax.',
+            text: 'Shipped: per-channel AI rewrites. One draft → 4 native posts. No copy-paste tax.',
         },
         {
             id: 'linkedin',
@@ -247,8 +252,8 @@ const FANOUT = {
             text: 'compose once. post native everywhere ✨ new rewrites are live → link in bio',
         },
         {
-            id: 'threads',
-            text: 'one draft in, six native posts out. the copy-paste tax is dead 🪦',
+            id: 'facebook',
+            text: 'One draft in, four native posts out. The copy-paste tax is dead 🪦',
         },
     ],
 };
@@ -440,7 +445,7 @@ function Nav({
                 <div className="ml-auto flex items-center gap-2">
                     {authed ? (
                         <Button asChild size="sm" className="rounded-lg">
-                            <Link href={dashboard()}>Dashboard</Link>
+                            <Link href={create()}>Start posting</Link>
                         </Button>
                     ) : (
                         <>
@@ -468,29 +473,6 @@ function Nav({
 }
 
 // ── Hero ───────────────────────────────────────────────────────────────────────
-function TrustRow() {
-    const avatars = ['#E4405F', '#0A66C2', '#1877F2', '#D89A2B'];
-
-    return (
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-            <div className="flex">
-                {avatars.map((c, i) => (
-                    <span
-                        key={i}
-                        className="size-7 rounded-full border-2 border-background"
-                        style={{ background: c, marginLeft: i === 0 ? 0 : -9 }}
-                    />
-                ))}
-            </div>
-            <span className="text-sm leading-snug text-muted-foreground">
-                <strong className="font-semibold text-foreground">
-                    3,400+ creators
-                </strong>{' '}
-                post once, land everywhere
-            </span>
-        </div>
-    );
-}
 
 function Hero({
     primaryCta,
@@ -551,9 +533,6 @@ function Hero({
                         >
                             <a href="#how-it-works">See how it works</a>
                         </Button>
-                    </Reveal>
-                    <Reveal delay={220}>
-                        <TrustRow />
                     </Reveal>
                 </div>
 
@@ -985,7 +964,7 @@ export default function Welcome({
 
     const ctaLabel = 'Start free';
     const primaryCta: string = auth.user
-        ? (dashboard().url as string)
+        ? (create().url as string)
         : canRegister
             ? (register().url as string)
             : (login().url as string);

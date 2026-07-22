@@ -1,3 +1,4 @@
+import { SystemIcon } from '@/components/system-icon';
 import { cn } from '@/lib/utils';
 import type { UserToken } from '@/types';
 
@@ -53,14 +54,10 @@ export function ChannelTabs({
                                             'text-muted-foreground/60',
                                     )}
                                 >
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                    >
-                                        <path d={account.system.icon} />
-                                    </svg>
+                                    <SystemIcon
+                                        icon={account.system.icon}
+                                        size={14}
+                                    />
                                 </span>
                             </span>
                             {account.system.name}

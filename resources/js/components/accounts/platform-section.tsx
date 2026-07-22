@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import { SystemIcon } from '@/components/system-icon';
 import { cn } from '@/lib/utils';
 import type { System, UserToken } from '@/types';
 import { AccountCard } from './account-card';
@@ -40,14 +41,11 @@ export function PlatformSection({
                             backgroundColor: `${platform.background_color}15`,
                         }}
                     >
-                        <svg
+                        <SystemIcon
+                            icon={platform.icon}
                             className="size-4"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
                             style={{ color: platform.icon_color }}
-                        >
-                            <path d={platform.icon} />
-                        </svg>
+                        />
                     </div>
                     <span className="text-[18px] font-semibold tracking-tight text-foreground">
                         {platform.name}
@@ -89,9 +87,6 @@ export function PlatformSection({
                     </span>
                     <span className="font-sans text-[15px] text-foreground/80">
                         Add another {platform.name} account
-                    </span>
-                    <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-                        OAuth · 30 seconds
                     </span>
                 </button>
             </div>

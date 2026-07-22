@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { SystemIcon } from '@/components/system-icon';
 import { cn } from '@/lib/utils';
 import type { System } from '@/types/system';
 
@@ -19,9 +20,7 @@ function ChannelIcon({ system }: { system: System }) {
             style={{ backgroundColor: system.background_color }}
             title={system.name}
         >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                <path d={system.icon} />
-            </svg>
+            <SystemIcon icon={system.icon} size={11} />
         </span>
     );
 }
@@ -36,9 +35,7 @@ function ChannelIconStack({ systems }: { systems: System[] }) {
                     style={{ backgroundColor: sys.background_color }}
                     title={sys.name}
                 >
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                        <path d={sys.icon} />
-                    </svg>
+                    <SystemIcon icon={sys.icon} size={11} />
                 </span>
             ))}
         </span>

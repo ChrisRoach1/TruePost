@@ -1,7 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, Eye, MessageCircle, Minus, TrendingUp } from 'lucide-react';
-
-import { cn } from '@/lib/utils';
 import type { RecentlyPublishedItem } from '@/types/userPosts';
 
 type Props = {
@@ -17,9 +15,6 @@ export function RecentlyPublished({
     return (
         <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="flex items-baseline gap-2 border-b border-dashed border-border px-5 pt-4 pb-2">
-                <span className="font-mono text-[11px] font-semibold text-primary">
-                    02
-                </span>
                 <span className="text-[15px] font-semibold text-foreground">
                     Recently
                 </span>
@@ -64,14 +59,6 @@ export function RecentlyPublished({
                                             addSuffix: true,
                                         })}
                                     </span>
-                                    <TrendIcon
-                                        className={cn(
-                                            'size-3.5',
-                                            item.trend === 'flat'
-                                                ? 'text-muted-foreground/60'
-                                                : 'text-primary',
-                                        )}
-                                    />
                                 </div>
 
                                 <p className="text-[13px] leading-snug text-foreground">

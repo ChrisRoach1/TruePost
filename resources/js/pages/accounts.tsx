@@ -108,18 +108,7 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                     roster
                                 </span>
                             </h1>
-                            <p className="max-w-xl text-[13px] text-muted-foreground">
-                                Every account TruePost can dispatch on your
-                                behalf — with the keys, scopes, and quiet
-                                renewals that keep them working.
-                            </p>
                         </div>
-
-                        <StatsCard
-                            connected={stats.connected}
-                            healthy={stats.healthy}
-                            expiring={stats.expiring}
-                        />
                     </header>
 
                     {connectedSystems.length === 0 ? (
@@ -164,53 +153,6 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
     );
 }
 
-function StatsCard({
-    connected,
-    healthy,
-    expiring,
-}: {
-    connected: number;
-    healthy: number;
-    expiring: number;
-}) {
-    return (
-        <div className="flex shrink-0 items-stretch divide-x divide-border rounded-xl border border-border bg-card shadow-sm">
-            <Stat value={connected} label="Connected" tone="default" />
-            <Stat value={healthy} label="Healthy" tone="healthy" />
-            <Stat value={expiring} label="Expiring" tone="expiring" />
-        </div>
-    );
-}
-
-function Stat({
-    value,
-    label,
-    tone,
-}: {
-    value: number;
-    label: string;
-    tone: 'default' | 'healthy' | 'expiring';
-}) {
-    const valueColor =
-        tone === 'expiring'
-            ? 'text-amber-600 dark:text-amber-400'
-            : tone === 'healthy'
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-foreground';
-
-    return (
-        <div className="flex min-w-[88px] flex-col items-center justify-center gap-1 px-4 py-3">
-            <span
-                className={`text-2xl font-semibold tabular-nums ${valueColor}`}
-            >
-                {value}
-            </span>
-            <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-                {label}
-            </span>
-        </div>
-    );
-}
 
 function EmptyState() {
     return (

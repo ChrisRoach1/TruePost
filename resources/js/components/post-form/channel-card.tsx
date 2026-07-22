@@ -1,3 +1,4 @@
+import { SystemIcon } from '@/components/system-icon';
 import { cn } from '@/lib/utils';
 import type { UserToken } from '@/types';
 
@@ -28,14 +29,7 @@ export function ChannelCard({ account, selected, count, onToggle }: Props) {
                 className="grid size-10 shrink-0 place-items-center rounded-md text-white"
                 style={{ backgroundColor: account.system.background_color }}
             >
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                >
-                    <path d={account.system.icon} />
-                </svg>
+                <SystemIcon icon={account.system.icon} size={20} />
             </span>
             <span className="flex min-w-0 flex-1 flex-col leading-tight">
                 <span className="truncate text-[13px] font-semibold text-foreground">

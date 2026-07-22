@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import { SystemIcon } from '@/components/system-icon';
 import { cn } from '@/lib/utils';
 import type { System } from '@/types';
 
@@ -15,9 +16,6 @@ export function AvailablePlatforms({ systems, onConnect }: Props) {
     return (
         <section className="space-y-3 pt-2">
             <header className="flex items-baseline gap-2">
-                <span className="font-mono text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                    Available
-                </span>
                 <span className="text-[18px] font-semibold tracking-tight text-foreground">
                     Not yet
                 </span>
@@ -45,14 +43,11 @@ export function AvailablePlatforms({ systems, onConnect }: Props) {
                                     backgroundColor: `${platform.background_color}15`,
                                 }}
                             >
-                                <svg
+                                <SystemIcon
+                                    icon={platform.icon}
                                     className="size-4"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
                                     style={{ color: platform.icon_color }}
-                                >
-                                    <path d={platform.icon} />
-                                </svg>
+                                />
                             </div>
                             <div className="flex flex-col leading-tight">
                                 <span className="text-[14px] font-semibold tracking-tight text-foreground">

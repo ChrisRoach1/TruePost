@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
+import { SystemIcon } from '@/components/system-icon';
 import { TagInput } from '@/components/post-form/tag-input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -559,16 +560,10 @@ export default function EditPost({
                                                         .background_color,
                                                 }}
                                             >
-                                                <svg
-                                                    width="14"
-                                                    height="14"
-                                                    viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        d={account.system.icon}
-                                                    />
-                                                </svg>
+                                                <SystemIcon
+                                                    icon={account.system.icon}
+                                                    size={14}
+                                                />
                                             </span>
                                             {account.system.name}
                                         </div>

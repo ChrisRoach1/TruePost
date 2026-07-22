@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Settings, User } from 'lucide-react';
+import { BotIcon, LayoutGrid, PencilIcon, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -12,16 +12,21 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { accounts, dashboard } from '@/routes';
+import { accounts, bots, create } from '@/routes';
 import { edit } from '@/routes/profile';
 import userPost from '@/routes/userPost';
 import type { NavItem } from '@/types';
 
 const createNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Create',
+        href: create(),
+        icon: PencilIcon,
+    },
+    {
+        title: 'AI Bots',
+        href: bots(),
+        icon: BotIcon,
     }
 ];
 
@@ -54,7 +59,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={create()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

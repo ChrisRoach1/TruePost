@@ -4,6 +4,7 @@ import { Clock, FileText, Sparkles, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
+import { SystemIcon } from '@/components/system-icon';
 import { CounterRing } from '@/components/post-form/counter-ring';
 import { TagInput } from '@/components/post-form/tag-input';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ export default function CreatePost({
     );
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
 
@@ -99,6 +101,30 @@ export default function CreatePost({
 
     function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0] ?? null;
+
+        clearErrors('image');
+        setData('image', file);
+    }
+
+    function handleDragOver(e: React.DragEvent) {
+        e.preventDefault();
+        setIsDragging(true);
+    }
+
+    function handleDragLeave(e: React.DragEvent) {
+        e.preventDefault();
+        setIsDragging(false);
+    }
+
+    function handleDrop(e: React.DragEvent) {
+        e.preventDefault();
+        setIsDragging(false);
+
+        const file = e.dataTransfer.files?.[0] ?? null;
+
+        if (!file) {
+            return;
+        }
 
         clearErrors('image');
         setData('image', file);
@@ -528,14 +554,10 @@ export default function CreatePost({
                                                     .background_color,
                                             }}
                                         >
-                                            <svg
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 24 24"
-                                                fill="currentColor"
-                                            >
-                                                <path d={account.system.icon} />
-                                            </svg>
+                                            <SystemIcon
+                                                icon={account.system.icon}
+                                                size={14}
+                                            />
                                         </span>
                                         {account.system.name}
                                     </div>
@@ -621,7 +643,14 @@ export default function CreatePost({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="mt-4 flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-[1.5px] border-dashed border-amber-500/60 bg-transparent px-6 py-10 text-center transition-colors hover:border-amber-500 hover:bg-amber-500/[0.03]"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={cn(
+                            'mt-4 flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-[1.5px] border-dashed border-amber-500/60 bg-transparent px-6 py-10 text-center transition-colors hover:border-amber-500 hover:bg-amber-500/[0.03]',
+                            isDragging &&
+                                'border-amber-500 bg-amber-500/[0.06]',
+                        )}
                     >
                         <span className="text-lg text-muted-foreground">
                             Add media
