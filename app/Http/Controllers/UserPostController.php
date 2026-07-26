@@ -105,9 +105,9 @@ class UserPostController extends Controller
 
         $createUserPost->handle($validated, $request->file('image'));
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('dashboard');
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('create');
 
-        return redirect()->route('dashboard');
+        return redirect()->route('create');
     }
 
     /**

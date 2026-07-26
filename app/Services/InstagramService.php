@@ -96,7 +96,7 @@ class InstagramService implements ISocialService
             }
         }
 
-        $responseId = $postCreationResponse->json()['id'] ?? null;
+        $responseId = $postCreationResponse->json()['id'] ?? throw new Exception('Failed to post to instagram.');;
 
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }

@@ -44,9 +44,9 @@ class FacebookService implements ISocialService
         }
 
         if (array_key_exists('post_id', $postCreationResponse->json())) {
-            $responseId = $postCreationResponse->json()['post_id'];
+            $responseId = $postCreationResponse->json()['post_id'] ?? throw new Exception('Failed to post to facebook.');
         } else {
-            $responseId = $postCreationResponse->json()['id'];
+            $responseId = $postCreationResponse->json()['id'] ?? throw new Exception('Failed to post to facebook.');;
         }
 
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);

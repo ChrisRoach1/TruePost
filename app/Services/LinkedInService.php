@@ -11,6 +11,8 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Storage;
 
+use function PHPUnit\Framework\stringContains;
+
 class LinkedInService implements ISocialService
 {
     /**
@@ -23,6 +25,16 @@ class LinkedInService implements ISocialService
         $content = $userPostSystem->override_content ?? $content;
         if ($media != null) {
             $file = Storage::disk('r2')->get($media);
+            $fileName = '';
+            $uploadingVideo = false;
+
+            if (stringContains($media, '.mov') || stringContains($media, '.mp4')) {
+                $extension = pathinfo($media, PATHINFO_EXTENSION);
+                $fileName = 'video'.$extension;
+                $uploadingVideo = true;
+            } else {
+                $fileName = 'media.jpg';
+            }
 
             $registerMediaResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/assets?action=registerUpload', [
                 'registerUploadRequest' => [
@@ -42,9 +54,7 @@ class LinkedInService implements ISocialService
             $mediaUploadURL = $registerMediaResponse->json()['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl'];
             $assetKey = $registerMediaResponse->json()['value']['asset'];
 
-            $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->attach('file', $file, 'media.jpg')->post($mediaUploadURL);
-
-            // need to change shareMediaCategory when implementing videos
+            $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->attach('file', $file, $fileName)->post($mediaUploadURL);
 
             $response = Http::withToken($userPostSystem->userToken->access_token)->post('https://api.linkedin.com/v2/ugcPosts',
                 [
@@ -55,7 +65,7 @@ class LinkedInService implements ISocialService
                             'shareCommentary' => [
                                 'text' => $content,
                             ],
-                            'shareMediaCategory' => 'IMAGE',
+                            'shareMediaCategory' => $uploadingVideo ? 'VIDEO' : 'IMAGE',
                             'media' => [
                                 [
                                     'status' => 'READY',
@@ -90,7 +100,7 @@ class LinkedInService implements ISocialService
 
         }
 
-        $responseId = $response->json()['id'] ?? throw new \Exception('Failed to post.');
+        $responseId = $response->json()['id'] ?? throw new \Exception('Failed to post to linkedin.');
 
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }

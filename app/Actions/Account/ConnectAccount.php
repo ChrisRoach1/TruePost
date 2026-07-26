@@ -41,7 +41,8 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addSeconds($user->expiresIn - 60));
-                break;
+                return null;
+
             case 'instagram':
 
                 $longLivedToken = Http::get('https://graph.instagram.com/access_token', [
@@ -72,7 +73,8 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
-                break;
+                return null;
+
             case 'facebook':
 
                 $longLivedToken = Http::get('https://graph.facebook.com/v25.0/oauth/access_token', [
@@ -125,7 +127,8 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
-                break;
+                return null;
+
             default:
                 break;
         }
