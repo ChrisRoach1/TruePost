@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('bots', [BotController::class, 'index'])->name('bots');
+    Route::post('bots', [BotController::class, 'store'])->name('bots.store');
 });
 
 require __DIR__.'/settings.php';

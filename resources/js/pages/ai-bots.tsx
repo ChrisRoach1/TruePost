@@ -1,9 +1,7 @@
 import { Head } from '@inertiajs/react';
-import CreatePost from '@/components/create-post';
-import RecentlyPublished from '@/components/dashboard/recently-published';
-import { bots, create } from '@/routes';
+import CreateBot from '@/components/create-bot';
+import { bots } from '@/routes';
 import type { System, UserToken } from '@/types';
-import type { RecentlyPublishedItem } from '@/types/userPosts';
 
 type Props = {
     connectedAccounts?: UserToken[];
@@ -18,7 +16,10 @@ export default function AiBots({
         <>
             <Head title="AI Bots" />
             <div className="px-4 py-7 text-foreground">
-
+                <CreateBot
+                    connectedAccounts={connectedAccounts}
+                    systems={systems}
+                />
             </div>
         </>
     );
