@@ -22,7 +22,7 @@ class UserPostSystem extends Model
         return $this->belongsTo(UserPost::class);
     }
 
-    public function userToken(): belongsTo
+    public function userToken(): BelongsTo
     {
         return $this->belongsTo(UserToken::class);
     }

@@ -19,12 +19,12 @@ import type { NavItem } from '@/types';
 
 const createNavItems: NavItem[] = [
     {
-        title: 'Create',
+        title: 'Post',
         href: create(),
         icon: PencilIcon,
     },
     {
-        title: 'AI Bots',
+        title: 'Bots',
         href: bots(),
         icon: BotIcon,
     }

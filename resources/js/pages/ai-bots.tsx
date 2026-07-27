@@ -28,7 +28,7 @@ export default function AiBots({
 AiBots.layout = {
     breadcrumbs: [
         {
-            title: 'AI Bots',
+            title: 'Bots',
             href: bots(),
         },
     ],

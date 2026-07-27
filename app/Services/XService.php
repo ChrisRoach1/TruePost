@@ -55,6 +55,22 @@ class XService implements ISocialService
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
 
+
+    public function createBotPost(UserToken $userToken, string $content): void
+    {
+        $accessToken = $userToken->access_token;
+
+        $payload = [
+            'text' => $content,
+        ];
+
+        $response = Http::withToken($accessToken)->post('https://api.x.com/2/tweets', $payload);
+
+        if ($response->getStatusCode() != 201) {
+            throw new Exception('failed to create post');
+        }
+    }
+
     private function videoMediaType(string $media): ?string
     {
         return match (strtolower(pathinfo($media, PATHINFO_EXTENSION))) {
@@ -229,4 +245,5 @@ class XService implements ISocialService
 
         $userPostSystem->save();
     }
+
 }

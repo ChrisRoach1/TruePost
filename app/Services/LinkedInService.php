@@ -105,6 +105,34 @@ class LinkedInService implements ISocialService
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
 
+    /**
+     * @throws ConnectionException
+     */
+    public function createBotPost(UserToken $userToken, string $content): void
+    {
+        $personURN = "urn:li:person:{$userToken->user_token_id}";
+        $response = Http::withToken($userToken->access_token)->post('https://api.linkedin.com/v2/ugcPosts',
+            [
+                'author' => $personURN,
+                'lifecycleState' => 'PUBLISHED',
+                'specificContent' => [
+                    'com.linkedin.ugc.ShareContent' => [
+                        'shareCommentary' => [
+                            'text' => $content,
+                        ],
+                        'shareMediaCategory' => 'NONE',
+                    ],
+                ],
+                'visibility' => [
+                    'com.linkedin.ugc.MemberNetworkVisibility' => 'PUBLIC',
+                ],
+            ]);
+
+
+        $responseId = $response->json()['id'] ?? throw new \Exception('Failed to post to linkedin.');
+
+    }
+
     public function getPosts()
     {
         // TODO: Implement getPosts() method.
@@ -161,4 +189,6 @@ class LinkedInService implements ISocialService
             'impressions' => $impressionCount,
         ]);
     }
+
+
 }

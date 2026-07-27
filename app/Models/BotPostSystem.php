@@ -17,9 +17,9 @@ class BotPostSystem extends Model
         return $this->belongsTo(BotPost::class);
     }
 
-    public function UserToken(): HasOne
+    public function UserToken(): BelongsTo
     {
-        return $this->hasOne(UserToken::class);
+        return $this->BelongsTo(UserToken::class);
     }
 }
 

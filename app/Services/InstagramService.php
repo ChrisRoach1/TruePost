@@ -151,4 +151,9 @@ class InstagramService implements ISocialService
         ]);
 
     }
+
+    public function createBotPost(UserToken $userToken, string $content)
+    {
+        // TODO: Implement createBotPost() method.
+    }
 }

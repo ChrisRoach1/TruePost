@@ -24,7 +24,7 @@ class InvalidateExpiringTokens implements ShouldQueue
      */
     public function handle(): void
     {
-        $tokens = UserToken::whereBetween('refresh_expires_at', Carbon::tomorrow())->get();
+        $tokens = UserToken::whereBetween('refresh_expires_at', [\Illuminate\Support\now(), Carbon::tomorrow()])->get();
         foreach ($tokens as $token) {
             $token->update(['refresh_token_expires_at' => null, 'needs_reauthed' => true]);
             $token->save();

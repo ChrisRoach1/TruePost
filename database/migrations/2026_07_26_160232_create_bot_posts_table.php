@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class);
             $table->text('bot_description');
             $table->json('post_times');
-            $table->dateTime('next_post_at')->index();
+            $table->dateTime('next_post_at')->nullable()->index();
             $table->timestamps();
         });
     }

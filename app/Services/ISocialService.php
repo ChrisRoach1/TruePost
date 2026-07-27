@@ -11,6 +11,8 @@ interface ISocialService
 
     public function createPost(UserPostSystem $userPostSystem, string $content, ?string $media = null);
 
+    public function createBotPost(UserToken $userToken, string $content);
+
     public function refreshToken(UserToken $userToken);
 
     public function getPostMetrics(UserPostSystem $userPostSystem);

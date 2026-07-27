@@ -1,9 +1,11 @@
 <?php
 
 use App\Jobs\InvalidateExpiringTokens;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Jobs\MetricCalculations;
+use App\Jobs\ProcessBotPosts;
 
 Schedule::job(new InvalidateExpiringTokens)->everyMinute();
 
-Schedule::job(new \App\Jobs\MetricCalculations())->everySixHours();
+Schedule::job(new ProcessBotPosts)->everyMinute();
+
+Schedule::job(new MetricCalculations)->everySixHours();

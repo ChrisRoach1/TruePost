@@ -39,7 +39,7 @@ export default function Dashboard({
 Dashboard.layout = {
     breadcrumbs: [
         {
-            title: 'Create',
+            title: 'Post',
             href: create(),
         },
     ],

@@ -18,13 +18,10 @@ class CreateBot
     {
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
 
-        $nextTime = $this->computeNextPostAt($data['times']);
-
         $botPost = BotPost::create([
             'bot_description' => $data['description'],
             'user_id' => auth()->id(),
-            'post_times' => $data['times'],
-            'next_post_at' => $nextTime,
+            'post_times' => $data['times']
         ]);
         foreach ($data['userTokenIds'] as $userTokenId) {
             $botPost->BotPostSystems()->create([
@@ -32,27 +29,10 @@ class CreateBot
             ]);
         }
 
+        $botPost->computeNextPostAt();
         $botPost->save();
 
         return $botPost;
     }
 
-    /**
-     * @throws \DateInvalidTimeZoneException
-     */
-    private function computeNextPostAt(array $post_times): Carbon
-    {
-        $userTz = new DateTimeZone(auth()->user()->getTimezone());
-        $now = Carbon::now($userTz);
-
-        $next = collect($post_times)
-            ->map(fn (string $time) => Carbon::parse($time, $userTz))
-            ->filter(fn (Carbon $candidate) => $candidate->isAfter($now))
-            ->sort()
-            ->first();
-
-        $next ??= Carbon::parse(collect($post_times)->sort()->first(), $userTz)->addDay();
-
-        return $next->utc();
-    }
 }
