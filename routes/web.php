@@ -26,9 +26,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
     Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');
 
-
-    Route::get('bots', [BotController::class, 'index'])->name('bots');
+    Route::get('create-bot', [BotController::class, 'index'])->name('create.bot');
     Route::post('bots', [BotController::class, 'store'])->name('bots.store');
+    Route::get('bots', [BotController::class, 'list'])->name('bots.list');
+    Route::delete('bots/{botPost}', [BotController::class, 'delete'])->name('bot.delete');
+    Route::patch('bots/{botPost}', [BotController::class, 'update'])->name('bot.update');
 });
 
 require __DIR__.'/settings.php';

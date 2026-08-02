@@ -5,7 +5,7 @@ namespace App\Actions\Bot;
 use App\Models\BotPost;
 use DateTimeZone;
 
-class CreateBot
+class UpdateBot
 {
     public function __construct() {}
 
@@ -13,19 +13,25 @@ class CreateBot
      * @throws \DateInvalidTimeZoneException
      * @throws \DateMalformedStringException
      */
-    public function handle(array $data): BotPost
+    public function handle(BotPost $botPost, array $data): BotPost
     {
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
 
-        $botPost = BotPost::create([
+        $botPost->update([
             'bot_description' => $data['description'],
-            'user_id' => auth()->id(),
             'post_times' => $data['times'],
         ]);
+
+        $botPost->BotPostSystems()->whereNotIn('user_token_id', $data['userTokenIds'])->delete();
+
+        $existing = $botPost->BotPostSystems()->get()->keyBy('user_token_id');
+
         foreach ($data['userTokenIds'] as $userTokenId) {
-            $botPost->BotPostSystems()->create([
-                'user_token_id' => $userTokenId,
-            ]);
+            if (! $existing->has($userTokenId)) {
+                $botPost->BotPostSystems()->create([
+                    'user_token_id' => $userTokenId,
+                ]);
+            }
         }
 
         $botPost->computeNextPostAt();

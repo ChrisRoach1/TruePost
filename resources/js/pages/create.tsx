@@ -20,13 +20,11 @@ export default function Dashboard({
         <>
             <Head title="Create" />
             <div className="px-4 py-7 text-foreground">
-                <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-                    <div className="w-full max-w-4xl">
-                        <CreatePost
-                            connectedAccounts={connectedAccounts}
-                            systems={systems}
-                        />
-                    </div>
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+                    <CreatePost
+                        connectedAccounts={connectedAccounts}
+                        systems={systems}
+                    />
                     <aside className="flex flex-col gap-6">
                         <RecentlyPublished items={recentlyPublishedItems} />
                     </aside>

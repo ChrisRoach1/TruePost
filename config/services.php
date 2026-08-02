@@ -44,19 +44,19 @@ return [
     'instagram' => [
         'client_id' => env('INSTAGRAM_CLIENT_ID'),
         'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
-        'redirect' => env('INSTAGRAM_REDIRECT_URI')
+        'redirect' => env('INSTAGRAM_REDIRECT_URI'),
     ],
 
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' => env('FACEBOOK_REDIRECT_URI')
+        'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
     'linkedin-openid' => [
         'client_id' => env('LINKEDIN_CLIENT_ID'),
         'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
-        'redirect' => env('LINKEDIN_REDIRECT_URI')
+        'redirect' => env('LINKEDIN_REDIRECT_URI'),
     ],
 
 ];

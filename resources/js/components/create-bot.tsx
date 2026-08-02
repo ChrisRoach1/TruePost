@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { System, UserToken } from '@/types';
-import { bots } from '@/routes';
 import { store } from '@/routes/bots';
+import type { System, UserToken } from '@/types';
 
 const MAX_TIMES_PER_DAY = 5;
 
@@ -95,7 +94,7 @@ export default function CreateBot({
             systems.some((system) => system.id === account.system_id)
     );
 
-    const { data, setData, processing, errors, submit } = useForm<{
+    const { data, setData, processing, errors, submit, reset } = useForm<{
         userTokenIds: number[];
         description: string;
         times: string[];
@@ -153,6 +152,7 @@ export default function CreateBot({
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         submit(store());
+        reset();
     }
 
     const step = (n: number) => String(n).padStart(2, '0');

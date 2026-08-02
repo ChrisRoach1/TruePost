@@ -11,7 +11,7 @@ import ScheduledPostRow from '@/components/posts/scheduled-post-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { create, dashboard } from '@/routes';
+import { create } from '@/routes';
 import userPost, { deleteMethod, index, postNow } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
 import type { userPosts } from '@/types/userPosts';

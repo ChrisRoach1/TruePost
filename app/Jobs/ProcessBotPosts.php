@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Ai\Agents\GenerateBasePost;
 use App\Models\BotPost;
+use App\Models\BotPostHistory;
 use App\Services\FacebookService;
 use App\Services\LinkedInService;
 use App\Services\XService;
@@ -35,10 +37,14 @@ class ProcessBotPosts implements ShouldQueue
             ->get();
 
         foreach ($botPosts as $botPost) {
+
+            $postHistory = BotPostHistory::where(['bot_post_id' => $botPost->id])->pluck('post_text')->toArray();
+
             foreach ($botPost->BotPostSystems as $platform) {
 
-                // need AI agent to generate text
-                $content = 'test post';
+                $content = (new GenerateBasePost($botPost->bot_description, $postHistory))->prompt('please generate a post fit for posting on '.$platform->UserToken->System->name.' and it must be under this character limit: '.$platform->UserToken->System->max_post_length);
+
+                BotPostHistory::create(['bot_post_id' => $botPost->id, 'post_text' => $content]);
 
                 switch ($platform->UserToken->System->url_slug) {
                     case 'x':

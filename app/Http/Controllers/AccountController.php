@@ -61,7 +61,6 @@ class AccountController extends Controller
 
         return redirect('accounts')->with('pagesToSelect', $profilesToChoose);
 
-
     }
 
     public function finishAccountCreation(HttpRequest $request, FinishAccountCreation $finishAccountCreation)

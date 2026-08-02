@@ -43,8 +43,8 @@ class User extends Authenticatable
         return $this->hasMany(UserPost::class);
     }
 
-    public function getTimezone(){
+    public function getTimezone()
+    {
         return $this->timezone;
     }
-
 }

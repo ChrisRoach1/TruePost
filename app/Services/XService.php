@@ -55,7 +55,6 @@ class XService implements ISocialService
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
 
-
     public function createBotPost(UserToken $userToken, string $content): void
     {
         $accessToken = $userToken->access_token;
@@ -213,7 +212,6 @@ class XService implements ISocialService
     /**
      * @throws ConnectionException
      */
-    #[NoReturn]
     public function getPostMetrics(UserPostSystem $userPostSystem): void
     {
 
@@ -245,5 +243,4 @@ class XService implements ISocialService
 
         $userPostSystem->save();
     }
-
 }

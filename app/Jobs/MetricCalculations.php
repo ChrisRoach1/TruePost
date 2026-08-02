@@ -26,6 +26,7 @@ class MetricCalculations implements ShouldQueue
 
     /**
      * Execute the job.
+     *
      * @throws ConnectionException
      */
     public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService): void

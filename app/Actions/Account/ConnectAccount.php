@@ -15,6 +15,8 @@ class ConnectAccount
     public function handle(string $platform): ?array
     {
         Cache::delete(auth()->id().'-connectedSystem');
+        Cache::delete('systems-for-bot-posting');
+        Cache::delete(auth()->id().'-connectedSystems-for-bot-posting');
 
         $system = System::query()->where('url_slug', $platform)->firstOrFail();
         $user = Socialite::driver($platform)->user();
@@ -41,6 +43,7 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addSeconds($user->expiresIn - 60));
+
                 return null;
 
             case 'instagram':
@@ -73,6 +76,7 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
+
                 return null;
 
             case 'facebook':
@@ -127,11 +131,11 @@ class ConnectAccount
 
                 $tokenWithSystem = UserToken::with('system')->find($userToken->id);
                 TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
+
                 return null;
 
             default:
                 break;
         }
     }
-
 }

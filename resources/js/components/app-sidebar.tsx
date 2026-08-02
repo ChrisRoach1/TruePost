@@ -12,7 +12,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { accounts, bots, create } from '@/routes';
+import { accounts, create } from '@/routes';
+import bots from '@/routes/bots';
+import { bot } from '@/routes/create';
 import { edit } from '@/routes/profile';
 import userPost from '@/routes/userPost';
 import type { NavItem } from '@/types';
@@ -24,8 +26,8 @@ const createNavItems: NavItem[] = [
         icon: PencilIcon,
     },
     {
-        title: 'Bots',
-        href: bots(),
+        title: 'Bot',
+        href: bot(),
         icon: BotIcon,
     }
 ];
@@ -35,6 +37,11 @@ const postNavItems: NavItem[] = [
         title: 'Posts',
         href: userPost.index(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Bots',
+        href: bots.list(),
+        icon: BotIcon,
     }
 ];
 

@@ -27,6 +27,7 @@ class UploadFile
                     'ContentType' => 'image/jpeg',
                     'CacheControl' => 'public, max-age=31536000',
                 ]);
+
                 return '/media/'.$image;
             case 'mp4':
                 $video = pathinfo($file->hashName(), PATHINFO_FILENAME).'.mp4';
@@ -47,6 +48,7 @@ class UploadFile
                     'ContentType' => 'video/quicktime',
                     'CacheControl' => 'public, max-age=31536000',
                 ]);
+
                 return '/media/'.$video;
             default:
                 return '';

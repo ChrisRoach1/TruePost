@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import CreateBot from '@/components/create-bot';
-import { bots } from '@/routes';
+import { bot } from '@/routes/create';
 import type { System, UserToken } from '@/types';
 
 type Props = {
@@ -28,8 +28,8 @@ export default function AiBots({
 AiBots.layout = {
     breadcrumbs: [
         {
-            title: 'Bots',
-            href: bots(),
+            title: 'Create Bot',
+            href: bot(),
         },
     ],
 };

@@ -128,7 +128,6 @@ class LinkedInService implements ISocialService
                 ],
             ]);
 
-
         $responseId = $response->json()['id'] ?? throw new \Exception('Failed to post to linkedin.');
 
     }
@@ -189,6 +188,4 @@ class LinkedInService implements ISocialService
             'impressions' => $impressionCount,
         ]);
     }
-
-
 }

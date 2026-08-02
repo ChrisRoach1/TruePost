@@ -34,7 +34,7 @@ export function NavMain({ createItems = [], postNavItems = [], configNavItems = 
             </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Posts</SidebarGroupLabel>
+            <SidebarGroupLabel>Review</SidebarGroupLabel>
             <SidebarMenu>
                 {postNavItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
