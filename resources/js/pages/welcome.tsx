@@ -237,7 +237,7 @@ function SectionHead({
 
 // ── Hero fan-out illustration ────────────────────────────────────────────────
 const FANOUT = {
-    draft: 'Shipped per-channel AI rewrites today — one draft becomes a native post everywhere.',
+    draft: 'Shipped per-channel AI rewrites today. One draft becomes a native post everywhere.',
     cards: [
         {
             id: 'x',
@@ -245,7 +245,7 @@ const FANOUT = {
         },
         {
             id: 'linkedin',
-            text: "Today we shipped per-channel AI rewrites. Write once — we adapt it to every channel you've connected.",
+            text: "Today we shipped per-channel AI rewrites. Write once. We adapt it to every channel you've connected.",
         },
         {
             id: 'instagram',
@@ -511,7 +511,7 @@ function Hero({
                     >
                         Write your post once. TruePost rewrites it into a
                         native-feeling version for every channel you've
-                        connected — then schedules them all. No more copy-paste
+                        connected then schedules them all. No more copy-paste
                         tax.
                     </Reveal>
                     <Reveal
@@ -556,7 +556,6 @@ function ChannelsSection() {
                     kicker="Connected accounts"
                     title="Connect your channels."
                     accent="We speak each one natively."
-                    sub="Hook up the platforms you actually use. TruePost speaks each one natively — so every post lands like it was written there."
                 />
 
                 <div className="mt-12 flex flex-wrap items-center gap-9">
@@ -575,9 +574,7 @@ function ChannelsSection() {
                 </div>
 
                 <Reveal className="mt-7 flex items-center gap-2.5 text-sm text-muted-foreground">
-                    <Sparkle className="size-3.5 text-primary" />
-                    More channels arriving — Bluesky, Mastodon, Pinterest &amp;
-                    TikTok next.
+                    More channels arriving soon.
                 </Reveal>
             </div>
         </section>
@@ -610,7 +607,7 @@ function HowItWorks() {
                 <SectionHead
                     center
                     kicker="How it works"
-                    title="From one draft to every feed —"
+                    title="From one draft to every feed"
                     accent="in three moves."
                 />
                 <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -874,7 +871,7 @@ function FinalCta({
                         </h2>
                         <p className="mx-auto mt-4.5 max-w-md text-[17px] leading-relaxed text-[#FBFAF6]/70 dark:text-muted-foreground">
                             Connect your channels, write your first post, and
-                            watch it land everywhere — in the next five minutes.
+                            watch it land everywhere in the next five minutes.
                         </p>
                         <div className="mt-8 flex justify-center">
                             <Button
