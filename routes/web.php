@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\UserPostController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -31,6 +32,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('bots', [BotController::class, 'list'])->name('bots.list');
     Route::delete('bots/{botPost}', [BotController::class, 'delete'])->name('bot.delete');
     Route::patch('bots/{botPost}', [BotController::class, 'update'])->name('bot.update');
+
+    Route::get('/subscription-checkout', function (Request $request) {
+        return $request->user()
+            ->newSubscription('default', 'price_1U1ZyiEVZMTNj66C3nrUFHKa')
+            ->trialDays(1)
+            ->allowPromotionCodes()
+            ->checkout([
+                'success_url' => route('create'),
+                'cancel_url' => route('create'),
+            ]);
+    })->name('subscription.checkout');
+
 });
 
 require __DIR__.'/settings.php';
