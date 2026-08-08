@@ -3,14 +3,13 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import SubscriptionSettings from '@/components/subscription-settings';
 import TimezoneSelect from '@/components/timezone-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
-import subscription from '@/routes/subscription';
-import { CreditCardIcon, PencilIcon } from 'lucide-react';
 
 export default function Profile({
     mustVerifyEmail,
@@ -21,22 +20,11 @@ export default function Profile({
 }) {
     const { auth } = usePage().props;
 
-    const checkout = () => {
-        window.location.href = subscription.checkout().url;
-    };
-
     return (
         <>
             <Head title="Profile settings" />
 
             <h1 className="sr-only">Profile settings</h1>
-
-            <Button>
-                <button onClick={checkout}>
-                    <CreditCardIcon className="size-4" />
-                    Subscribe
-                </button>
-            </Button>
 
             <div className="space-y-6">
                 <Heading
@@ -147,6 +135,8 @@ export default function Profile({
                     )}
                 </Form>
             </div>
+
+            <SubscriptionSettings />
 
             <DeleteUser />
         </>

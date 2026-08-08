@@ -2,6 +2,7 @@
 
 namespace App\Actions\Account;
 
+use App\Exceptions\AccountLimitReached;
 use App\Jobs\TokenRefresh;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Cache;
@@ -13,7 +14,11 @@ class FinishAccountCreation
     {
         Cache::delete(auth()->id().'-connectedSystem');
 
-        $userToken = UserToken::where(['system_id' => $data['system_id'], 'user_token_id' => $data['id']])->first();
+        $userToken = UserToken::where(['system_id' => $data['system_id'], 'user_token_id' => $data['id'], 'user_id' => auth()->id()])->first();
+
+        if ($userToken == null && auth()->user()->hasReachedAccountLimit()) {
+            throw new AccountLimitReached;
+        }
 
         if ($userToken != null) {
             $userToken->update([

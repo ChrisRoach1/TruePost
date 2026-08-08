@@ -586,17 +586,17 @@ const STEPS = [
     {
         n: '01',
         title: 'Write it once',
-        body: 'Drop your idea into one composer — a thought, a link, a launch. No formatting, no per-platform tabs. Just the message.',
+        body: 'Drop your idea into one composer. A thought, a link, a launch. No formatting, no per-platform tabs. Just the message.',
     },
     {
         n: '02',
         title: 'We rewrite per channel',
-        body: 'TruePost adapts your draft to each connected channel — trimming for X, expanding for LinkedIn, adding tags for Instagram. Edit any version, or keep it shared.',
+        body: 'TruePost adapts your draft to each connected channel. Trimming for X, expanding for LinkedIn, adding tags for Instagram. Edit any version, or keep it shared.',
     },
     {
         n: '03',
         title: 'Schedule & land everywhere',
-        body: 'Pick a time — or let TruePost spread them across the week. Hit go once and every channel publishes natively, on schedule.',
+        body: 'Pick a time, hit go once and every channel publishes natively, on schedule.',
     },
 ];
 
@@ -669,44 +669,25 @@ const PLANS: Plan[] = [
         blurb: 'For getting your first posts out the door.',
         features: [
             '3 connected channels',
-            '10 scheduled posts / month',
-            'Per-channel AI rewrites',
-            'Basic calendar',
+            '10 scheduled posts / month'
         ],
         cta: 'Start free',
         featured: false,
     },
     {
-        id: 'creator',
-        name: 'Creator',
-        price: '$18',
+        id: 'pro',
+        name: 'Pro',
+        price: '$8',
         cadence: 'per month',
         blurb: 'For creators posting everywhere, every day.',
         features: [
             'Unlimited channels',
             'Unlimited scheduled posts',
-            'Advanced AI rewrite controls',
-            'Best-time scheduling',
-            'Drafts & content library',
+            'Per-channel AI rewrites',
+            '5 bots on any channels'
         ],
         cta: 'Start free trial',
         featured: true,
-    },
-    {
-        id: 'studio',
-        name: 'Studio',
-        price: '$48',
-        cadence: 'per month',
-        blurb: 'For small teams & multi-brand creators.',
-        features: [
-            'Everything in Creator',
-            '5 brand workspaces',
-            'Team roles & approvals',
-            'Analytics & export',
-            'Priority support',
-        ],
-        cta: 'Start free trial',
-        featured: false,
     },
 ];
 
@@ -744,7 +725,7 @@ function Pricing({ primaryCta }: { primaryCta: string }) {
                     accent="Upgrade when you outgrow it."
                     sub="Every plan includes per-channel AI rewrites. No credit card to start, cancel anytime."
                 />
-                <div className="mt-14 grid items-stretch gap-5 md:grid-cols-3">
+                <div className="mt-14 grid items-stretch gap-5 md:grid-cols-2">
                     {PLANS.map((p, i) => (
                         <Reveal
                             key={p.id}

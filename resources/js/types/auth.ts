@@ -13,6 +13,9 @@ export type User = {
 
 export type Auth = {
     user: User;
+    is_pro_member: boolean;
+    is_in_grace_period: boolean;
+    free_account_limit: number;
 };
 
 export type TwoFactorSetupData = {

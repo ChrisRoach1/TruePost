@@ -4,9 +4,11 @@ import AccountsAvailablePlatforms from '@/components/accounts/available-platform
 import PageSelectDialog from '@/components/accounts/page-select-dialog';
 import AccountsPlatformSection from '@/components/accounts/platform-section';
 import { getTokenStatus } from '@/components/accounts/token-status';
+import { Button } from '@/components/ui/button';
 import { accounts } from '@/routes';
 import { deleteMethod } from '@/routes/accounts';
 import oauth, { refreshToken } from '@/routes/oauth';
+import subscription from '@/routes/subscription';
 import type { System, UserToken } from '@/types';
 
 type Props = {
@@ -15,8 +17,12 @@ type Props = {
 };
 
 export default function Accounts({ connectedAccounts = [], systems }: Props) {
-    const { pagesToSelect } = usePage().props;
+    const { pagesToSelect, auth } = usePage().props;
     const [pageSelectDismissed, setPageSelectDismissed] = useState(false);
+
+    const accountLimit = auth.free_account_limit;
+    const atAccountLimit =
+        !auth.is_pro_member && connectedAccounts.length >= accountLimit;
 
     const accountsBySystem = useMemo(() => {
         const map = new Map<number, UserToken[]>();
@@ -109,6 +115,18 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                 </span>
                             </h1>
                         </div>
+
+                        {!auth.is_pro_member && (
+                            <div className="flex flex-col gap-1 md:items-end">
+                                <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+                                    Free plan
+                                </span>
+                                <span className="font-mono text-[12px] text-foreground">
+                                    {Math.min(stats.connected, accountLimit)} of{' '}
+                                    {accountLimit} accounts connected
+                                </span>
+                            </div>
+                        )}
                     </header>
 
                     {connectedSystems.length === 0 ? (
@@ -123,6 +141,7 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                         accountsBySystem.get(platform.id) ?? []
                                     }
                                     index={i}
+                                    canAddAccount={!atAccountLimit}
                                     onConnect={connectPlatform}
                                     onDisconnect={disconnect}
                                     onRefresh={refresh}
@@ -131,10 +150,14 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                         </div>
                     )}
 
-                    <AccountsAvailablePlatforms
-                        systems={availableSystems}
-                        onConnect={connectPlatform}
-                    />
+                    {atAccountLimit ? (
+                        <AccountLimitNotice limit={accountLimit} />
+                    ) : (
+                        <AccountsAvailablePlatforms
+                            systems={availableSystems}
+                            onConnect={connectPlatform}
+                        />
+                    )}
 
                     <footer className="flex items-start gap-3 border-t border-dashed border-border pt-4">
                         <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
@@ -153,6 +176,40 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
     );
 }
 
+function AccountLimitNotice({ limit }: { limit: number }) {
+    return (
+        <section className="space-y-3 pt-2">
+            <header className="flex items-baseline gap-2">
+                <span className="text-[18px] font-semibold tracking-tight text-foreground">
+                    The roster is
+                </span>
+                <span className="font-sans text-[18px] text-primary">full</span>
+            </header>
+
+            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-border bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                    <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+                        Free plan · {limit} of {limit} accounts
+                    </span>
+                    <p className="max-w-lg text-[12px] leading-relaxed text-muted-foreground">
+                        You've connected every account your plan allows. Upgrade
+                        to Pro for unlimited accounts, or disconnect one above
+                        to make room.
+                    </p>
+                </div>
+                <Button
+                    type="button"
+                    onClick={() => {
+                        window.location.href = subscription.checkout().url;
+                    }}
+                    className="shrink-0"
+                >
+                    Upgrade to Pro
+                </Button>
+            </div>
+        </section>
+    );
+}
 
 function EmptyState() {
     return (

@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Clock, FileText, Sparkles, X } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -63,6 +63,8 @@ export default function CreatePost({
         systems.some((ca) => ca.id === s.system_id),
     );
 
+    const page = usePage();
+    const { auth } = page.props;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -467,7 +469,9 @@ export default function CreatePost({
                                     />
                                     Customize manually
                                 </label>
-                                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
+                                {
+                                    auth.is_pro_member ?
+                                    <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
                                     <Switch
                                         size="sm"
                                         checked={data.aiCustomize}
@@ -480,6 +484,9 @@ export default function CreatePost({
                                         Let AI adapt each channel
                                     </span>
                                 </label>
+                                : <></>
+                                }
+
                             </div>
                         )
                     }

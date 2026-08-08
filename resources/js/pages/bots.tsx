@@ -4,11 +4,11 @@ import { useState } from 'react';
 import BotRow from '@/components/bots/bot-row';
 import EditBot from '@/components/edit-bot';
 import { Button } from '@/components/ui/button';
+import { deleteMethod } from '@/routes/bot';
 import bots from '@/routes/bots';
 import { bot } from '@/routes/create';
 import type { System, UserToken } from '@/types';
 import type { BotPost } from '@/types/bots';
-import { deleteMethod } from '@/routes/bot';
 
 type Props = {
     bots?: BotPost[];

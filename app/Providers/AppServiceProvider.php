@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Cashier\Cashier;
 use SocialiteProviders\Instagram\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('instagram', Provider::class);
         });
+
     }
 
     /**

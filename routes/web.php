@@ -5,6 +5,7 @@ use App\Http\Controllers\BotController;
 use App\Http\Controllers\UserPostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -36,13 +37,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/subscription-checkout', function (Request $request) {
         return $request->user()
             ->newSubscription('default', 'price_1U1ZyiEVZMTNj66C3nrUFHKa')
-            ->trialDays(1)
-            ->allowPromotionCodes()
             ->checkout([
                 'success_url' => route('create'),
                 'cancel_url' => route('create'),
             ]);
     })->name('subscription.checkout');
+
+    Route::post('/subscription-cancel', function (Request $request) {
+        $subscription = $request->user()->subscription('default');
+
+        if ($subscription === null || $subscription->canceled()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('Your subscription is already cancelled.')]);
+
+            return to_route('profile.edit');
+        }
+
+        $subscription->cancel();
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Subscription cancelled. Pro stays active until the end of your billing period.')]);
+
+        return to_route('profile.edit');
+
+    })->name('subscription.cancel');
 
 });
 

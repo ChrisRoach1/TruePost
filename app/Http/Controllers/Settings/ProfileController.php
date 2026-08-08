@@ -52,6 +52,8 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        $user->subscription('default')->cancelNow();
+
         $user->delete();
 
         $request->session()->invalidate();

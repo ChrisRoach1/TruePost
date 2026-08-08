@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'is_pro_member' => (bool) $request->user()?->isProMember(),
+                'free_account_limit' => User::FREE_ACCOUNT_LIMIT,
+                'is_in_grace_period' => (bool) $request->user()?->isOnGracePeriod(),
             ],
             'pagesToSelect' => fn () => $request->session()->get('pagesToSelect'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

@@ -17,7 +17,7 @@ export function NavMain({ createItems = [], postNavItems = [], configNavItems = 
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Create</SidebarGroupLabel>
             <SidebarMenu>
-                {createItems.map((item) => (
+                {createItems.filter(x => x.shouldShow).map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
@@ -36,7 +36,7 @@ export function NavMain({ createItems = [], postNavItems = [], configNavItems = 
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Review</SidebarGroupLabel>
             <SidebarMenu>
-                {postNavItems.map((item) => (
+                {postNavItems.filter(x => x.shouldShow).map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
@@ -55,7 +55,7 @@ export function NavMain({ createItems = [], postNavItems = [], configNavItems = 
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Configuration</SidebarGroupLabel>
             <SidebarMenu>
-                {configNavItems.map((item) => (
+                {configNavItems.filter(x => x.shouldShow).map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild

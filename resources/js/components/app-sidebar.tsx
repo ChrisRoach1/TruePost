@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BotIcon, LayoutGrid, PencilIcon, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -19,47 +19,55 @@ import { edit } from '@/routes/profile';
 import userPost from '@/routes/userPost';
 import type { NavItem } from '@/types';
 
-const createNavItems: NavItem[] = [
-    {
-        title: 'Post',
-        href: create(),
-        icon: PencilIcon,
-    },
-    {
-        title: 'Bot',
-        href: bot(),
-        icon: BotIcon,
-    }
-];
-
-const postNavItems: NavItem[] = [
-    {
-        title: 'Posts',
-        href: userPost.index(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Bots',
-        href: bots.list(),
-        icon: BotIcon,
-    }
-];
-
-const configNavItems: NavItem[] = [
-    {
-        title: 'Connected Accounts',
-        href: accounts(),
-        icon: User,
-    },
-    {
-        title: 'Settings',
-        href: edit(),
-        icon: Settings,
-    },
-];
-
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+
+    const createNavItems: NavItem[] = [
+        {
+            title: 'Post',
+            href: create(),
+            icon: PencilIcon,
+            shouldShow: true
+        },
+        {
+            title: 'Bot',
+            href: bot(),
+            icon: BotIcon,
+            shouldShow: auth.is_pro_member
+        }
+    ];
+
+    const postNavItems: NavItem[] = [
+        {
+            title: 'Posts',
+            href: userPost.index(),
+            icon: LayoutGrid,
+            shouldShow: true
+        },
+        {
+            title: 'Bots',
+            href: bots.list(),
+            icon: BotIcon,
+            shouldShow: auth.is_pro_member
+        }
+    ];
+
+    const configNavItems: NavItem[] = [
+        {
+            title: 'Connected Accounts',
+            href: accounts(),
+            icon: User,
+            shouldShow: true
+        },
+        {
+            title: 'Settings',
+            href: edit(),
+            icon: Settings,
+            shouldShow: true
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

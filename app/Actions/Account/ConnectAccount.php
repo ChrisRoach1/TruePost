@@ -2,6 +2,7 @@
 
 namespace App\Actions\Account;
 
+use App\Exceptions\AccountLimitReached;
 use App\Jobs\TokenRefresh;
 use App\Models\System;
 use App\Models\UserToken;
@@ -22,7 +23,9 @@ class ConnectAccount
         $user = Socialite::driver($platform)->user();
         switch ($platform) {
             case 'x':
-                $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
+                $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id, 'user_id' => auth()->id()])->first();
+                $this->guardAccountLimit($userToken);
+
                 if ($userToken != null) {
                     $userToken->update([
                         'access_token' => $user->token,
@@ -55,6 +58,7 @@ class ConnectAccount
                 ])->json();
 
                 $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
+                $this->guardAccountLimit($userToken);
 
                 if ($userToken != null) {
                     $userToken->update([
@@ -110,6 +114,7 @@ class ConnectAccount
             case 'linkedin-openid':
 
                 $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
+                $this->guardAccountLimit($userToken);
 
                 if ($userToken != null) {
                     $userToken->update([
@@ -136,6 +141,19 @@ class ConnectAccount
 
             default:
                 break;
+        }
+    }
+
+    /**
+     * Re-authing an account the user already has is always allowed; only a
+     * brand new token counts against the free plan limit.
+     *
+     * @throws AccountLimitReached
+     */
+    private function guardAccountLimit(?UserToken $existingToken): void
+    {
+        if ($existingToken === null && auth()->user()->hasReachedAccountLimit()) {
+            throw new AccountLimitReached;
         }
     }
 }

@@ -9,6 +9,7 @@ type Props = {
     platform: System;
     accounts: UserToken[];
     index: number;
+    canAddAccount?: boolean;
     onConnect: (platform: System) => void;
     onDisconnect: (account: UserToken) => void;
     onRefresh: (account: UserToken) => void;
@@ -18,6 +19,7 @@ export function PlatformSection({
     platform,
     accounts,
     index,
+    canAddAccount = true,
     onConnect,
     onDisconnect,
     onRefresh,
@@ -73,22 +75,24 @@ export function PlatformSection({
                     />
                 ))}
 
-                <button
-                    type="button"
-                    onClick={() => onConnect(platform)}
-                    className={cn(
-                        'group flex min-h-[148px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-transparent p-4 text-center transition-colors',
-                        'hover:border-foreground/40 hover:bg-muted/40',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    )}
-                >
-                    <span className="grid size-7 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors group-hover:text-foreground">
-                        <Plus className="size-3.5" />
-                    </span>
-                    <span className="font-sans text-[15px] text-foreground/80">
-                        Add another {platform.name} account
-                    </span>
-                </button>
+                {canAddAccount && (
+                    <button
+                        type="button"
+                        onClick={() => onConnect(platform)}
+                        className={cn(
+                            'group flex min-h-[148px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-transparent p-4 text-center transition-colors',
+                            'hover:border-foreground/40 hover:bg-muted/40',
+                            'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                        )}
+                    >
+                        <span className="grid size-7 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors group-hover:text-foreground">
+                            <Plus className="size-3.5" />
+                        </span>
+                        <span className="font-sans text-[15px] text-foreground/80">
+                            Add another {platform.name} account
+                        </span>
+                    </button>
+                )}
             </div>
         </section>
     );

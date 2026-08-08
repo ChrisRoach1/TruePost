@@ -6,7 +6,9 @@ use App\Actions\Account\ConnectAccount;
 use App\Actions\Account\DeleteAccount;
 use App\Actions\Account\FinishAccountCreation;
 use App\Actions\Account\ManuallyRefreshToken;
+use App\Exceptions\AccountLimitReached;
 use App\Models\System;
+use App\Models\User;
 use App\Models\UserToken;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -45,9 +47,17 @@ class AccountController extends Controller
     /**
      * Redirect user to a correct platform.
      */
-    public function redirect(string $platform)
+    public function redirect(Request $request, string $platform)
     {
         $system = System::query()->where('url_slug', $platform)->firstOrFail();
+
+        $alreadyOnPlatform = UserToken::query()
+            ->where(['user_id' => $request->user()->id, 'system_id' => $system->id])
+            ->exists();
+
+        if (! $alreadyOnPlatform && $request->user()->hasReachedAccountLimit()) {
+            return $this->accountLimitReached();
+        }
 
         return Socialite::driver($platform)->scopes($system->scopes)->redirect();
     }
@@ -57,7 +67,11 @@ class AccountController extends Controller
      */
     public function callback(string $platform, ConnectAccount $connectAccount)
     {
-        $profilesToChoose = $connectAccount->handle($platform);
+        try {
+            $profilesToChoose = $connectAccount->handle($platform);
+        } catch (AccountLimitReached) {
+            return $this->accountLimitReached();
+        }
 
         return redirect('accounts')->with('pagesToSelect', $profilesToChoose);
 
@@ -72,7 +86,11 @@ class AccountController extends Controller
             'access_token' => 'string',
         ]);
 
-        $finishAccountCreation->handle($validated);
+        try {
+            $finishAccountCreation->handle($validated);
+        } catch (AccountLimitReached) {
+            return $this->accountLimitReached();
+        }
 
         return redirect('accounts');
 
@@ -83,6 +101,18 @@ class AccountController extends Controller
         $manuallyRefreshToken->handle($userToken);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Account refreshed successfully!')])->render('accounts');
+
+        return redirect()->route('accounts');
+    }
+
+    private function accountLimitReached()
+    {
+        Inertia::flash('toast', [
+            'type' => 'error',
+            'message' => __('Free plans are limited to :limit connected accounts. Upgrade to Pro to connect more.', [
+                'limit' => User::FREE_ACCOUNT_LIMIT,
+            ]),
+        ])->render('accounts');
 
         return redirect()->route('accounts');
     }
