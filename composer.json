@@ -19,7 +19,6 @@
         "laravel/framework": "^13.0",
         "laravel/nightwatch": "^1.28",
         "laravel/socialite": "^5.26",
-        "laravel/telescope": "^5.20",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
         "league/flysystem-aws-s3-v3": "^3.0",
@@ -28,6 +27,7 @@
         "spatie/image": "^3.9"
     },
     "require-dev": {
+        "laravel/telescope": "^5.20",
         "fakerphp/faker": "^1.24",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
