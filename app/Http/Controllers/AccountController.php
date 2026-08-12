@@ -16,6 +16,7 @@ use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class AccountController extends Controller
 {
@@ -71,6 +72,8 @@ class AccountController extends Controller
             $profilesToChoose = $connectAccount->handle($platform);
         } catch (AccountLimitReached) {
             return $this->accountLimitReached();
+        } catch (InvalidStateException) {
+            return $this->connectionAttemptExpired();
         }
 
         return redirect('accounts')->with('pagesToSelect', $profilesToChoose);
@@ -101,6 +104,20 @@ class AccountController extends Controller
         $manuallyRefreshToken->handle($userToken);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Account refreshed successfully!')])->render('accounts');
+
+        return redirect()->route('accounts');
+    }
+
+    /**
+     * Socialite consumes the OAuth state on first use, so a replayed or
+     * overlapping callback lands here even though the original attempt worked.
+     */
+    private function connectionAttemptExpired()
+    {
+        Inertia::flash('toast', [
+            'type' => 'error',
+            'message' => __('That connection attempt expired. Check the list below, and try connecting again if the account is missing.'),
+        ])->render('accounts');
 
         return redirect()->route('accounts');
     }
