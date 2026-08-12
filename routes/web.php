@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/subscription-checkout', function (Request $request) {
         return $request->user()
-            ->newSubscription('default', 'price_1U1ZyiEVZMTNj66C3nrUFHKa')
+            ->newSubscription('default', env('STRIPE_PRICE_ID'))
             ->checkout([
                 'success_url' => route('create'),
                 'cancel_url' => route('create'),

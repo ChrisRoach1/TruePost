@@ -20,8 +20,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use Billable, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    public const PRO_PRICE_ID = 'price_1U1ZyiEVZMTNj66C3nrUFHKa';
-
     public const FREE_ACCOUNT_LIMIT = 3;
 
     /**
@@ -55,7 +53,7 @@ class User extends Authenticatable
 
     public function isProMember(): bool
     {
-        return $this->subscribedToPrice(self::PRO_PRICE_ID);
+        return $this->subscribedToPrice(env('STRIPE_PRICE_ID'));
     }
 
     public function isOnGracePeriod(): bool
