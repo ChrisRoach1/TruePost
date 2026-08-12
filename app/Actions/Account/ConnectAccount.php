@@ -5,6 +5,7 @@ namespace App\Actions\Account;
 use App\Exceptions\AccountLimitReached;
 use App\Models\System;
 use App\Models\UserToken;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
@@ -12,6 +13,9 @@ use Laravel\Socialite\Facades\Socialite;
 
 class ConnectAccount
 {
+    /**
+     * @throws ConnectionException
+     */
     public function handle(string $platform): ?array
     {
         Cache::delete(auth()->id().'-connectedSystem');
@@ -46,13 +50,11 @@ class ConnectAccount
                 return null;
 
             case 'instagram':
-
                 $longLivedToken = Http::get('https://graph.instagram.com/access_token', [
                     'grant_type' => 'ig_exchange_token',
                     'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
                     'access_token' => $user->token,
                 ])->json();
-
                 $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
                 $this->guardAccountLimit($userToken);
 

@@ -12,8 +12,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 
-use function PHPUnit\Framework\stringContains;
-
 class InstagramService implements ISocialService
 {
     use MarksTokensForReauth;
@@ -36,7 +34,7 @@ class InstagramService implements ISocialService
             'caption' => $content,
         ];
 
-        if (stringContains($media_url, '.mov') || stringContains($media_url, '.mp4')) {
+        if (str_contains($media_url, '.mov') || str_contains($media_url, '.mp4')) {
             $payload['video_url'] = $media_url;
             $payload['media_type'] = 'REELS';
         } else {

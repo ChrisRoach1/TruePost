@@ -11,8 +11,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Storage;
 
-use function PHPUnit\Framework\stringContains;
-
 class LinkedInService implements ISocialService
 {
     use MarksTokensForReauth;
@@ -30,9 +28,9 @@ class LinkedInService implements ISocialService
             $fileName = '';
             $uploadingVideo = false;
 
-            if (stringContains($media, '.mov') || stringContains($media, '.mp4')) {
+            if (str_contains($media, '.mov') || str_contains($media, '.mp4')) {
                 $extension = pathinfo($media, PATHINFO_EXTENSION);
-                $fileName = 'video'.$extension;
+                $fileName = 'video.'.$extension;
                 $uploadingVideo = true;
             } else {
                 $fileName = 'media.jpg';
