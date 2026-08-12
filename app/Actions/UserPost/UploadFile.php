@@ -3,8 +3,8 @@
 namespace App\Actions\UserPost;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Image;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
 
 class UploadFile
 {
@@ -19,14 +19,14 @@ class UploadFile
             case 'jpeg':
                 $image = pathinfo($file->hashName(), PATHINFO_FILENAME).'.jpg';
 
-                $encodedImage = Image::decode($file)
-                    ->scaleDown(1440)->encodeUsingFileExtension('jpg');
-
-                Storage::disk('r2')->put('media/'.$image, (string) $encodedImage, [
-                    'visibility' => 'public',
-                    'ContentType' => 'image/jpeg',
-                    'CacheControl' => 'public, max-age=31536000',
-                ]);
+                Image::fromUpload($file)
+                    ->scale(1440)
+                    ->toJpg()
+                    ->storeAs(path: 'media', name: $image, disk: 'r2', options: [
+                        'visibility' => 'public',
+                        'ContentType' => 'image/jpeg',
+                        'CacheControl' => 'public, max-age=31536000',
+                    ]);
 
                 return '/media/'.$image;
             case 'mp4':
