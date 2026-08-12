@@ -6,7 +6,6 @@ use App\Jobs\SendPosts;
 use App\Models\UserPost;
 use DateTime;
 use DateTimeZone;
-use Illuminate\Support\Facades\DB;
 
 class PostNow
 {
@@ -16,16 +15,14 @@ class PostNow
      */
     public function handle(UserPost $userPost)
     {
-        if ($userPost->job_id) {
-            DB::table('jobs')->where('id', $userPost->job_id)->delete();
-        }
-
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
         $postDate = new DateTime(now($userTz));
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
         SendPosts::dispatch($userPostWithData);
 
-        $userPost->update(['post_at' => $postDate, 'job_id' => null, 'has_posted' => true]);
+        // Claiming the post is what cancels the pending scheduled send, since
+        // SendDuePosts only picks up rows that have not been dispatched.
+        $userPost->update(['post_at' => $postDate, 'dispatched_at' => now(), 'has_posted' => true]);
     }
 }

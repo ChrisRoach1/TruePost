@@ -3,7 +3,6 @@
 namespace App\Actions\Account;
 
 use App\Exceptions\AccountLimitReached;
-use App\Jobs\TokenRefresh;
 use App\Models\System;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Cache;
@@ -44,9 +43,6 @@ class ConnectAccount
                     ]);
                 }
 
-                $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addSeconds($user->expiresIn - 60));
-
                 return null;
 
             case 'instagram':
@@ -77,9 +73,6 @@ class ConnectAccount
                         'expires_at' => Date::now()->addSeconds($longLivedToken['expires_in']),
                     ]);
                 }
-
-                $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
 
                 return null;
 
@@ -133,9 +126,6 @@ class ConnectAccount
                         'expires_at' => Date::now()->addSeconds($user->expiresIn),
                     ]);
                 }
-
-                $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-                TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
 
                 return null;
 

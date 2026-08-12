@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Jobs\TokenRefresh;
+use App\Concerns\MarksTokensForReauth;
 use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
@@ -15,6 +15,8 @@ use function PHPUnit\Framework\stringContains;
 
 class LinkedInService implements ISocialService
 {
+    use MarksTokensForReauth;
+
     /**
      * @throws ConnectionException
      * @throws \Exception
@@ -148,16 +150,19 @@ class LinkedInService implements ISocialService
             'client_id' => env('LINKEDIN_CLIENT_ID'),
             'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
         ]);
+
+        if ($this->requiresReauth($userToken, $response)) {
+            return;
+        }
+
         $user = $response->json();
 
         $userToken->update([
             'access_token' => $user['access_token'],
             'refresh_token' => $user['refresh_token'],
             'expires_at' => Date::now()->addSeconds($user['expires_in']),
-            'refresh_token_expires_at' => Date::now()->addSeconds($user['refresh_token_expires_in']),
+            'refresh_expires_at' => Date::now()->addSeconds($user['refresh_token_expires_in']),
         ]);
-
-        TokenRefresh::dispatch($userToken)->delay(Date::now()->addDays(55));
     }
 
     public function getPostMetrics(UserPostSystem $userPostSystem)

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('original_content')->nullable(true);
             $table->string('media_url');
             $table->dateTime('post_at')->nullable(true);
-            $table->integer('job_id')->nullable(true);
+            $table->dateTime('dispatched_at')->nullable();
             $table->boolean('has_posted')->default(false);
             $table->timestamps();
         });

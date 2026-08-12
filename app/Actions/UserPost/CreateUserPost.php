@@ -7,7 +7,6 @@ use App\Models\UserPost;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Date;
 
 class CreateUserPost
@@ -68,16 +67,12 @@ class CreateUserPost
 
         $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
 
-        if (! $data['is_draft']) {
-            if ($data['is_scheduled'] ?? false) {
-                $job = (new SendPosts($userPostWithData))->delay($postDate);
-                $jobId = Bus::dispatch($job);
+        // Scheduled posts are left for SendDuePosts to pick up once post_at
+        // passes. Claim the ones going out now so that sweep skips them.
+        if (! $data['is_draft'] && ! ($data['is_scheduled'] ?? false)) {
+            $userPostWithData->update(['dispatched_at' => Date::now()]);
 
-                $userPost->update(['job_id' => $jobId]);
-                $userPost->save();
-            } else {
-                SendPosts::dispatch($userPostWithData);
-            }
+            SendPosts::dispatch($userPostWithData);
         }
 
         return $userPostWithData;

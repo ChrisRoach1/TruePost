@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Jobs\TokenRefresh;
+use App\Concerns\MarksTokensForReauth;
 use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
@@ -16,6 +16,8 @@ use function PHPUnit\Framework\stringContains;
 
 class InstagramService implements ISocialService
 {
+    use MarksTokensForReauth;
+
     public function getPosts()
     {
         // TODO: Implement getPosts() method.
@@ -112,14 +114,16 @@ class InstagramService implements ISocialService
             'client_id' => env('X_CLIENT_ID'),
         ]);
 
+        if ($this->requiresReauth($userToken, $response)) {
+            return;
+        }
+
         $user = $response->json();
 
         $userToken->update([
             'access_token' => $user['access_token'],
             'expires_at' => Date::now()->addSeconds($user['expires_in']),
         ]);
-
-        TokenRefresh::dispatch($userToken)->delay(Date::now()->addDays(55));
     }
 
     public function getPostMetrics(UserPostSystem $userPostSystem)

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Jobs\TokenRefresh;
+use App\Concerns\MarksTokensForReauth;
 use App\Models\PostMetric;
 use App\Models\UserPostSystem;
 use App\Models\UserToken;
@@ -11,11 +11,12 @@ use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use JetBrains\PhpStorm\NoReturn;
 use Storage;
 
 class XService implements ISocialService
 {
+    use MarksTokensForReauth;
+
     // X allows chunks up to 5MB; stay under it to leave room for multipart overhead.
     private const VIDEO_CHUNK_BYTES = 4 * 1024 * 1024;
 
@@ -198,6 +199,11 @@ class XService implements ISocialService
             'refresh_token' => $userToken->refresh_token,
             'client_id' => env('X_CLIENT_ID'),
         ]);
+
+        if ($this->requiresReauth($userToken, $response)) {
+            return;
+        }
+
         $user = $response->json();
 
         $userToken->update([
@@ -205,8 +211,6 @@ class XService implements ISocialService
             'refresh_token' => $user['refresh_token'],
             'expires_at' => Date::now()->addSeconds($user['expires_in']),
         ]);
-
-        TokenRefresh::dispatch($userToken)->delay(Date::now()->addSeconds($user['expires_in'] - 60));
     }
 
     /**

@@ -3,10 +3,8 @@
 namespace App\Actions\Account;
 
 use App\Exceptions\AccountLimitReached;
-use App\Jobs\TokenRefresh;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Date;
 
 class FinishAccountCreation
 {
@@ -27,7 +25,7 @@ class FinishAccountCreation
                 'expires_at' => null,
             ]);
         } else {
-            $userToken = UserToken::create([
+            UserToken::create([
                 'system_id' => $data['system_id'],
                 'user_name' => $data['name'],
                 'user_token_id' => $data['id'],
@@ -37,8 +35,5 @@ class FinishAccountCreation
                 'expires_at' => null,
             ]);
         }
-
-        $tokenWithSystem = UserToken::with('system')->find($userToken->id);
-        TokenRefresh::dispatch($tokenWithSystem)->delay(Date::now()->addDays(55));
     }
 }
