@@ -874,20 +874,32 @@ function FinalCta({
 }
 
 // ── Footer ──────────────────────────────────────────────────────────────────────
-const FOOTER_COLS = [
-    {
-        h: 'Product',
-        links: ['Channels', 'How it works', 'Pricing', "What's new"],
-    },
-    { h: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
-    { h: 'Legal', links: ['Privacy', 'Terms', 'Security'] },
-];
+function FooterHeading({ children }: { children: ReactNode }) {
+    return (
+        <div className="mb-3.5 text-xs font-semibold tracking-[0.08em] text-muted-foreground/70 uppercase">
+            {children}
+        </div>
+    );
+}
+
+function FooterLink({ href, children }: { href: string; children: ReactNode }) {
+    return (
+        <li>
+            <a
+                href={href}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+                {children}
+            </a>
+        </li>
+    );
+}
 
 function Footer() {
     return (
         <footer className="border-t border-border bg-background pt-14 pb-10">
             <div className="mx-auto max-w-6xl px-6 lg:px-8">
-                <div className="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+                <div className="grid grid-cols-2 gap-8 md:grid-cols-[1.6fr_1fr_1fr]">
                     <div className="col-span-2 md:col-span-1">
                         <div className="flex items-center gap-2.5">
                             <BrandMark className="size-6 rounded-md" />
@@ -898,25 +910,24 @@ function Footer() {
                             creators who are tired of the copy-paste tax.
                         </p>
                     </div>
-                    {FOOTER_COLS.map((col) => (
-                        <div key={col.h}>
-                            <div className="mb-3.5 text-xs font-semibold tracking-[0.08em] text-muted-foreground/70 uppercase">
-                                {col.h}
-                            </div>
-                            <ul className="flex flex-col gap-2.5">
-                                {col.links.map((l) => (
-                                    <li key={l}>
-                                        <a
-                                            href="#"
-                                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                                        >
-                                            {l}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
+                    <div>
+                        <FooterHeading>Product</FooterHeading>
+                        <ul className="flex flex-col gap-2.5">
+                            <FooterLink href="#channels">Channels</FooterLink>
+                            <FooterLink href="#how-it-works">
+                                How it works
+                            </FooterLink>
+                            <FooterLink href="#pricing">Pricing</FooterLink>
+                        </ul>
+                    </div>
+                    <div>
+                        <FooterHeading>Legal</FooterHeading>
+                        <ul className="flex flex-col gap-2.5">
+                            <FooterLink href="/privacy">
+                                Privacy Policy
+                            </FooterLink>
+                        </ul>
+                    </div>
                 </div>
                 <div className="mt-11 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5.5">
                     <span className="text-[13px] text-muted-foreground/70">

@@ -12,6 +12,10 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::get('privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('accounts/{userToken}', [AccountController::class, 'delete'])->name('accounts.delete');
     Route::get('accounts', [AccountController::class, 'index'])->name('accounts');
