@@ -23,6 +23,7 @@
         "laravel/wayfinder": "^0.1.14",
         "league/flysystem-aws-s3-v3": "^3.0",
         "predis/predis": "*",
+        "resend/resend-laravel": "^1.4",
         "socialiteproviders/instagram": "^5.2",
         "spatie/image": "^3.9"
     },
