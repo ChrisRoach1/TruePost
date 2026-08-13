@@ -28,7 +28,6 @@
         "spatie/image": "^3.9"
     },
     "require-dev": {
-        "laravel/telescope": "^5.20",
         "fakerphp/faker": "^1.24",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
