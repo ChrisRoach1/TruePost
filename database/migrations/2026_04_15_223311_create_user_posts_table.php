@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('user_posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class);
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->boolean('is_draft')->default(false);
             $table->text('original_content')->nullable(true);
             $table->string('media_url');

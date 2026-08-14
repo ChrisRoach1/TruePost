@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('bot_posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class);
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();;
             $table->text('bot_description');
             $table->json('post_times');
             $table->dateTime('next_post_at')->nullable()->index();

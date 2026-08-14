@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('bot_post_systems', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(BotPost::class);
-            $table->foreignIdFor(UserToken::class);
+            $table->foreignIdFor(BotPost::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(UserToken::class)->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
