@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Bot, Send } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { useState } from 'react';
 import BotRow from '@/components/bots/bot-row';
 import EditBot from '@/components/edit-bot';
@@ -114,7 +114,7 @@ export default function Bots({
                                 </p>
                                 <Button asChild className="mt-5">
                                     <Link href={bot().url}>
-                                        <Send className="size-3.5" />
+                                        <Bot className="size-3.5" />
                                         Create your first bot
                                     </Link>
                                 </Button>
