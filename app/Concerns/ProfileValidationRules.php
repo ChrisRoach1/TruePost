@@ -29,7 +29,7 @@ trait ProfileValidationRules
      */
     protected function timezoneRules(): array
     {
-        return ['required', 'string', 'timezone'];
+        return ['required', 'string', 'timezone:all_with_bc'];
     }
 
     /**

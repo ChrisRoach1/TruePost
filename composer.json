@@ -25,6 +25,7 @@
         "predis/predis": "*",
         "resend/resend-laravel": "^1.4",
         "socialiteproviders/instagram": "^5.2",
+        "socialiteproviders/reddit": "^4.2",
         "spatie/image": "^3.9"
     },
     "require-dev": {
