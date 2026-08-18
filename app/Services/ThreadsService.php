@@ -12,7 +12,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 
-class InstagramService implements ISocialService
+class ThreadsService implements ISocialService
 {
     use MarksTokensForReauth;
 
@@ -31,41 +31,19 @@ class InstagramService implements ISocialService
         $media_url = env('R2_PUBLIC_ENDPOINT').'/'.$media;
 
         $payload = [
-            'caption' => $content,
+            'text' => $content,
         ];
 
         if (str_contains($media_url, '.mov') || str_contains($media_url, '.mp4')) {
             $payload['video_url'] = $media_url;
-            $payload['media_type'] = 'REELS';
+            $payload['media_type'] = 'VIDEO';
         } else {
+            $payload['media_type'] = 'IMAGE';
             $payload['image_url'] = $media_url;
         }
 
-        $collaborators = array_values(array_filter($userPostSystem->collaborators ?? []));
-        if (! empty($collaborators)) {
-            $payload['collaborators'] = json_encode($collaborators);
-        }
 
-        $usersToTag = array_values(array_unique(array_merge(
-            array_filter($userPostSystem->tags ?? []),
-            $collaborators,
-        )));
-
-        if (! empty($usersToTag)) {
-            $userTags = [];
-            foreach ($usersToTag as $index => $username) {
-                $userTags[] = [
-                    'username' => $username,
-                    // Images require x/y coordinates (0-1). Spread tags vertically so no two
-                    // tags share the same point, which Instagram rejects.
-                    'x' => 0.5,
-                    'y' => round(min(0.9, 0.1 + ($index * 0.15)), 2),
-                ];
-            }
-            $payload['user_tags'] = json_encode($userTags);
-        }
-
-        $endpoint = 'https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media';
+        $endpoint = 'https://graph.threads.net/v25.0/'.$userPostSystem->userToken->user_token_id.'/threads';
 
         $containerCreationResponse = Http::withToken($userPostSystem->userToken->access_token)
             ->post($endpoint, $payload);
@@ -78,13 +56,13 @@ class InstagramService implements ISocialService
 
         $containerId = $containerCreationResponse->json()['id'] ?? null;
 
-        $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media_publish?creation_id='.$containerId);
+        $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.threads.net/v25.0/'.$userPostSystem->userToken->user_token_id.'/threads_publish?creation_id='.$containerId);
 
         if (array_key_exists('error', $postCreationResponse->json())) {
             Sleep::for(20)->second();
             $attempts = 0;
             while ($attempts < 10) {
-                $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.instagram.com/v25.0/'.$userPostSystem->userToken->user_token_id.'/media_publish?creation_id='.$containerId);
+                $postCreationResponse = Http::withToken($userPostSystem->userToken->access_token)->post('https://graph.threads.net/v25.0/'.$userPostSystem->userToken->user_token_id.'/threads_publish?creation_id='.$containerId);
                 if (! array_key_exists('error', $postCreationResponse->json())) {
                     break;
                 }
@@ -96,7 +74,7 @@ class InstagramService implements ISocialService
             }
         }
 
-        $responseId = $postCreationResponse->json()['id'] ?? throw new Exception('Failed to post to instagram.');
+        $responseId = $postCreationResponse->json()['id'] ?? throw new Exception('Failed to post to threads.');
 
         UserPostSystem::query()->where('id', $userPostSystem->id)->update(['created_post_Id' => $responseId]);
     }
@@ -106,10 +84,9 @@ class InstagramService implements ISocialService
      */
     public function refreshToken(UserToken $userToken): void
     {
-        $response = Http::get('https://graph.instagram.com/refresh_access_token', [
-            'grant_type' => 'ig_refresh_token',
+        $response = Http::get('https://graph.threads.net/refresh_access_token', [
+            'grant_type' => 'th_refresh_token',
             'refresh_token' => $userToken->access_token,
-            'client_id' => env('INSTAGRAM_CLIENT_ID'),
         ]);
 
         if ($this->requiresReauth($userToken, $response)) {
@@ -126,15 +103,16 @@ class InstagramService implements ISocialService
 
     public function getPostMetrics(UserPostSystem $userPostSystem)
     {
-        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://graph.instagram.com/'.$userPostSystem->created_post_Id.'/insights',
+        $mediaUploadResponse = Http::withToken($userPostSystem->userToken->access_token)->get('https://graph.threads.net/'.$userPostSystem->created_post_Id.'/insights',
             [
-                'metric' => 'likes,comments,views',
+                'metric' => 'likes,replies,views',
             ])->json();
 
         if (array_key_exists('error', $mediaUploadResponse)) {
             return;
         }
 
+        dd($mediaUploadResponse);
         $likeCount = (int) $mediaUploadResponse['data'][0]['values'][0]['value'];
         $impressionCount = (int) $mediaUploadResponse['data'][2]['values'][0]['value'];
         $replyCount = (int) $mediaUploadResponse['data'][1]['values'][0]['value'];

@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { SystemIcon } from '@/components/system-icon';
+import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import type { System, UserToken } from '@/types';
 import { AccountCard } from './account-card';
@@ -38,16 +39,12 @@ export function PlatformSection({
                         {indexLabel}
                     </span>
                     <div
-                        className="flex size-7 shrink-0 items-center justify-center rounded-md"
-                        style={{
-                            backgroundColor: `${platform.background_color}15`,
-                        }}
+                        {...systemTileStyle(
+                            platform,
+                            'flex size-7 shrink-0 items-center justify-center rounded-md',
+                        )}
                     >
-                        <SystemIcon
-                            icon={platform.icon}
-                            className="size-4"
-                            style={{ color: platform.icon_color }}
-                        />
+                        <SystemIcon icon={platform.icon} className="size-4" />
                     </div>
                     <span className="text-[18px] font-semibold tracking-tight text-foreground">
                         {platform.name}

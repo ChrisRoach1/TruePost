@@ -1,4 +1,5 @@
 import { SystemIcon } from '@/components/system-icon';
+import { systemAccentStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import type { UserToken } from '@/types';
 
@@ -40,12 +41,15 @@ export function ChannelTabs({
                             )}
                         >
                             <span
-                                className="grid size-4 place-items-center"
-                                style={{
-                                    color: tabActive
-                                        ? account.system.background_color
-                                        : undefined,
-                                }}
+                                {...(tabActive
+                                    ? systemAccentStyle(
+                                          account.system,
+                                          'grid size-4 place-items-center',
+                                      )
+                                    : {
+                                          className:
+                                              'grid size-4 place-items-center',
+                                      })}
                             >
                                 <span
                                     className={cn(

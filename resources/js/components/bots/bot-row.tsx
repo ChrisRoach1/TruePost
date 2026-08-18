@@ -2,6 +2,7 @@ import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
 import { Pencil, Trash2 } from 'lucide-react';
 import { SystemIcon } from '@/components/system-icon';
 import { Button } from '@/components/ui/button';
+import { systemTileStyle } from '@/lib/system-colors';
 import type { BotPost } from '@/types/bots';
 import type { System } from '@/types/system';
 
@@ -40,8 +41,10 @@ function ChannelIconStack({ systems }: { systems: System[] }) {
             {systems.map((sys) => (
                 <span
                     key={sys.id}
-                    className="grid size-5 place-items-center rounded text-white ring-1 ring-card"
-                    style={{ backgroundColor: sys.background_color }}
+                    {...systemTileStyle(
+                        sys,
+                        'grid size-5 place-items-center rounded ring-1 ring-card',
+                    )}
                     title={sys.name}
                 >
                     <SystemIcon icon={sys.icon} size={11} />

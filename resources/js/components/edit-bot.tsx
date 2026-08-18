@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { update } from '@/routes/bot';
 import type { System, UserToken } from '@/types';
@@ -48,8 +49,10 @@ function AccountCard({
             )}
         >
             <span
-                className="grid size-10 shrink-0 place-items-center rounded-md text-white"
-                style={{ backgroundColor: account.system.background_color }}
+                {...systemTileStyle(
+                    account.system,
+                    'grid size-10 shrink-0 place-items-center rounded-md',
+                )}
             >
                 <SystemIcon icon={account.system.icon} size={20} />
             </span>

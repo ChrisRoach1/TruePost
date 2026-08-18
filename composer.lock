@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3a51618899e9e6c541a6dc1c66cf5179",
+    "content-hash": "914f7a42b69421596dda99541958547c",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -5357,6 +5357,57 @@
                 "source": "https://github.com/socialiteproviders/providers"
             },
             "time": "2025-07-12T23:23:14+00:00"
+        },
+        {
+            "name": "socialiteproviders/threads",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SocialiteProviders/Threads.git",
+                "reference": "d4576c2e0934320e82fca246a98ce171451c4f1e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SocialiteProviders/Threads/zipball/d4576c2e0934320e82fca246a98ce171451c4f1e",
+                "reference": "d4576c2e0934320e82fca246a98ce171451c4f1e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^8.0",
+                "socialiteproviders/manager": "^4.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SocialiteProviders\\Threads\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nick Been",
+                    "email": "nick@nickbeen.nl",
+                    "homepage": "https://nickbeen.nl"
+                }
+            ],
+            "description": "Threads OAuth2 Provider for Laravel Socialite",
+            "keywords": [
+                "laravel",
+                "oauth",
+                "provider",
+                "socialite",
+                "threads"
+            ],
+            "support": {
+                "docs": "https://socialiteproviders.com/threads",
+                "issues": "https://github.com/socialiteproviders/providers/issues",
+                "source": "https://github.com/socialiteproviders/providers"
+            },
+            "time": "2024-06-22T22:59:14+00:00"
         },
         {
             "name": "spatie/image",

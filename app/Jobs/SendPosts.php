@@ -6,6 +6,7 @@ use App\Models\UserPost;
 use App\Services\FacebookService;
 use App\Services\InstagramService;
 use App\Services\LinkedInService;
+use App\Services\ThreadsService;
 use App\Services\XService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,7 +32,7 @@ class SendPosts implements ShouldQueue
      *
      * @throws Exception
      */
-    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService, FacebookService $facebookService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService, FacebookService $facebookService, ThreadsService $threadsService): void
     {
         foreach ($this->userPost->UserPostSystems as $platform) {
             switch ($platform->userToken->System->url_slug) {
@@ -42,6 +43,12 @@ class SendPosts implements ShouldQueue
                         $platform->update(['failed_to_post' => true]);
                     }
                     break;
+                case 'threads':
+                    try{
+                        $threadsService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
+                    }catch (Exception $e){
+                    $platform->update(['failed_to_post' => true]);
+                    }
                 case 'x':
                     try {
                         $xService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);

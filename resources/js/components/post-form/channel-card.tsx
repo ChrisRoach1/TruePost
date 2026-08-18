@@ -1,4 +1,5 @@
 import { SystemIcon } from '@/components/system-icon';
+import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import type { UserToken } from '@/types';
 
@@ -26,8 +27,10 @@ export function ChannelCard({ account, selected, count, onToggle }: Props) {
             )}
         >
             <span
-                className="grid size-10 shrink-0 place-items-center rounded-md text-white"
-                style={{ backgroundColor: account.system.background_color }}
+                {...systemTileStyle(
+                    account.system,
+                    'grid size-10 shrink-0 place-items-center rounded-md',
+                )}
             >
                 <SystemIcon icon={account.system.icon} size={20} />
             </span>

@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, Eye, MessageCircle, Minus, TrendingUp } from 'lucide-react';
+import { systemTileStyle } from '@/lib/system-colors';
 import type { RecentlyPublishedItem } from '@/types/userPosts';
 
 type Props = {
@@ -71,13 +72,11 @@ export function RecentlyPublished({
                                             {channels.map((ps) => (
                                                 <span
                                                     key={ps.id}
-                                                    className="size-1.5 rounded-full"
+                                                    {...systemTileStyle(
+                                                        ps.user_token.system,
+                                                        'size-1.5 rounded-full',
+                                                    )}
                                                     title={ps.user_token.system.name}
-                                                    style={{
-                                                        backgroundColor:
-                                                            ps.user_token.system
-                                                                .background_color,
-                                                    }}
                                                 />
                                             ))}
                                         </div>

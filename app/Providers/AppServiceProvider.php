@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         Event::listen(function (SocialiteWasCalled $event) {
+            $event->extendSocialite('threads', \SocialiteProviders\Threads\Provider::class);
             $event->extendSocialite('instagram', Provider::class);
         });
 

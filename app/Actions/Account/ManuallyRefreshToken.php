@@ -6,12 +6,13 @@ use App\Models\System;
 use App\Models\UserToken;
 use App\Services\InstagramService;
 use App\Services\LinkedInService;
+use App\Services\ThreadsService;
 use App\Services\XService;
 use Illuminate\Support\Facades\Cache;
 
 class ManuallyRefreshToken
 {
-    public function __construct(protected XService $xService, protected InstagramService $instagramService, protected LinkedInService $linkedInService) {}
+    public function __construct(protected XService $xService, protected InstagramService $instagramService, protected LinkedInService $linkedInService, protected ThreadsService $threadsService) {}
 
     public function handle(UserToken $userToken): void
     {
@@ -29,6 +30,8 @@ class ManuallyRefreshToken
             case 'linkedin-openid':
                 $this->linkedInService->refreshToken($userToken);
                 break;
+            case 'threads':
+            $this->threadsService->refreshToken($userToken);
             default:
                 break;
         }

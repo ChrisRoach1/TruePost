@@ -55,6 +55,7 @@ class ConnectAccount
                     'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
                     'access_token' => $user->token,
                 ])->json();
+
                 $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
                 $this->guardAccountLimit($userToken);
 
@@ -105,7 +106,37 @@ class ConnectAccount
                 }
 
                 return $pagesToSelect;
-                break;
+
+            case 'threads':
+
+                $longLivedToken = Http::get('https://graph.threads.net/access_token', [
+                    'grant_type' => 'th_exchange_token',
+                    'client_secret' => env('THREADS_CLIENT_SECRET'),
+                    'access_token' => $user->token,
+                ])->json();
+
+                    $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();
+                $this->guardAccountLimit($userToken);
+
+                if ($userToken != null) {
+                    $userToken->update([
+                        'access_token' => $longLivedToken['access_token'],
+                        'refresh_token' => $user->refreshToken ?? '',
+                        'expires_at' => Date::now()->addSeconds($longLivedToken['expires_in']),
+                    ]);
+                } else {
+                    $userToken = UserToken::create([
+                        'system_id' => $system->id,
+                        'user_name' => $user->user['username'],
+                        'user_token_id' => $user->id,
+                        'user_id' => auth()->id(),
+                        'access_token' => $longLivedToken['access_token'],
+                        'refresh_token' => $user->refreshToken ?? '',
+                        'expires_at' => Date::now()->addSeconds($longLivedToken['expires_in']),
+                    ]);
+                }
+
+                return null;
             case 'linkedin-openid':
 
                 $userToken = UserToken::where(['system_id' => $system->id, 'user_token_id' => $user->id])->first();

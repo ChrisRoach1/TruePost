@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { SystemIcon } from '@/components/system-icon';
+import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import type { System } from '@/types';
 
@@ -38,15 +39,14 @@ export function AvailablePlatforms({ systems, onConnect }: Props) {
                     >
                         <div className="flex items-center gap-3">
                             <div
-                                className="flex size-8 shrink-0 items-center justify-center rounded-md"
-                                style={{
-                                    backgroundColor: `${platform.background_color}15`,
-                                }}
+                                {...systemTileStyle(
+                                    platform,
+                                    'flex size-8 shrink-0 items-center justify-center rounded-md',
+                                )}
                             >
                                 <SystemIcon
                                     icon={platform.icon}
                                     className="size-4"
-                                    style={{ color: platform.icon_color }}
                                 />
                             </div>
                             <div className="flex flex-col leading-tight">

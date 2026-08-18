@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { systemAccentStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { update } from '@/routes/userPost';
 import type { System, UserToken } from '@/types';
@@ -554,11 +555,10 @@ export default function EditPost({
                                     >
                                         <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
                                             <span
-                                                className="grid size-4 place-items-center"
-                                                style={{
-                                                    color: account.system
-                                                        .background_color,
-                                                }}
+                                                {...systemAccentStyle(
+                                                    account.system,
+                                                    'grid size-4 place-items-center',
+                                                )}
                                             >
                                                 <SystemIcon
                                                     icon={account.system.icon}

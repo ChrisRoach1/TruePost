@@ -6,6 +6,7 @@ use App\Models\UserPost;
 use App\Services\FacebookService;
 use App\Services\InstagramService;
 use App\Services\LinkedInService;
+use App\Services\ThreadsService;
 use App\Services\XService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,17 +30,19 @@ class MetricCalculations implements ShouldQueue
      *
      * @throws ConnectionException
      */
-    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService): void
+    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService, ThreadsService $threadsService): void
     {
 
         UserPost::query()->with('UserPostSystems.UserToken.System')->when($this->userId, function (Builder $query, $userId) {
             $query->where(['user_id' => $userId]);
-        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService, $facebookService) {
+        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService, $facebookService, $threadsServices) {
             foreach ($post->UserPostSystems as $systemPost) {
                 switch ($systemPost->userToken->System->url_slug) {
                     case 'instagram':
                         $instagramService->getPostMetrics($systemPost);
                         break;
+                    case 'threads':
+                        $threadsService->getPostMetrics($systemPost);
                     case 'x':
                         $xService->getPostMetrics($systemPost);
                         break;
