@@ -25,7 +25,8 @@ class MetricCalculations implements ShouldQueue
     public function handle(ZernioClient $zernioClient): void
     {
 
-        UserPost::query()->with('UserPostSystems.ConnectedAccount.System')->when($this->userId, function (Builder $query, $userId) {
+        UserPost::query()->where('created_at', '>=', \Illuminate\Support\now()->subDays(30))
+            ->with('UserPostSystems.ConnectedAccount.System')->when($this->userId, function (Builder $query, $userId) {
             $query->where(['user_id' => $userId]);
         })->get()->each(function ($post) use ($zernioClient) {
             foreach ($post->UserPostSystems as $systemPost) {

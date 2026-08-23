@@ -33,7 +33,10 @@ class ProcessBotPosts implements ShouldQueue
 
         foreach ($botPosts as $botPost) {
 
-            $postHistory = BotPostHistory::where(['bot_post_id' => $botPost->id])->pluck('post_text')->toArray();
+            $postHistory = BotPostHistory::where(['bot_post_id' => $botPost->id])
+                ->orderByDesc('created_at')
+                ->take(30)
+                ->pluck('post_text')->toArray();
 
             foreach ($botPost->BotPostSystems as $platform) {
 

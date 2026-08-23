@@ -13,6 +13,8 @@ use Zernio\ApiException;
 use Zernio\Configuration;
 use Zernio\Model\CreatePostRequest;
 use Zernio\Model\CreatePostRequestPlatformsInner;
+use Zernio\Model\InstagramPlatformData;
+use Zernio\Model\InstagramPlatformDataUserTagsInner;
 use Zernio\Model\MediaItem;
 
 class ZernioClient
@@ -69,7 +71,7 @@ class ZernioClient
         $this->request()->delete("accounts/{$accountId}")->throw();
     }
 
-    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl): ?string
+    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null): ?string
     {
         $config = Configuration::getDefaultConfiguration()->setAccessToken(config('services.zernio.key'));
         $postsApi = new PostsApi(new Client, $config);
@@ -80,12 +82,23 @@ class ZernioClient
         $request = new CreatePostRequest;
         $request->setContent($postContent);
 
+        $isVideo = false;
+
         if (! empty($mediaUrl)) {
             $media_url = config('services.r2.public_endpoint').$mediaUrl;
+            $isVideo = str_contains($media_url, '.mov') || str_contains($media_url, '.mp4');
             $mediaItem = new MediaItem;
             $mediaItem->setUrl($media_url);
-            $mediaItem->setType((str_contains($media_url, '.mov') || str_contains($media_url, '.mp4')) ? MediaItem::TYPE_VIDEO : MediaItem::TYPE_IMAGE);
+            $mediaItem->setType($isVideo ? MediaItem::TYPE_VIDEO : MediaItem::TYPE_IMAGE);
             $request->setMediaItems([$mediaItem]);
+        }
+
+        if ($platform == 'instagram') {
+            $specificData = $this->instagramPlatformData($collaborators, $tags, $isVideo);
+
+            if ($specificData instanceof InstagramPlatformData) {
+                $platformRequest->setPlatformSpecificData($specificData);
+            }
         }
 
         $request->setPlatforms([$platformRequest]);
@@ -102,10 +115,47 @@ class ZernioClient
         }
     }
 
+    private function instagramPlatformData(?array $collaborators, ?array $tags, bool $isVideo): ?InstagramPlatformData
+    {
+        $fields = [];
+
+        $collaborators = array_values(array_filter($collaborators ?? []));
+
+        if (! empty($collaborators)) {
+            $fields['collaborators'] = $collaborators;
+        }
+
+        $tags = array_values(array_filter($tags ?? []));
+
+        if (! empty($tags)) {
+            $userTags = [];
+            foreach ($tags as $index => $username) {
+                if ($isVideo) {
+                    // Reels/videos take the username only, coordinates are ignored.
+                    $userTags[] = new InstagramPlatformDataUserTagsInner(['username' => $username]);
+
+                    continue;
+                }
+
+                $userTags[] = new InstagramPlatformDataUserTagsInner([
+                    'username' => $username,
+                    // Images require x/y coordinates (0-1). Spread tags vertically so no two
+                    // tags share the same point, which Instagram rejects.
+                    'x' => 0.5,
+                    'y' => round(min(0.9, 0.1 + ($index * 0.15)), 2),
+                ]);
+            }
+
+            $fields['user_tags'] = $userTags;
+        }
+
+        return empty($fields) ? null : new InstagramPlatformData($fields);
+    }
+
     public function getPostAnalytics(string $postId): array
     {
         $config = Configuration::getDefaultConfiguration()->setAccessToken(config('services.zernio.key'));
-        $api = new AnalyticsApi(new Client,$config);
+        $api = new AnalyticsApi(new Client, $config);
 
         try {
             $analyticsRequest = $api->getAnalytics($postId);
