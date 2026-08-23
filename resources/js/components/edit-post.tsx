@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Clock, FileText, ImageIcon, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -87,6 +87,7 @@ export default function EditPost({
         systems.some((ca) => ca.id === s.system_id),
     );
 
+    const { auth } = usePage().props;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
@@ -213,6 +214,10 @@ export default function EditPost({
     }
 
     function openSchedule() {
+        if (!auth.is_pro_member) {
+            return;
+        }
+
         setScheduleOpen(true);
         setData((prev) => ({
             ...prev,
@@ -695,21 +700,23 @@ export default function EditPost({
                             Schedule
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={data.is_draft}
-                                onClick={
-                                    scheduleOpen ? clearSchedule : openSchedule
-                                }
-                                className={cn(
-                                    scheduleOpen && 'bg-muted',
-                                )}
-                            >
-                                <Clock className="size-3.5" />
-                                {scheduleLabel}
-                            </Button>
+                            {auth.is_pro_member && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={data.is_draft}
+                                    onClick={
+                                        scheduleOpen ? clearSchedule : openSchedule
+                                    }
+                                    className={cn(
+                                        scheduleOpen && 'bg-muted',
+                                    )}
+                                >
+                                    <Clock className="size-3.5" />
+                                    {scheduleLabel}
+                                </Button>
+                            )}
                             <Button
                                 type="button"
                                 variant="outline"
@@ -723,7 +730,7 @@ export default function EditPost({
                                 <FileText className="size-3.5" />
                                 {draftLabel}
                             </Button>
-                            {scheduleOpen && !data.is_draft && (
+                            {auth.is_pro_member && scheduleOpen && !data.is_draft && (
                                 <div className="flex items-center gap-1.5">
                                     <Popover>
                                         <PopoverTrigger asChild>

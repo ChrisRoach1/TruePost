@@ -12,6 +12,7 @@ use App\Models\UserPost;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class UserPostController extends Controller
@@ -102,9 +103,13 @@ class UserPostController extends Controller
             'aiCustomize' => 'boolean|required',
         ]);
 
+        $this->ensureCanSchedulePosts($request);
+
         $createUserPost->handle($validated, $request->file('image'));
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Post Scheduled!')])->render('create');
+        $successMessage = $validated['is_draft'] ? 'Post saved as draft!' : ($validated['is_scheduled'] ? 'Post scheduled!' : 'Post sent!');
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __($successMessage)])->render('create');
 
         return redirect()->route('create');
     }
@@ -134,6 +139,8 @@ class UserPostController extends Controller
             'scheduled_time' => 'nullable|string',
             'aiCustomize' => 'boolean|required',
         ]);
+
+        $this->ensureCanSchedulePosts($request);
 
         $updateUserPost->handle($userPost, $validated, $request->file('image'));
 
@@ -176,5 +183,16 @@ class UserPostController extends Controller
 
         return redirect()->route('userPost.index');
 
+    }
+
+    private function ensureCanSchedulePosts(Request $request): void
+    {
+        if (! $request->boolean('is_scheduled') || $request->user()->canSchedulePosts()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'is_scheduled' => __('Scheduling posts is a Pro feature.'),
+        ]);
     }
 }

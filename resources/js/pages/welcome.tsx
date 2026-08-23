@@ -664,29 +664,29 @@ const PLANS: Plan[] = [
     {
         id: 'solo',
         name: 'Solo',
-        price: '$0',
-        cadence: 'free forever',
+        price: '$9',
+        cadence: 'per month',
         blurb: 'For getting your first posts out the door.',
-        features: [
-            '2 connected channels',
-            '10 scheduled posts / month'
-        ],
-        cta: 'Start free',
+        features: ['3 connected accounts', '1 bot', 'Multiple accounts per channel', 'Unlimited posts', 'Support'],
+        cta: 'Start Solo trial',
         featured: false,
     },
     {
         id: 'pro',
         name: 'Pro',
-        price: '$13',
+        price: '$25',
         cadence: 'per month',
         blurb: 'For creators posting everywhere, every day.',
         features: [
-            'Unlimited channels',
-            'Unlimited scheduled posts',
+            '11 connected accounts',
+            '5 bots',
             'Per-channel AI rewrites',
-            '5 bots on any channels'
+            'Multiple accounts per channel',
+            'Unlimited posts',
+            'Scheduled posts',
+            'Support',
         ],
-        cta: 'Start free trial',
+        cta: 'Start Pro trial',
         featured: true,
     },
 ];
@@ -721,9 +721,9 @@ function Pricing({ primaryCta }: { primaryCta: string }) {
                 <SectionHead
                     center
                     kicker="Pricing"
-                    title="Start free."
-                    accent="Upgrade when you outgrow it."
-                    sub="Every plan includes per-channel AI rewrites. No credit card to start, cancel anytime."
+                    title="Start posting."
+                    accent="Pick a plan."
+                    sub="Every plan includes a 7-day free trial. Cancel anytime."
                 />
                 <div className="mt-14 grid items-stretch gap-5 md:grid-cols-2">
                     {PLANS.map((p, i) => (
@@ -782,7 +782,7 @@ function Pricing({ primaryCta }: { primaryCta: string }) {
                                     className={cn(
                                         'mt-5 h-11 rounded-xl font-semibold',
                                         !p.featured &&
-                                        'bg-background text-foreground',
+                                            'bg-background text-foreground',
                                     )}
                                     variant={p.featured ? 'default' : 'outline'}
                                 >
@@ -864,7 +864,7 @@ function FinalCta({
                             </Button>
                         </div>
                         <div className="mt-5 text-[13px] text-[#FBFAF6]/55 dark:text-muted-foreground">
-                            Free forever plan · No credit card · Cancel anytime
+                            7-day free trial · Cancel anytime
                         </div>
                     </div>
                 </Reveal>
@@ -951,12 +951,12 @@ export default function Welcome({
     const { auth } = usePage().props;
     useReveal();
 
-    const ctaLabel = 'Start free';
+    const ctaLabel = 'Start a 7-day trial';
     const primaryCta: string = auth.user
         ? (create().url as string)
         : canRegister
-            ? (register().url as string)
-            : (login().url as string);
+          ? (register().url as string)
+          : (login().url as string);
 
     return (
         <>

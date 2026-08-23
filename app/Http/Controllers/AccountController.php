@@ -53,8 +53,12 @@ class AccountController extends Controller
             ->where(['user_id' => $request->user()->id, 'system_id' => $system->id])
             ->exists();
 
-        if (! $alreadyOnPlatform && $request->user()->hasReachedAccountLimit()) {
-            return $this->accountLimitReached();
+        if (! $alreadyOnPlatform && $request->user()->isProMember() && $request->user()->hasReachedProAccountLimit()) {
+            return $this->proAccountLimitReached();
+        }
+
+        if (! $alreadyOnPlatform && ! $request->user()->isProMember() && $request->user()->isSoloMember() && $request->user()->hasReachedSoloAccountLimit()) {
+            return $this->soloAccountLimitReached();
         }
 
         return redirect()->away($startConnection->handle($request->user(), $system));
@@ -84,12 +88,24 @@ class AccountController extends Controller
         return redirect()->route('accounts');
     }
 
-    private function accountLimitReached()
+    private function proAccountLimitReached()
     {
         Inertia::flash('toast', [
             'type' => 'error',
-            'message' => __('Free plans are limited to :limit connected accounts. Upgrade to Pro to connect more.', [
-                'limit' => User::FREE_ACCOUNT_LIMIT,
+            'message' => __('Pro plans are limited to :limit connected accounts.', [
+                'limit' => User::PRO_ACCOUNT_LIMIT,
+            ]),
+        ])->render('accounts');
+
+        return redirect()->route('accounts');
+    }
+
+    private function soloAccountLimitReached()
+    {
+        Inertia::flash('toast', [
+            'type' => 'error',
+            'message' => __('Solo plans are limited to :limit connected accounts. Upgrade to Pro to connect more.', [
+                'limit' => User::SOLO_ACCOUNT_LIMIT,
             ]),
         ])->render('accounts');
 

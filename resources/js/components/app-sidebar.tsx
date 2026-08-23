@@ -34,7 +34,7 @@ export function AppSidebar() {
             title: 'Bot',
             href: bot(),
             icon: BotIcon,
-            shouldShow: auth.is_pro_member
+            shouldShow: true
         }
     ];
 
@@ -49,7 +49,7 @@ export function AppSidebar() {
             title: 'Bots',
             href: bots.list(),
             icon: BotIcon,
-            shouldShow: auth.is_pro_member
+            shouldShow: true
         }
     ];
 

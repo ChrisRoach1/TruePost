@@ -2,11 +2,10 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BotController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserPostController;
 use App\Http\Controllers\ZernioWebhookController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
@@ -20,6 +19,20 @@ Route::get('privacy', function () {
 })->name('privacy');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/solosubscription-checkout', [SubscriptionController::class, 'checkoutSolo'])
+        ->name('solo-subscription.checkout');
+    Route::post('/solosubscription-checkout', [SubscriptionController::class, 'checkoutSolo'])
+        ->name('solo-subscription.downgrade');
+    Route::get('/solo-subscription-success', [SubscriptionController::class, 'soloSuccess'])
+        ->name('solo-subscription.success');
+
+    Route::get('/pro-subscription-checkout', [SubscriptionController::class, 'checkoutPro'])
+        ->name('pro-subscription.checkout');
+    Route::get('/pro-subscription-success', [SubscriptionController::class, 'proSuccess'])
+        ->name('pro-subscription.success');
+});
+
+Route::middleware(['auth', 'verified', 'subscribed'])->group(function () {
     Route::delete('accounts/{connectedAccount}', [AccountController::class, 'delete'])->name('accounts.delete');
     Route::get('accounts', [AccountController::class, 'index'])->name('accounts');
     Route::get('auth/{platform}/redirect', [AccountController::class, 'redirect'])->name('oauth.redirect');
@@ -38,59 +51,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('bots', [BotController::class, 'list'])->name('bots.list');
     Route::delete('bots/{botPost}', [BotController::class, 'delete'])->name('bot.delete');
     Route::patch('bots/{botPost}', [BotController::class, 'update'])->name('bot.update');
-
-    Route::get('/solosubscription-checkout', function (Request $request) {
-        return $request->user()
-            ->newSubscription('solo', env('SOLO_STRIPE_PRICE_ID'))
-            ->trialDays(7)
-            ->checkout([
-                'success_url' => route('create'),
-                'cancel_url' => route('create'),
-            ]);
-    })->name('solo-subscription.checkout');
-
-    Route::post('/solo-subscription-cancel', function (Request $request) {
-        $subscription = $request->user()->subscription('solo');
-
-        if ($subscription === null || $subscription->canceled()) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => __('Your subscription is already cancelled.')]);
-
-            return to_route('profile.edit');
-        }
-
-        $subscription->cancel();
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Subscription cancelled. Solo stays active until the end of your billing period.')]);
-
-        return to_route('profile.edit');
-
-    })->name('solo-subscription.cancel');
-
-    Route::get('/pro-subscription-checkout', function (Request $request) {
-        return $request->user()
-            ->newSubscription('pro', env('PRO_STRIPE_PRICE_ID'))
-            ->trialDays(7)
-            ->checkout([
-                'success_url' => route('create'),
-                'cancel_url' => route('create'),
-            ]);
-    })->name('pro-subscription.checkout');
-
-    Route::post('/pro-subscription-cancel', function (Request $request) {
-        $subscription = $request->user()->subscription('pro');
-
-        if ($subscription === null || $subscription->canceled()) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => __('Your subscription is already cancelled.')]);
-
-            return to_route('profile.edit');
-        }
-
-        $subscription->cancel();
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Subscription cancelled. Pro stays active until the end of your billing period.')]);
-
-        return to_route('profile.edit');
-
-    })->name('pro-subscription.cancel');
-
 });
 
 require __DIR__.'/settings.php';

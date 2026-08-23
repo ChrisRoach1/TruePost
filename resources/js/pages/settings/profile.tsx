@@ -10,13 +10,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
+import type { ConnectedAccount } from '@/types';
+import type { BotPost } from '@/types/bots';
 
 export default function Profile({
     mustVerifyEmail,
     status,
+    connectedAccounts = [],
+    bots = [],
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    connectedAccounts?: ConnectedAccount[];
+    bots?: BotPost[];
 }) {
     const { auth } = usePage().props;
 
@@ -136,7 +142,10 @@ export default function Profile({
                 </Form>
             </div>
 
-            <SubscriptionSettings />
+            <SubscriptionSettings
+                connectedAccounts={connectedAccounts}
+                bots={bots}
+            />
 
             <DeleteUser />
         </>

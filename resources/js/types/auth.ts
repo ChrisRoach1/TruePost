@@ -14,8 +14,13 @@ export type User = {
 export type Auth = {
     user: User;
     is_pro_member: boolean;
-    is_in_grace_period: boolean;
-    free_account_limit: number;
+    is_solo_member: boolean;
+    solo_account_limit: number;
+    pro_account_limit: number;
+    solo_bot_limit: number;
+    pro_bot_limit: number;
+    is_in_solo_grace_period: boolean;
+    is_in_pro_grace_period: boolean;
 };
 
 export type TwoFactorSetupData = {

@@ -19,9 +19,21 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'connectedAccounts' => $user->ConnectedAccount()
+                ->with('system')
+                ->orderBy('id')
+                ->get(),
+            'bots' => $user->BotPosts()
+                ->with([
+                    'BotPostSystems.ConnectedAccount.System',
+                ])
+                ->orderBy('id')
+                ->get(['id', 'bot_description', 'post_times', 'next_post_at']),
         ]);
     }
 
@@ -50,9 +62,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        Auth::logout();
+        $user->cancelAllSubscriptionsNow();
 
-        $user->subscription('default')?->cancelNow();
+        Auth::logout();
 
         $user->delete();
 

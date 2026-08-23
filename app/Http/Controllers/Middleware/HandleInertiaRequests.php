@@ -42,8 +42,13 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'is_pro_member' => (bool) $request->user()?->isProMember(),
-                'free_account_limit' => User::FREE_ACCOUNT_LIMIT,
-                'is_in_grace_period' => (bool) $request->user()?->isOnGracePeriod(),
+                'is_solo_member' => (bool) $request->user()?->isSoloMember(),
+                'solo_account_limit' => User::SOLO_ACCOUNT_LIMIT,
+                'pro_account_limit' => User::PRO_ACCOUNT_LIMIT,
+                'solo_bot_limit' => User::SOLO_BOT_LIMIT,
+                'pro_bot_limit' => User::PRO_BOT_LIMIT,
+                'is_in_pro_grace_period' => (bool) $request->user()?->isOnProGracePeriod(),
+                'is_in_solo_grace_period' => (bool) $request->user()?->isOnSoloGracePeriod(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

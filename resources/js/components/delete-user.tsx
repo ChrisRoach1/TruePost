@@ -30,7 +30,9 @@ export default function DeleteUser() {
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
                     <p className="font-medium">Warning</p>
                     <p className="text-sm">
-                        Please proceed with caution, this cannot be undone.
+                        This immediately cancels any Solo or Pro subscription
+                        and permanently deletes your data. This cannot be
+                        undone.
                     </p>
                 </div>
 
@@ -48,10 +50,10 @@ export default function DeleteUser() {
                             Are you sure you want to delete your account?
                         </DialogTitle>
                         <DialogDescription>
-                            Once your account is deleted, all of its resources
-                            and data will also be permanently deleted. Please
-                            enter your password to confirm you would like to
-                            permanently delete your account.
+                            Once your account is deleted, your subscription is
+                            cancelled immediately and all of its resources and
+                            data are permanently deleted. Please enter your
+                            password to confirm.
                         </DialogDescription>
 
                         <Form

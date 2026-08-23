@@ -2,11 +2,9 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import AccountsAvailablePlatforms from '@/components/accounts/available-platforms';
 import AccountsPlatformSection from '@/components/accounts/platform-section';
-import { Button } from '@/components/ui/button';
 import { accounts } from '@/routes';
 import { deleteMethod } from '@/routes/accounts';
 import oauth from '@/routes/oauth';
-import subscription from '@/routes/subscription';
 import type { ConnectedAccount, System } from '@/types';
 
 type Props = {
@@ -17,9 +15,10 @@ type Props = {
 export default function Accounts({ connectedAccounts = [], systems }: Props) {
     const { auth } = usePage().props;
 
-    const accountLimit = auth.free_account_limit;
-    const atAccountLimit =
-        !auth.is_pro_member && connectedAccounts.length >= accountLimit;
+    const accountLimit = auth.is_pro_member
+        ? auth.pro_account_limit
+        : auth.solo_account_limit;
+    const atAccountLimit = connectedAccounts.length >= accountLimit;
 
     const accountsBySystem = useMemo(() => {
         const map = new Map<number, ConnectedAccount[]>();
@@ -63,7 +62,6 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
         router.delete(deleteMethod(account.id));
     }
 
-
     return (
         <>
             <Head title="Connected Accounts" />
@@ -82,17 +80,18 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                             </h1>
                         </div>
 
-                        {!auth.is_pro_member && (
-                            <div className="flex flex-col gap-1 md:items-end">
-                                <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-                                    Free plan
-                                </span>
-                                <span className="font-mono text-[12px] text-foreground">
-                                    {Math.min(connectedAccounts.length, accountLimit)} of{' '}
-                                    {accountLimit} accounts connected
-                                </span>
-                            </div>
-                        )}
+                        <div className="flex flex-col gap-1 md:items-end">
+                            <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+                                {auth.is_pro_member ? 'Pro plan' : 'Solo plan'}
+                            </span>
+                            <span className="font-mono text-[12px] text-foreground">
+                                {Math.min(
+                                    connectedAccounts.length,
+                                    accountLimit,
+                                )}{' '}
+                                of {accountLimit} accounts connected
+                            </span>
+                        </div>
                     </header>
 
                     {connectedSystems.length === 0 ? (
@@ -116,7 +115,10 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                     )}
 
                     {atAccountLimit ? (
-                        <AccountLimitNotice limit={accountLimit} />
+                        <AccountLimitNotice
+                            limit={accountLimit}
+                            isPro={auth.is_pro_member}
+                        />
                     ) : (
                         <AccountsAvailablePlatforms
                             systems={availableSystems}
@@ -141,7 +143,13 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
     );
 }
 
-function AccountLimitNotice({ limit }: { limit: number }) {
+function AccountLimitNotice({
+    limit,
+    isPro,
+}: {
+    limit: number;
+    isPro: boolean;
+}) {
     return (
         <section className="space-y-3 pt-2">
             <header className="flex items-baseline gap-2">
@@ -154,23 +162,15 @@ function AccountLimitNotice({ limit }: { limit: number }) {
             <div className="flex flex-col gap-4 rounded-xl border border-dashed border-border bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
                     <span className="font-mono text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-                        Free plan · {limit} of {limit} accounts
+                        {isPro ? 'Pro plan' : 'Solo plan'} · {limit} of {limit}{' '}
+                        accounts
                     </span>
                     <p className="max-w-lg text-[12px] leading-relaxed text-muted-foreground">
-                        You've connected every account your plan allows. Upgrade
-                        to Pro for unlimited accounts, or disconnect one above
-                        to make room.
+                        {isPro
+                            ? "You've connected every account your plan allows. Disconnect one above to make room."
+                            : "You've connected every account your plan allows. Upgrade to Pro for more accounts, or disconnect one above to make room."}
                     </p>
                 </div>
-                <Button
-                    type="button"
-                    onClick={() => {
-                        window.location.href = subscription.checkout().url;
-                    }}
-                    className="shrink-0"
-                >
-                    Upgrade to Pro
-                </Button>
             </div>
         </section>
     );
