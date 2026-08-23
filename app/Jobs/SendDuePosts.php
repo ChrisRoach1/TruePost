@@ -37,7 +37,7 @@ class SendDuePosts implements ShouldQueue
             }
 
             SendPosts::dispatch(
-                UserPost::with('UserPostSystems.userToken.system')->find($postId)
+                UserPost::with('UserPostSystems.connectedAccount.system')->find($postId)
             );
         }
     }

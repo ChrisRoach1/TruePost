@@ -15,14 +15,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { update } from '@/routes/bot';
-import type { System, UserToken } from '@/types';
+import type { System, ConnectedAccount } from '@/types';
 import type { BotPost } from '@/types/bots';
 
 const MAX_TIMES_PER_DAY = 5;
 
 type Props = {
     bot: BotPost;
-    connectedAccounts: UserToken[];
+    connectedAccounts: ConnectedAccount[];
     systems: System[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -33,7 +33,7 @@ function AccountCard({
     selected,
     onToggle,
 }: {
-    account: UserToken;
+    account: ConnectedAccount;
     selected: boolean;
     onToggle: () => void;
 }) {
@@ -60,9 +60,9 @@ function AccountCard({
                 <span className="truncate text-[13px] font-semibold text-foreground">
                     {account.system.name}
                 </span>
-                {account.user_name && (
+                {account.username && (
                     <span className="truncate text-[11px] text-muted-foreground">
-                        @{account.user_name}
+                        @{account.username}
                     </span>
                 )}
             </span>
@@ -83,12 +83,12 @@ export default function EditBot({
     );
 
     const { data, setData, processing, patch, errors, reset } = useForm<{
-        userTokenIds: number[];
+        connectedAccountIds: number[];
         description: string;
         times: string[];
     }>({
-        userTokenIds: (bot.bot_post_systems ?? []).map(
-            (channel) => channel.user_token_id,
+        connectedAccountIds: (bot.bot_post_systems ?? []).map(
+            (channel) => channel.connected_account_id,
         ),
         description: bot.bot_description ?? '',
         times: bot.post_times ?? ['09:00'],
@@ -101,12 +101,12 @@ export default function EditBot({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
-    function togglePlatform(userTokenId: number) {
+    function togglePlatform(connectedAccountId: number) {
         setData(
-            'userTokenIds',
-            data.userTokenIds.includes(userTokenId)
-                ? data.userTokenIds.filter((id) => id !== userTokenId)
-                : [...data.userTokenIds, userTokenId],
+            'connectedAccountIds',
+            data.connectedAccountIds.includes(connectedAccountId)
+                ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
+                : [...data.connectedAccountIds, connectedAccountId],
         );
     }
 
@@ -137,7 +137,7 @@ export default function EditBot({
             new Set(data.times).size !== data.times.length;
 
         return (
-            data.userTokenIds.length > 0 &&
+            data.connectedAccountIds.length > 0 &&
             data.description.trim().length > 0 &&
             data.times.length > 0 &&
             data.times.length <= MAX_TIMES_PER_DAY &&
@@ -192,7 +192,7 @@ export default function EditBot({
                                         <AccountCard
                                             key={account.id}
                                             account={account}
-                                            selected={data.userTokenIds.includes(
+                                            selected={data.connectedAccountIds.includes(
                                                 account.id,
                                             )}
                                             onToggle={() =>
@@ -206,9 +206,9 @@ export default function EditBot({
                                 No eligible accounts connected.
                             </div>
                         )}
-                        {errors.userTokenIds && (
+                        {errors.connectedAccountIds && (
                             <p className="text-xs text-destructive">
-                                {errors.userTokenIds}
+                                {errors.connectedAccountIds}
                             </p>
                         )}
                     </section>
@@ -312,9 +312,9 @@ export default function EditBot({
                             disabled={!canSubmit() || processing}
                         >
                             {processing ? 'Saving...' : 'Save bot'}
-                            {data.userTokenIds.length > 0 && (
+                            {data.connectedAccountIds.length > 0 && (
                                 <span className="grid size-[18px] place-items-center rounded-full bg-foreground/15 text-[11px] font-semibold">
-                                    {data.userTokenIds.length}
+                                    {data.connectedAccountIds.length}
                                 </span>
                             )}
                         </Button>

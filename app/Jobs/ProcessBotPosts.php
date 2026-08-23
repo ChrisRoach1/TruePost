@@ -5,10 +5,7 @@ namespace App\Jobs;
 use App\Ai\Agents\GenerateBasePost;
 use App\Models\BotPost;
 use App\Models\BotPostHistory;
-use App\Services\FacebookService;
-use App\Services\LinkedInService;
-use App\Services\XService;
-use Exception;
+use App\Services\ZernioClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -25,15 +22,13 @@ class ProcessBotPosts implements ShouldQueue
     }
 
     /**
-     * Execute the job.
-     *
-     * @throws Exception
+     * @throws \DateInvalidTimeZoneException
      */
-    public function handle(XService $xService, LinkedInService $linkedinService, FacebookService $facebookService): void
+    public function handle(ZernioClient $zernioClient): void
     {
         $botPosts = BotPost::query()
             ->where('next_post_at', '<=', now())
-            ->with('BotPostSystems.UserToken.System')
+            ->with('BotPostSystems.ConnectedAccount.System')
             ->get();
 
         foreach ($botPosts as $botPost) {
@@ -42,35 +37,10 @@ class ProcessBotPosts implements ShouldQueue
 
             foreach ($botPost->BotPostSystems as $platform) {
 
-                $content = (new GenerateBasePost($botPost->bot_description, $postHistory))->prompt('please generate a post fit for posting on '.$platform->UserToken->System->name.' and it must be under this character limit: '.$platform->UserToken->System->max_post_length);
-
+                $content = (new GenerateBasePost($botPost->bot_description, $postHistory))->prompt('please generate a post fit for posting on '.$platform->ConnectedAccount->System->name.' and it must be under this character limit: '.$platform->ConnectedAccount->System->max_post_length);
                 BotPostHistory::create(['bot_post_id' => $botPost->id, 'post_text' => $content]);
 
-                switch ($platform->UserToken->System->url_slug) {
-                    case 'x':
-                        try {
-                            $xService->createBotPost($platform->UserToken, $content);
-                        } catch (Exception $ex) {
-                            \Log::error($ex->getMessage());
-                        }
-                        break;
-                    case 'linkedin-openid':
-                        try {
-                            $linkedinService->createBotPost($platform->UserToken, $content);
-                        } catch (Exception $ex) {
-                            \Log::error($ex->getMessage());
-                        }
-                        break;
-                    case 'facebook':
-                        try {
-                            $facebookService->createBotPost($platform->UserToken, $content);
-                        } catch (Exception $ex) {
-                            \Log::error($ex->getMessage());
-                        }
-                        break;
-                    default:
-                        throw new Exception('Unsupported platform: '.$platform->UserToken->System->url_slug);
-                }
+                $id = $zernioClient->sendPost($platform->ConnectedAccount->System->url_slug, $platform->ConnectedAccount->zernio_account_id, $content, '');
             }
 
             $botPost->computeNextPostAt();

@@ -3,7 +3,7 @@
 namespace App\Actions\UserPost;
 
 use App\Ai\Agents\PostCustomizer;
-use App\Models\UserToken;
+use App\Models\ConnectedAccount;
 
 class CustomizeWithAI
 {
@@ -11,11 +11,11 @@ class CustomizeWithAI
     {
         $responses = [];
 
-        foreach ($data['userTokenIds'] as $userTokenId) {
+        foreach ($data['connectedAccountIds'] as $connectedAccountId) {
 
-            $userToken = UserToken::where(['user_id' => auth()->id(), 'id' => $userTokenId])->with('System')->firstOrFail();
-            $customizedPost = (new PostCustomizer($userToken->System->name))->prompt('post to remix: '.$data['content'].'. Be sure to keep it within the limit of '.$userToken->System->max_post_length.' characters.');
-            $responses[$userTokenId] = $customizedPost->text;
+            $connectedAccount = ConnectedAccount::where(['user_id' => auth()->id(), 'id' => $connectedAccountId])->with('System')->firstOrFail();
+            $customizedPost = (new PostCustomizer($connectedAccount->System->name))->prompt('post to remix: '.$data['content'].'. Be sure to keep it within the limit of '.$connectedAccount->System->max_post_length.' characters.');
+            $responses[$connectedAccountId] = $customizedPost->text;
         }
 
         return $responses;

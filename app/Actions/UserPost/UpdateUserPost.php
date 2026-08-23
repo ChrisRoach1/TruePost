@@ -36,7 +36,7 @@ class UpdateUserPost
             'dispatched_at' => null,
         ]);
 
-        $incomingTokenIds = collect($data['userTokenIds'])->map(fn ($id) => (int) $id)->all();
+        $incomingAccountIds = collect($data['connectedAccountIds'])->map(fn ($id) => (int) $id)->all();
         $channelContent = $data['channelContent'] ?? [];
         $collaborators = $data['collaborators'] ?? [];
         $tags = $data['tags'] ?? [];
@@ -44,33 +44,33 @@ class UpdateUserPost
         $aiCustomize = $data['aiCustomize'] ?? false;
         $customizedContent = $aiCustomize ? $this->customizeWithAI->handle($data) : [];
 
-        $userPost->UserPostSystems()->whereNotIn('user_token_id', $incomingTokenIds)->delete();
+        $userPost->UserPostSystems()->whereNotIn('connected_account_id', $incomingAccountIds)->delete();
 
-        $existing = $userPost->UserPostSystems()->get()->keyBy('user_token_id');
+        $existing = $userPost->UserPostSystems()->get()->keyBy('connected_account_id');
 
-        foreach ($incomingTokenIds as $userTokenId) {
+        foreach ($incomingAccountIds as $connectedAccountId) {
             $overrideText = $aiCustomize
-                ? ($customizedContent[$userTokenId] ?? null)
-                : ($channelContent[$userTokenId] ?? null);
-            $tokenCollaborators = $collaborators[$userTokenId] ?? null;
-            $tokenTags = $tags[$userTokenId] ?? null;
-            if ($existing->has($userTokenId)) {
-                $existing[$userTokenId]->update([
+                ? ($customizedContent[$connectedAccountId] ?? null)
+                : ($channelContent[$connectedAccountId] ?? null);
+            $accountCollaborators = $collaborators[$connectedAccountId] ?? null;
+            $accountTags = $tags[$connectedAccountId] ?? null;
+            if ($existing->has($connectedAccountId)) {
+                $existing[$connectedAccountId]->update([
                     'override_content' => $overrideText,
-                    'collaborators' => $tokenCollaborators,
-                    'tags' => $tokenTags,
+                    'collaborators' => $accountCollaborators,
+                    'tags' => $accountTags,
                 ]);
             } else {
                 $userPost->UserPostSystems()->create([
-                    'user_token_id' => $userTokenId,
+                    'connected_account_id' => $connectedAccountId,
                     'override_content' => $overrideText,
-                    'collaborators' => $tokenCollaborators,
-                    'tags' => $tokenTags,
+                    'collaborators' => $accountCollaborators,
+                    'tags' => $accountTags,
                 ]);
             }
         }
 
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+        $userPostWithData = UserPost::with('UserPostSystems.connectedAccount.system')->find($userPost->id);
 
         // Clearing dispatched_at above re-arms the post for SendDuePosts at its
         // new time. Claim it again when it is going out right now.

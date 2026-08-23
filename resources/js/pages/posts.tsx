@@ -3,7 +3,6 @@ import { debounce } from '@tanstack/pacer';
 import { isPast } from 'date-fns';
 import { RefreshCw, Search, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { refreshMetrics } from '@/actions/App/Http/Controllers/UserPostController';
 import EditPost from '@/components/edit-post';
 import DraftPostRow from '@/components/posts/draft-post-row';
 import PublishedPostRow from '@/components/posts/published-post-row';
@@ -12,14 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { create } from '@/routes';
-import userPost, { deleteMethod, index, postNow } from '@/routes/userPost';
-import type { System, UserToken } from '@/types';
+import userPost, { deleteMethod, index, metricsRefresh, postNow } from '@/routes/userPost';
+import type { ConnectedAccount, System } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
 
 type Props = {
     userPosts?: userPosts[];
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems?: System[];
 };
 
@@ -160,7 +159,7 @@ export default function Posts({
     }
 
     function handleRefreshMetrics(): void {
-        router.post(refreshMetrics());
+        router.post(metricsRefresh.url());
     }
 
     return (

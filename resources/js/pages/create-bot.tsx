@@ -1,10 +1,10 @@
 import { Head } from '@inertiajs/react';
 import CreateBot from '@/components/create-bot';
 import { bot } from '@/routes/create';
-import type { System, UserToken } from '@/types';
+import type { ConnectedAccount, System } from '@/types';
 
 type Props = {
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems?: System[];
 };
 

@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'user_name', 'system_id', 'access_token', 'refresh_token', 'user_token_id', 'expires_at', 'refresh_expires_at', 'needs_reauthed'])]
-class UserToken extends Model
+#[Fillable(['zernio_account_id', 'user_id', 'system_id', 'username', 'display_name', 'disconnected_at'])]
+class ConnectedAccount extends Model
 {
     public function User(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->BelongsTo(User::class);
     }
 
     public function System(): BelongsTo
     {
-        return $this->belongsTo(System::class);
+        return $this->BelongsTo(System::class);
     }
 }

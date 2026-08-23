@@ -668,7 +668,7 @@ const PLANS: Plan[] = [
         cadence: 'free forever',
         blurb: 'For getting your first posts out the door.',
         features: [
-            '3 connected channels',
+            '2 connected channels',
             '10 scheduled posts / month'
         ],
         cta: 'Start free',
@@ -677,7 +677,7 @@ const PLANS: Plan[] = [
     {
         id: 'pro',
         name: 'Pro',
-        price: '$8',
+        price: '$13',
         cadence: 'per month',
         blurb: 'For creators posting everywhere, every day.',
         features: [

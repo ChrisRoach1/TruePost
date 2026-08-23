@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { deleteMethod } from '@/routes/bot';
 import bots from '@/routes/bots';
 import { bot } from '@/routes/create';
-import type { System, UserToken } from '@/types';
+import type { System, ConnectedAccount } from '@/types';
 import type { BotPost } from '@/types/bots';
 
 type Props = {
     bots?: BotPost[];
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems?: System[];
 };
 

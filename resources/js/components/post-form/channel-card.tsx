@@ -1,10 +1,10 @@
 import { SystemIcon } from '@/components/system-icon';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
-import type { UserToken } from '@/types';
+import type { ConnectedAccount } from '@/types';
 
 type Props = {
-    account: UserToken;
+    account: ConnectedAccount;
     selected: boolean;
     count: number;
     onToggle: () => void;
@@ -38,9 +38,9 @@ export function ChannelCard({ account, selected, count, onToggle }: Props) {
                 <span className="truncate text-[13px] font-semibold text-foreground">
                     {account.system.name}
                 </span>
-                {account.user_name && (
+                {account.username && (
                     <span className="truncate text-[11px] text-muted-foreground">
-                        @{account.user_name}
+                        @{account.username}
                     </span>
                 )}
             </span>

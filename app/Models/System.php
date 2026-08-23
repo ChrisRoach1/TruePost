@@ -11,8 +11,8 @@ class System extends Model
         'scopes' => 'array',
     ];
 
-    public function UserToken(): HasMany
+    public function ConnectedAccount(): HasMany
     {
-        return $this->hasMany(UserToken::class);
+        return $this->hasMany(ConnectedAccount::class);
     }
 }

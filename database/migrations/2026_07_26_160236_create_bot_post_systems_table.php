@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\BotPost;
-use App\Models\UserToken;
+use App\Models\ConnectedAccount;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('bot_post_systems', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(BotPost::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(UserToken::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(ConnectedAccount::class)->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

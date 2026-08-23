@@ -64,10 +64,10 @@ export function PublishedPostRow({ post }: Props) {
             <div className="flex min-w-0 flex-1 flex-col">
                 {usesShared ? (
                     <ChannelMiniRow
-                        systems={channels.map((c) => c.user_token.system)}
+                        systems={channels.map((c) => c.connected_account.system)}
                         name={
                             channels.length > 0
-                                ? channels.map((c) => c.user_token.system.name).join(' · ')
+                                ? channels.map((c) => c.connected_account.system.name).join(' · ')
                                 : 'All channels'
                         }
                         text={sharedContent}
@@ -79,7 +79,7 @@ export function PublishedPostRow({ post }: Props) {
                     channels.map((ps, i) => (
                         <ChannelMiniRow
                             key={ps.id}
-                            system={ps.user_token.system}
+                            system={ps.connected_account.system}
                             text={ps.override_content}
                             trailing={i === 0 ? metrics : null}
                             isFirst={i === 0}

@@ -1,4 +1,4 @@
-import type { UserToken } from "./system";
+import type { ConnectedAccount } from "./system";
 
 export type BotPost = {
     id: number;
@@ -11,6 +11,6 @@ export type BotPost = {
 export type BotPostSystems = {
     id: number;
     bot_post_id?: number;
-    user_token_id: number;
-    user_token: UserToken;
+    connected_account_id: number;
+    connected_account: ConnectedAccount;
 }

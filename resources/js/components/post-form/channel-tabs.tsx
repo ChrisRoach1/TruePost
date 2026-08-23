@@ -1,10 +1,10 @@
 import { SystemIcon } from '@/components/system-icon';
 import { systemAccentStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
-import type { UserToken } from '@/types';
+import type { ConnectedAccount } from '@/types';
 
 type Props = {
-    accounts: UserToken[];
+    accounts: ConnectedAccount[];
     activeTab: 'all' | number;
     onSelect: (tab: number) => void;
     getCount: (id: number) => number;

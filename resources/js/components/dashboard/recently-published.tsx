@@ -73,10 +73,10 @@ export function RecentlyPublished({
                                                 <span
                                                     key={ps.id}
                                                     {...systemTileStyle(
-                                                        ps.user_token.system,
+                                                        ps.connected_account.system,
                                                         'size-1.5 rounded-full',
                                                     )}
-                                                    title={ps.user_token.system.name}
+                                                    title={ps.connected_account.system.name}
                                                 />
                                             ))}
                                         </div>

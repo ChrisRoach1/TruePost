@@ -27,12 +27,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { systemAccentStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { update } from '@/routes/userPost';
-import type { System, UserToken } from '@/types';
+import type { System, ConnectedAccount } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
 type Props = {
     post: userPosts;
-    connectedAccounts: UserToken[];
+    connectedAccounts: ConnectedAccount[];
     systems: System[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -43,7 +43,7 @@ function buildInitialChannelContent(post: userPosts): Record<number, string> {
 
     for (const system of post.user_post_systems ?? []) {
         if (system.override_content != null) {
-            map[system.user_token_id] = system.override_content;
+            map[system.connected_account_id] = system.override_content;
         }
     }
 
@@ -57,7 +57,7 @@ function buildInitialCollaborators(
 
     for (const system of post.user_post_systems ?? []) {
         if (system.collaborators != null && system.collaborators.length > 0) {
-            map[system.user_token_id] = system.collaborators;
+            map[system.connected_account_id] = system.collaborators;
         }
     }
 
@@ -69,7 +69,7 @@ function buildInitialTags(post: userPosts): Record<number, string[]> {
 
     for (const system of post.user_post_systems ?? []) {
         if (system.tags != null && system.tags.length > 0) {
-            map[system.user_token_id] = system.tags;
+            map[system.connected_account_id] = system.tags;
         }
     }
 
@@ -101,7 +101,7 @@ export default function EditPost({
         useForm<{
             _method: 'put';
             content: string;
-            userTokenIds: number[];
+            connectedAccountIds: number[];
             customizing: boolean;
             channelContent: Record<number, string>;
             collaborators: Record<number, string[]>;
@@ -116,8 +116,8 @@ export default function EditPost({
         }>({
             _method: 'put',
             content: post.original_content ?? '',
-            userTokenIds: (post.user_post_systems ?? []).map(
-                (s) => s.user_token_id,
+            connectedAccountIds: (post.user_post_systems ?? []).map(
+                (s) => s.connected_account_id,
             ),
             customizing: initialCustomizing,
             channelContent: initialChannelContent,
@@ -158,12 +158,12 @@ export default function EditPost({
         }
     }
 
-    function togglePlatform(userTokenId: number) {
+    function togglePlatform(connectedAccountId: number) {
         setData(
-            'userTokenIds',
-            data.userTokenIds.includes(userTokenId)
-                ? data.userTokenIds.filter((id) => id !== userTokenId)
-                : [...data.userTokenIds, userTokenId],
+            'connectedAccountIds',
+            data.connectedAccountIds.includes(connectedAccountId)
+                ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
+                : [...data.connectedAccountIds, connectedAccountId],
         );
     }
 
@@ -182,7 +182,7 @@ export default function EditPost({
         setData('aiCustomize', false);
 
         const sortedConnectedSystems = connectedSystems
-            .filter((account) => data.userTokenIds.includes(account.id))
+            .filter((account) => data.connectedAccountIds.includes(account.id))
             .sort((a, b) => a.system.order - b.system.order);
 
         const firstId = sortedConnectedSystems[0]?.id;
@@ -269,7 +269,7 @@ export default function EditPost({
     }
 
     const effectiveTab: 'all' | number =
-        activeTab === 'all' || data.userTokenIds.includes(activeTab)
+        activeTab === 'all' || data.connectedAccountIds.includes(activeTab)
             ? activeTab
             : 'all';
 
@@ -320,7 +320,7 @@ export default function EditPost({
 
     const currentText = getContent(effectiveTab);
     const selectedSystems = connectedSystems.filter((s) =>
-        data.userTokenIds.includes(s.id),
+        data.connectedAccountIds.includes(s.id),
     );
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
@@ -349,7 +349,7 @@ export default function EditPost({
                 }
             }
         } else {
-            for (const systemId of data.userTokenIds) {
+            for (const systemId of data.connectedAccountIds) {
                 const connectedSystem = connectedSystems.find(
                     (a) => a.id === systemId,
                 );
@@ -369,11 +369,11 @@ export default function EditPost({
             (data.content.trim().length > 0 ||
                 (data.customizing &&
                     Object.keys(data.channelContent).length ===
-                        data.userTokenIds.length &&
+                        data.connectedAccountIds.length &&
                     Object.values(data.channelContent).every(
                         (content) => content.trim().length > 0,
                     ))) &&
-            data.userTokenIds.length > 0 &&
+            data.connectedAccountIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
             ((!data.is_draft &&
@@ -435,7 +435,7 @@ export default function EditPost({
                                         <ChannelCard
                                             key={account.id}
                                             account={account}
-                                            selected={data.userTokenIds.includes(
+                                            selected={data.connectedAccountIds.includes(
                                                 account.id,
                                             )}
                                             count={getChipCount(account.id)}
@@ -457,7 +457,7 @@ export default function EditPost({
                             <div className="text-sm font-medium text-foreground">
                                 Content
                             </div>
-                            {data.userTokenIds.length > 1 && (
+                            {data.connectedAccountIds.length > 1 && (
                                 <div className="flex flex-col items-end gap-2">
                                     <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
                                         <Switch
@@ -484,10 +484,10 @@ export default function EditPost({
                             )}
                         </div>
 
-                        {data.customizing && data.userTokenIds.length > 0 && (
+                        {data.customizing && data.connectedAccountIds.length > 0 && (
                             <ChannelTabs
                                 accounts={connectedSystems.filter((account) =>
-                                    data.userTokenIds.includes(account.id),
+                                    data.connectedAccountIds.includes(account.id),
                                 )}
                                 activeTab={effectiveTab}
                                 onSelect={(id) => setActiveTab(id)}
@@ -814,9 +814,9 @@ export default function EditPost({
                                     ? 'Saving...'
                                     : 'Posting...'
                                 : submitLabel}
-                            {data.userTokenIds.length > 0 && (
+                            {data.connectedAccountIds.length > 0 && (
                                 <span className="grid size-[18px] place-items-center rounded-full bg-foreground/15 text-[11px] font-semibold">
-                                    {data.userTokenIds.length}
+                                    {data.connectedAccountIds.length}
                                 </span>
                             )}
                         </Button>

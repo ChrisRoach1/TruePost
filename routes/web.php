@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\UserPostController;
+use App\Http\Controllers\ZernioWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -12,17 +13,17 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::post('webhooks/zernio', ZernioWebhookController::class)->name('webhooks.zernio');
+
 Route::get('privacy', function () {
     return view('privacy');
 })->name('privacy');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::delete('accounts/{userToken}', [AccountController::class, 'delete'])->name('accounts.delete');
+    Route::delete('accounts/{connectedAccount}', [AccountController::class, 'delete'])->name('accounts.delete');
     Route::get('accounts', [AccountController::class, 'index'])->name('accounts');
     Route::get('auth/{platform}/redirect', [AccountController::class, 'redirect'])->name('oauth.redirect');
     Route::get('auth/{platform}/callback', [AccountController::class, 'callback'])->name('oauth.callback');
-    Route::post('auth/{userToken}/refresh', [AccountController::class, 'refreshToken'])->name('oauth.refreshToken');
-    Route::post('auth/finishAccountCreation', [AccountController::class, 'finishAccountCreation'])->name('oauth.finishAccountCreation');
 
     Route::get('create', [UserPostController::class, 'index'])->name('create');
     Route::get('userPost', [UserPostController::class, 'show'])->name('userPost.index');

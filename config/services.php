@@ -35,34 +35,14 @@ return [
         ],
     ],
 
-    'x' => [
-        'client_id' => env('X_CLIENT_ID'),
-        'client_secret' => env('X_CLIENT_SECRET'),
-        'redirect' => env('X_REDIRECT_URI'),
+    'zernio' => [
+        'key' => env('ZERNIO_API_KEY'),
+        'base_url' => env('ZERNIO_BASE_URL', 'https://zernio.com/api/v1'),
+        'webhook_secret' => env('ZERNIO_WEBHOOK_SECRET'),
     ],
 
-    'instagram' => [
-        'client_id' => env('INSTAGRAM_CLIENT_ID'),
-        'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
-        'redirect' => env('INSTAGRAM_REDIRECT_URI'),
-    ],
-
-    'facebook' => [
-        'client_id' => env('FACEBOOK_CLIENT_ID'),
-        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' => env('FACEBOOK_REDIRECT_URI'),
-    ],
-
-    'linkedin-openid' => [
-        'client_id' => env('LINKEDIN_CLIENT_ID'),
-        'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
-        'redirect' => env('LINKEDIN_REDIRECT_URI'),
-    ],
-
-    'threads' => [
-        'client_id' => env('THREADS_CLIENT_ID'),
-        'client_secret' => env('THREADS_CLIENT_SECRET'),
-        'redirect' => env('THREADS_REDIRECT_URI')
-    ],
-
+    'r2' => [
+        'public_endpoint' => env('R2_PUBLIC_ENDPOINT'),
+    ]
 ];
+

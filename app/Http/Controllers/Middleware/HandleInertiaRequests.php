@@ -45,7 +45,6 @@ class HandleInertiaRequests extends Middleware
                 'free_account_limit' => User::FREE_ACCOUNT_LIMIT,
                 'is_in_grace_period' => (bool) $request->user()?->isOnGracePeriod(),
             ],
-            'pagesToSelect' => fn () => $request->session()->get('pagesToSelect'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

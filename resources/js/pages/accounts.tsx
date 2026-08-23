@@ -1,31 +1,28 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import AccountsAvailablePlatforms from '@/components/accounts/available-platforms';
-import PageSelectDialog from '@/components/accounts/page-select-dialog';
 import AccountsPlatformSection from '@/components/accounts/platform-section';
-import { getTokenStatus } from '@/components/accounts/token-status';
 import { Button } from '@/components/ui/button';
 import { accounts } from '@/routes';
 import { deleteMethod } from '@/routes/accounts';
-import oauth, { refreshToken } from '@/routes/oauth';
+import oauth from '@/routes/oauth';
 import subscription from '@/routes/subscription';
-import type { System, UserToken } from '@/types';
+import type { ConnectedAccount, System } from '@/types';
 
 type Props = {
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems: System[];
 };
 
 export default function Accounts({ connectedAccounts = [], systems }: Props) {
-    const { pagesToSelect, auth } = usePage().props;
-    const [pageSelectDismissed, setPageSelectDismissed] = useState(false);
+    const { auth } = usePage().props;
 
     const accountLimit = auth.free_account_limit;
     const atAccountLimit =
         !auth.is_pro_member && connectedAccounts.length >= accountLimit;
 
     const accountsBySystem = useMemo(() => {
-        const map = new Map<number, UserToken[]>();
+        const map = new Map<number, ConnectedAccount[]>();
 
         for (const account of connectedAccounts) {
             const list = map.get(account.system_id) ?? [];
@@ -58,49 +55,18 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
         [orderedSystems, accountsBySystem],
     );
 
-    const stats = useMemo(() => {
-        let healthy = 0;
-        let expiring = 0;
-
-        for (const account of connectedAccounts) {
-            const status = getTokenStatus(account);
-
-            if (status === 'healthy') {
-                healthy += 1;
-            } else {
-                expiring += 1;
-            }
-        }
-
-        return {
-            connected: connectedAccounts.length,
-            healthy,
-            expiring,
-        };
-    }, [connectedAccounts]);
-
     function connectPlatform(platform: System) {
         window.location.href = oauth.redirect(platform.url_slug).url;
     }
 
-    function disconnect(account: UserToken) {
+    function disconnect(account: ConnectedAccount) {
         router.delete(deleteMethod(account.id));
     }
 
-    function refresh(account: UserToken) {
-        router.post(refreshToken(account.id));
-    }
 
     return (
         <>
             <Head title="Connected Accounts" />
-            {pagesToSelect != null && (
-                <PageSelectDialog
-                    pages={pagesToSelect}
-                    open={!pageSelectDismissed}
-                    onOpenChange={(open) => setPageSelectDismissed(!open)}
-                />
-            )}
             <div className="flex h-full flex-1 flex-col overflow-x-auto p-4">
                 <div className="mx-auto w-full max-w-6xl space-y-8">
                     <header className="flex flex-col gap-4 pt-2 md:flex-row md:items-start md:justify-between">
@@ -122,7 +88,7 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                     Free plan
                                 </span>
                                 <span className="font-mono text-[12px] text-foreground">
-                                    {Math.min(stats.connected, accountLimit)} of{' '}
+                                    {Math.min(connectedAccounts.length, accountLimit)} of{' '}
                                     {accountLimit} accounts connected
                                 </span>
                             </div>
@@ -144,7 +110,6 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
                                     canAddAccount={!atAccountLimit}
                                     onConnect={connectPlatform}
                                     onDisconnect={disconnect}
-                                    onRefresh={refresh}
                                 />
                             ))}
                         </div>

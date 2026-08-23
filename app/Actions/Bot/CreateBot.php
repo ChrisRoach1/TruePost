@@ -22,9 +22,9 @@ class CreateBot
             'user_id' => auth()->id(),
             'post_times' => $data['times'],
         ]);
-        foreach ($data['userTokenIds'] as $userTokenId) {
+        foreach ($data['connectedAccountIds'] as $connectedAccountId) {
             $botPost->BotPostSystems()->create([
-                'user_token_id' => $userTokenId,
+                'connected_account_id' => $connectedAccountId,
             ]);
         }
 

@@ -1,4 +1,4 @@
-import type { System, UserToken } from "./system";
+import type { ConnectedAccount } from "./system";
 
 export type userPosts = {
     id: number;
@@ -14,8 +14,8 @@ export type userPosts = {
 
 export type userPostSystems = {
     id: number;
-    user_token: UserToken;
-    user_token_id: number;
+    connected_account: ConnectedAccount;
+    connected_account_id: number;
     override_content: string | null;
     collaborators: string[] | null;
     tags: string[] | null;

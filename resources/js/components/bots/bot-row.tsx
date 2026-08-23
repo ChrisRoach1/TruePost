@@ -56,7 +56,7 @@ function ChannelIconStack({ systems }: { systems: System[] }) {
 
 export function BotRow({ bot, index, onEdit, onDelete }: Props) {
     const channels = bot.bot_post_systems ?? [];
-    const systems = channels.map((channel) => channel.user_token.system);
+    const systems = channels.map((channel) => channel.connected_account.system);
     const times = bot.post_times ?? [];
     const nextPostAt = bot.next_post_at ? new Date(bot.next_post_at) : null;
     const description = truncate(

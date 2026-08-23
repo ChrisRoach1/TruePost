@@ -58,7 +58,7 @@ function FreePlanCard({ onUpgrade }: { onUpgrade: () => void }) {
                 </div>
                 <div className="flex items-baseline gap-1 text-foreground">
                     <span className="text-[28px] font-bold tracking-tight">
-                        $8
+                        $13
                     </span>
                     <span className="text-[12px] text-muted-foreground">
                         / month
@@ -101,7 +101,7 @@ function ProPlanCard({ isInGracePeriod }: { isInGracePeriod: boolean }) {
                 </div>
                 <div className="flex items-baseline gap-1 text-foreground">
                     <span className="text-[28px] font-bold tracking-tight">
-                        $8
+                        $13
                     </span>
                     <span className="text-[12px] text-muted-foreground">
                         / month

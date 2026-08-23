@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\Bot\CreateBot;
 use App\Actions\Bot\UpdateBot;
 use App\Models\BotPost;
+use App\Models\ConnectedAccount;
 use App\Models\System;
-use App\Models\UserToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -20,7 +20,7 @@ class BotController extends Controller
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystems-for-bot-posting', 6000, function () {
-            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with(['system' => function ($query) {
+            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')->with(['system' => function ($query) {
                 $query->where('image_required', false);
             }])->get();
         });
@@ -38,13 +38,13 @@ class BotController extends Controller
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystems-for-bot-posting', 6000, function () {
-            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with(['system' => function ($query) {
+            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')->with(['system' => function ($query) {
                 $query->where('image_required', false);
             }])->get();
         });
 
         $bots = BotPost::query()->where(['user_id' => auth()->id()])
-            ->with(['BotPostSystems:id,bot_post_id,user_token_id', 'BotPostSystems.UserToken:id,system_id,user_name', 'BotPostSystems.UserToken.System:id,name,icon,background_color,order'])
+            ->with(['BotPostSystems:id,bot_post_id,connected_account_id', 'BotPostSystems.ConnectedAccount:id,system_id,username', 'BotPostSystems.ConnectedAccount.System:id,name,icon,background_color,order'])
             ->select(['id', 'bot_description', 'post_times', 'next_post_at'])->get();
 
         return Inertia::render('bots', [
@@ -58,7 +58,7 @@ class BotController extends Controller
     {
         $validated = $request->validate([
             'description' => 'nullable|string',
-            'userTokenIds' => 'required|array',
+            'connectedAccountIds' => 'required|array',
             'times' => 'required|array',
         ]);
 
@@ -75,7 +75,7 @@ class BotController extends Controller
 
         $validated = $request->validate([
             'description' => 'nullable|string',
-            'userTokenIds' => 'required|array',
+            'connectedAccountIds' => 'required|array',
             'times' => 'required|array',
         ]);
 

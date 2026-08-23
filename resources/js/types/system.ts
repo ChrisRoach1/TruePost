@@ -1,10 +1,9 @@
-
-export type UserToken = {
+export type ConnectedAccount = {
     id: number;
     system_id: number;
-    user_name: string | null;
-    expires_at: string | null;
-    needs_reauthed: boolean | null;
+    username: string | null;
+    display_name: string | null;
+    disconnected_at: string | null;
     created_at: string;
     system: System;
 }
@@ -21,11 +20,4 @@ export type System = {
     url_slug: string;
     can_tag: boolean;
     can_collaborate: boolean;
-};
-
-export type FacebookPages = {
-    id: string;
-    name: string;
-    system_id: number;
-    access_token: string;
 };

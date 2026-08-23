@@ -2,16 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\PostMetric;
 use App\Models\UserPost;
-use App\Services\FacebookService;
-use App\Services\InstagramService;
-use App\Services\LinkedInService;
-use App\Services\ThreadsService;
-use App\Services\XService;
+use App\Models\UserPostSystem;
+use App\Services\ZernioClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\Client\ConnectionException;
 
 class MetricCalculations implements ShouldQueue
 {
@@ -25,36 +22,33 @@ class MetricCalculations implements ShouldQueue
         //
     }
 
-    /**
-     * Execute the job.
-     *
-     * @throws ConnectionException
-     */
-    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedInService, FacebookService $facebookService, ThreadsService $threadsService): void
+    public function handle(ZernioClient $zernioClient): void
     {
 
-        UserPost::query()->with('UserPostSystems.UserToken.System')->when($this->userId, function (Builder $query, $userId) {
+        UserPost::query()->with('UserPostSystems.ConnectedAccount.System')->when($this->userId, function (Builder $query, $userId) {
             $query->where(['user_id' => $userId]);
-        })->get()->each(function ($post) use ($xService, $instagramService, $linkedInService, $facebookService, $threadsServices) {
+        })->get()->each(function ($post) use ($zernioClient) {
             foreach ($post->UserPostSystems as $systemPost) {
-                switch ($systemPost->userToken->System->url_slug) {
-                    case 'instagram':
-                        $instagramService->getPostMetrics($systemPost);
-                        break;
-                    case 'threads':
-                        $threadsService->getPostMetrics($systemPost);
-                    case 'x':
-                        $xService->getPostMetrics($systemPost);
-                        break;
-                    case 'linkedin-openid':
-                        $linkedInService->getPostMetrics($systemPost);
-                        break;
-                    case 'facebook':
-                        $facebookService->getPostMetrics($systemPost);
-                        break;
-                    default:
-                        throw new \Exception('Unsupported platform: '.$systemPost->userToken->System->url_slug);
+
+                if (! empty($systemPost->created_post_Id)){
+                    $metrics = $zernioClient->getPostAnalytics($systemPost->created_post_Id);
+
+                    if (! empty($metrics)) {
+                        PostMetric::create([
+                            'likes' => $systemPost->likes ?? 0,
+                            'replies' => $systemPost->replies ?? 0,
+                            'impressions' => $systemPost->impressions ?? 0,
+                            'user_post_system_id' => $systemPost->id,
+                        ]);
+
+                        UserPostSystem::find($systemPost->id)->update([
+                            'likes' => $metrics[1],
+                            'replies' => $metrics[2],
+                            'impressions' => $metrics[0],
+                        ]);
+                    }
                 }
+
             }
         });
     }

@@ -20,10 +20,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { systemAccentStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { store } from '@/routes/userPost';
-import type { System, UserToken } from '@/types';
+import type { ConnectedAccount, System } from '@/types';
 
 type Props = {
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems?: System[];
 };
 
@@ -74,7 +74,7 @@ export default function CreatePost({
     const { data, setData, processing, submit, reset, errors, clearErrors } =
         useForm<{
             content: string | null;
-            userTokenIds: number[];
+            connectedAccountIds: number[];
             customizing: boolean;
             channelContent: Record<number, string>;
             collaborators: Record<number, string[]>;
@@ -88,7 +88,7 @@ export default function CreatePost({
             aiCustomize: boolean;
         }>({
             content: '',
-            userTokenIds: [],
+            connectedAccountIds: [],
             customizing: false,
             channelContent: {},
             collaborators: {},
@@ -142,12 +142,12 @@ export default function CreatePost({
         }
     }
 
-    function togglePlatform(userTokenId: number) {
+    function togglePlatform(connectedAccountId: number) {
         setData(
-            'userTokenIds',
-            data.userTokenIds.includes(userTokenId)
-                ? data.userTokenIds.filter((id) => id !== userTokenId)
-                : [...data.userTokenIds, userTokenId],
+            'connectedAccountIds',
+            data.connectedAccountIds.includes(connectedAccountId)
+                ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
+                : [...data.connectedAccountIds, connectedAccountId],
         );
     }
 
@@ -166,7 +166,7 @@ export default function CreatePost({
         setData("aiCustomize", false);
 
         const sortedConnectedSystems = connectedSystems
-            .filter((account) => data.userTokenIds.includes(account.id))
+            .filter((account) => data.connectedAccountIds.includes(account.id))
             .sort((a, b) => a.system.order - b.system.order);
 
         const firstId = sortedConnectedSystems[0]?.id;
@@ -254,7 +254,7 @@ export default function CreatePost({
     }
 
     const effectiveTab: 'all' | number =
-        activeTab === 'all' || data.userTokenIds.includes(activeTab)
+        activeTab === 'all' || data.connectedAccountIds.includes(activeTab)
             ? activeTab
             : 'all';
 
@@ -305,7 +305,7 @@ export default function CreatePost({
 
     const currentText = getContent(effectiveTab);
     const selectedSystems = connectedSystems.filter((s) =>
-        data.userTokenIds.includes(s.id),
+        data.connectedAccountIds.includes(s.id),
     );
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
@@ -337,7 +337,7 @@ export default function CreatePost({
                 }
             }
         } else {
-            for (const systemId of data.userTokenIds) {
+            for (const systemId of data.connectedAccountIds) {
                 const connectedSystem = connectedSystems.find(
                     (a) => a.id === systemId,
                 );
@@ -357,11 +357,11 @@ export default function CreatePost({
             (data.content && data.content.trim().length > 0 ||
                 (data.customizing &&
                     Object.keys(data.channelContent).length ===
-                        data.userTokenIds.length &&
+                        data.connectedAccountIds.length &&
                     Object.values(data.channelContent).every(
                         (content) => content.trim().length > 0,
                     ))) &&
-            data.userTokenIds.length > 0 &&
+            data.connectedAccountIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
             ((!data.is_draft &&
@@ -432,7 +432,7 @@ export default function CreatePost({
                                 <ChannelCard
                                     key={account.id}
                                     account={account}
-                                    selected={data.userTokenIds.includes(
+                                    selected={data.connectedAccountIds.includes(
                                         account.id,
                                     )}
                                     count={getChipCount(account.id)}
@@ -460,7 +460,7 @@ export default function CreatePost({
                               : 'one message, every channel'
                     }
                     action={
-                        data.userTokenIds.length > 1 && (
+                        data.connectedAccountIds.length > 1 && (
                             <div className="flex flex-col items-end gap-2">
                                 <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
                                     <Switch
@@ -493,10 +493,10 @@ export default function CreatePost({
                     }
                 />
 
-                {data.customizing && data.userTokenIds.length > 0 && (
+                {data.customizing && data.connectedAccountIds.length > 0 && (
                     <ChannelTabs
                         accounts={connectedSystems.filter((account) =>
-                            data.userTokenIds.includes(account.id),
+                            data.connectedAccountIds.includes(account.id),
                         )}
                         activeTab={effectiveTab}
                         onSelect={(id) => setActiveTab(id)}
@@ -784,9 +784,9 @@ export default function CreatePost({
                                 ? 'Saving...'
                                 : 'Posting...'
                             : submitLabel}
-                        {data.userTokenIds.length > 0 && (
+                        {data.connectedAccountIds.length > 0 && (
                             <span className="grid size-[18px] place-items-center rounded-full bg-zinc-50/20 text-[11px] font-bold text-zinc-50">
-                                {data.userTokenIds.length}
+                                {data.connectedAccountIds.length}
                             </span>
                         )}
                     </Button>

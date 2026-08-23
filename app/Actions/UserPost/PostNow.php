@@ -17,7 +17,7 @@ class PostNow
     {
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
         $postDate = new DateTime(now($userTz));
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+        $userPostWithData = UserPost::with('UserPostSystems.connectedAccount.system')->find($userPost->id);
 
         SendPosts::dispatch($userPostWithData);
 

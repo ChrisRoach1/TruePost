@@ -2,18 +2,18 @@
 
 namespace App\Actions\Account;
 
+use App\Models\ConnectedAccount;
 use App\Models\UserPost;
 use App\Models\UserPostSystem;
-use App\Models\UserToken;
 use Illuminate\Support\Facades\Cache;
 
 class DeleteAccount
 {
-    public function handle(UserToken $userToken): void
+    public function handle(ConnectedAccount $connectedAccount): void
     {
-        $userToken->delete();
+        $connectedAccount->delete();
 
-        $postIds = UserPostSystem::query()->where('user_token_id', $userToken->id)->get()->pluck('user_post_id');
+        $postIds = UserPostSystem::query()->where('connected_account_id', $connectedAccount->id)->get()->pluck('user_post_id');
 
         UserPost::query()->whereIn('id', $postIds)->delete();
 

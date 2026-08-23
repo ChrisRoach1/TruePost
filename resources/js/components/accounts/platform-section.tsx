@@ -2,18 +2,16 @@ import { Plus } from 'lucide-react';
 import { SystemIcon } from '@/components/system-icon';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
-import type { System, UserToken } from '@/types';
+import type { ConnectedAccount, System } from '@/types';
 import { AccountCard } from './account-card';
-import { getTokenStatus } from './token-status';
 
 type Props = {
     platform: System;
-    accounts: UserToken[];
+    accounts: ConnectedAccount[];
     index: number;
     canAddAccount?: boolean;
     onConnect: (platform: System) => void;
-    onDisconnect: (account: UserToken) => void;
-    onRefresh: (account: UserToken) => void;
+    onDisconnect: (account: ConnectedAccount) => void;
 };
 
 export function PlatformSection({
@@ -23,12 +21,11 @@ export function PlatformSection({
     canAddAccount = true,
     onConnect,
     onDisconnect,
-    onRefresh,
 }: Props) {
     const indexLabel = String(index + 1).padStart(2, '0');
     const countLabel = `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}`;
     const needsAttention = accounts.some(
-        (account) => getTokenStatus(account) === 'needs_attention',
+        (account) => account.disconnected_at !== null,
     );
 
     return (
@@ -68,7 +65,6 @@ export function PlatformSection({
                         platform={platform}
                         onReconnect={onConnect}
                         onDisconnect={onDisconnect}
-                        onRefresh={onRefresh}
                     />
                 ))}
 

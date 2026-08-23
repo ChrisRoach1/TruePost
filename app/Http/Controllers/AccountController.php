@@ -2,28 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Account\ConnectAccount;
 use App\Actions\Account\DeleteAccount;
-use App\Actions\Account\FinishAccountCreation;
-use App\Actions\Account\ManuallyRefreshToken;
-use App\Exceptions\AccountLimitReached;
+use App\Actions\Account\StartConnection;
+use App\Actions\Account\SyncAccounts;
+use App\Models\ConnectedAccount;
 use App\Models\System;
 use App\Models\User;
-use App\Models\UserToken;
+use App\Services\ZernioClient;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
-use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
-use Laravel\Socialite\Facades\Socialite;
-use Laravel\Socialite\Two\InvalidStateException;
 
 class AccountController extends Controller
 {
     public function index(Request $request)
     {
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
-            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
+            return ConnectedAccount::query()->where(['user_id' => auth()->id()])->with('system')->get();
         });
 
         $systems = Cache::remember('systems', 6000, function () {
@@ -36,9 +33,10 @@ class AccountController extends Controller
         ]);
     }
 
-    public function delete(UserToken $userToken, DeleteAccount $deleteAccount)
+    public function delete(ConnectedAccount $connectedAccount, DeleteAccount $deleteAccount, ZernioClient $zernioClient)
     {
-        $deleteAccount->handle($userToken);
+        $deleteAccount->handle($connectedAccount);
+        $zernioClient->disconnectAccount($connectedAccount->zernio_account_id);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Account deleted successfully!')])->render('accounts');
 
@@ -48,11 +46,10 @@ class AccountController extends Controller
     /**
      * Redirect user to a correct platform.
      */
-    public function redirect(Request $request, string $platform)
+    public function redirect(Request $request, string $platform, StartConnection $startConnection)
     {
         $system = System::query()->where('url_slug', $platform)->firstOrFail();
-
-        $alreadyOnPlatform = UserToken::query()
+        $alreadyOnPlatform = ConnectedAccount::query()
             ->where(['user_id' => $request->user()->id, 'system_id' => $system->id])
             ->exists();
 
@@ -60,63 +57,28 @@ class AccountController extends Controller
             return $this->accountLimitReached();
         }
 
-        return Socialite::driver($platform)->scopes($system->scopes)->redirect();
+        return redirect()->away($startConnection->handle($request->user(), $system));
     }
 
     /**
      * @throws ConnectionException
+     * @throws RequestException
      */
-    public function callback(string $platform, ConnectAccount $connectAccount)
+    public function callback(Request $request, string $platform, SyncAccounts $syncAccounts)
     {
-        try {
-            $profilesToChoose = $connectAccount->handle($platform);
-        } catch (AccountLimitReached) {
-            return $this->accountLimitReached();
-        } catch (InvalidStateException) {
-            return $this->connectionAttemptExpired();
+        if ($request->has('error')) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('That connection was cancelled or denied. Nothing was changed.'),
+            ])->render('accounts');
+
+            return redirect()->route('accounts');
         }
+        $syncAccounts->handle($request->user());
 
-        return redirect('accounts')->with('pagesToSelect', $profilesToChoose);
-
-    }
-
-    public function finishAccountCreation(HttpRequest $request, FinishAccountCreation $finishAccountCreation)
-    {
-        $validated = $request->validate([
-            'id' => 'string',
-            'name' => 'string',
-            'system_id' => 'integer',
-            'access_token' => 'string',
-        ]);
-
-        try {
-            $finishAccountCreation->handle($validated);
-        } catch (AccountLimitReached) {
-            return $this->accountLimitReached();
-        }
-
-        return redirect('accounts');
-
-    }
-
-    public function refreshToken(UserToken $userToken, ManuallyRefreshToken $manuallyRefreshToken)
-    {
-        $manuallyRefreshToken->handle($userToken);
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Account refreshed successfully!')])->render('accounts');
-
-        return redirect()->route('accounts');
-    }
-
-    /**
-     * Socialite consumes the OAuth state on first use, so a replayed or
-     * overlapping callback lands here even though the original attempt worked.
-     */
-    private function connectionAttemptExpired()
-    {
         Inertia::flash('toast', [
-            'type' => 'error',
-            'message' => __('That connection attempt expired. Check the list below, and try connecting again if the account is missing.'),
+            'type' => 'success',
+            'message' => __('Account connected!'),
         ])->render('accounts');
 
         return redirect()->route('accounts');

@@ -7,12 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
 import { store } from '@/routes/bots';
-import type { System, UserToken } from '@/types';
+import type { ConnectedAccount, System } from '@/types';
 
 const MAX_TIMES_PER_DAY = 5;
 
 type Props = {
-    connectedAccounts?: UserToken[];
+    connectedAccounts?: ConnectedAccount[];
     systems?: System[];
 };
 
@@ -50,7 +50,7 @@ function AccountCard({
     selected,
     onToggle,
 }: {
-    account: UserToken;
+    account: ConnectedAccount;
     selected: boolean;
     onToggle: () => void;
 }) {
@@ -77,9 +77,9 @@ function AccountCard({
                 <span className="truncate text-[13px] font-semibold text-foreground">
                     {account.system.name}
                 </span>
-                {account.user_name && (
+                {account.username && (
                     <span className="truncate text-[11px] text-muted-foreground">
-                        @{account.user_name}
+                        @{account.username}
                     </span>
                 )}
             </span>
@@ -98,21 +98,21 @@ export default function CreateBot({
     );
 
     const { data, setData, processing, errors, submit, reset } = useForm<{
-        userTokenIds: number[];
+        connectedAccountIds: number[];
         description: string;
         times: string[];
     }>({
-        userTokenIds: [],
+        connectedAccountIds: [],
         description: '',
         times: ['09:00'],
     });
 
-    function togglePlatform(userTokenId: number) {
+    function togglePlatform(connectedAccountId: number) {
         setData(
-            'userTokenIds',
-            data.userTokenIds.includes(userTokenId)
-                ? data.userTokenIds.filter((id) => id !== userTokenId)
-                : [...data.userTokenIds, userTokenId],
+            'connectedAccountIds',
+            data.connectedAccountIds.includes(connectedAccountId)
+                ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
+                : [...data.connectedAccountIds, connectedAccountId],
         );
     }
 
@@ -143,7 +143,7 @@ export default function CreateBot({
             new Set(data.times).size !== data.times.length;
 
         return (
-            data.userTokenIds.length > 0 &&
+            data.connectedAccountIds.length > 0 &&
             data.description.trim().length > 0 &&
             data.times.length > 0 &&
             data.times.length <= MAX_TIMES_PER_DAY &&
@@ -193,7 +193,7 @@ export default function CreateBot({
                                 <AccountCard
                                     key={account.id}
                                     account={account}
-                                    selected={data.userTokenIds.includes(
+                                    selected={data.connectedAccountIds.includes(
                                         account.id,
                                     )}
                                     onToggle={() => togglePlatform(account.id)}
@@ -206,9 +206,9 @@ export default function CreateBot({
                         connect an account that doesn't require media.
                     </div>
                 )}
-                {errors.userTokenIds && (
+                {errors.connectedAccountIds && (
                     <p className="mt-1.5 text-xs text-destructive">
-                        {errors.userTokenIds}
+                        {errors.connectedAccountIds}
                     </p>
                 )}
             </div>
@@ -308,9 +308,9 @@ export default function CreateBot({
                     className="bg-emerald-700 text-zinc-50 hover:bg-emerald-600"
                 >
                     {processing ? 'Creating...' : 'Create bot'}
-                    {data.userTokenIds.length > 0 && (
+                    {data.connectedAccountIds.length > 0 && (
                         <span className="grid size-[18px] place-items-center rounded-full bg-zinc-50/20 text-[11px] font-bold text-zinc-50">
-                            {data.userTokenIds.length}
+                            {data.connectedAccountIds.length}
                         </span>
                     )}
                 </Button>

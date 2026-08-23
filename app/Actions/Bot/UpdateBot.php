@@ -22,14 +22,14 @@ class UpdateBot
             'post_times' => $data['times'],
         ]);
 
-        $botPost->BotPostSystems()->whereNotIn('user_token_id', $data['userTokenIds'])->delete();
+        $botPost->BotPostSystems()->whereNotIn('connected_account_id', $data['connectedAccountIds'])->delete();
 
-        $existing = $botPost->BotPostSystems()->get()->keyBy('user_token_id');
+        $existing = $botPost->BotPostSystems()->get()->keyBy('connected_account_id');
 
-        foreach ($data['userTokenIds'] as $userTokenId) {
-            if (! $existing->has($userTokenId)) {
+        foreach ($data['connectedAccountIds'] as $connectedAccountId) {
+            if (! $existing->has($connectedAccountId)) {
                 $botPost->BotPostSystems()->create([
-                    'user_token_id' => $userTokenId,
+                    'connected_account_id' => $connectedAccountId,
                 ]);
             }
         }

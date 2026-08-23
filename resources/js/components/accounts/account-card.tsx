@@ -1,28 +1,13 @@
-import { format, formatDistanceToNow } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { System, UserToken } from '@/types';
-import { daysUntil, getTokenStatus, type TokenStatus } from './token-status';
+import type { System, ConnectedAccount } from '@/types';
 
 type Props = {
-    account: UserToken;
+    account: ConnectedAccount;
     platform: System;
     onReconnect: (platform: System) => void;
-    onDisconnect: (account: UserToken) => void;
-    onRefresh: (account: UserToken) => void;
-};
-
-const statusDotClass: Record<TokenStatus, string> = {
-    healthy: 'bg-emerald-500',
-    expiring: 'bg-amber-500',
-    needs_attention: 'bg-rose-500',
-};
-
-const statusLabel: Record<TokenStatus, string> = {
-    healthy: 'Connection healthy',
-    expiring: 'Token expiring',
-    needs_attention: 'Needs attention',
+    onDisconnect: (account: ConnectedAccount) => void;
 };
 
 export function AccountCard({
@@ -30,28 +15,10 @@ export function AccountCard({
     platform,
     onReconnect,
     onDisconnect,
-    onRefresh,
 }: Props) {
-    const status = getTokenStatus(account);
-    const days = daysUntil(account.expires_at);
-    const expiresAt = account.expires_at ? new Date(account.expires_at) : null;
     const connectedAt = new Date(account.created_at);
 
-    const handle = account.user_name?.trim() || 'Account';
-
-    let microLine: string | null = null;
-    if (status === 'needs_attention') {
-        microLine = 'Reconnect to restore dispatch';
-    } else if (status === 'expiring' && days !== null) {
-        const dayWord = days === 1 ? 'day' : 'days';
-        microLine = days <= 0 ? 'Refresh now' : `Refresh in ${days} ${dayWord}`;
-    } else if (expiresAt) {
-        microLine = `Refreshes ${format(expiresAt, 'MMM d')} · connected ${formatDistanceToNow(connectedAt)} ago`;
-    } else {
-        microLine = `Connected ${formatDistanceToNow(connectedAt)} ago`;
-    }
-
-    const showRefresh = status === 'expiring' || status === 'needs_attention';
+    const handle = account.username?.trim() || 'Account';
 
     return (
         <div className="flex h-full flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -67,7 +34,7 @@ export function AccountCard({
                         <span
                             className={cn(
                                 'inline-block size-1.5 shrink-0 rounded-full',
-                                statusDotClass[status],
+                                'bg-emerald-500',
                             )}
                             aria-hidden
                         />
@@ -75,35 +42,14 @@ export function AccountCard({
                             <span
                                 className={cn(
                                     'text-[12px] font-medium',
-                                    status === 'healthy'
-                                        ? 'text-foreground'
-                                        : status === 'expiring'
-                                          ? 'text-amber-700 dark:text-amber-400'
-                                          : 'text-rose-700 dark:text-rose-400',
+                                    'text-foreground'
                                 )}
                             >
-                                {statusLabel[status]}
+                                Connected {formatDistanceToNow(connectedAt)} ago
                             </span>
-                            {microLine !== null && (
-                                <span className="truncate font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-                                    {microLine}
-                                </span>
-                            )}
                         </div>
                     </div>
 
-                    {showRefresh && (
-                        <Button
-                            type="button"
-                            size="xs"
-                            variant={status === 'needs_attention' ? 'destructive' : 'default'}
-                            onClick={() => onRefresh(account)}
-                            className="shrink-0"
-                        >
-                            <RefreshCw />
-                            Refresh
-                        </Button>
-                    )}
                 </div>
             </div>
 

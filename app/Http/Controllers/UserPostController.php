@@ -6,9 +6,9 @@ use App\Actions\UserPost\CreateUserPost;
 use App\Actions\UserPost\PostNow;
 use App\Actions\UserPost\UpdateUserPost;
 use App\Jobs\MetricCalculations;
+use App\Models\ConnectedAccount;
 use App\Models\System;
 use App\Models\UserPost;
-use App\Models\UserToken;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -23,11 +23,11 @@ class UserPostController extends Controller
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
-            return UserToken::query()->where(['needs_reauthed' => false, 'user_id' => auth()->id()])->with('system')->get();
+            return ConnectedAccount::query()->where(['user_id' => auth()->id()])->with('system')->get();
         });
 
         $recentlyPublished = UserPost::query()
-            ->with('UserPostSystems.userToken.system')
+            ->with('UserPostSystems.connectedAccount.system')
             ->where(['user_id' => auth()->id(), 'has_posted' => true])
             ->orderBy('post_at', 'desc')
             ->take(4)
@@ -53,7 +53,7 @@ class UserPostController extends Controller
         $searchQuery = $request->query('search');
 
         $userPosts = UserPost::query()
-            ->with('UserPostSystems.userToken.system')
+            ->with('UserPostSystems.connectedAccount.system')
             ->where('user_id', auth()->id())
             ->when($searchQuery, function (Builder $query, $searchQuery) {
                 $query->where('original_content', 'like', '%'.$searchQuery.'%');
@@ -61,8 +61,7 @@ class UserPostController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        $connectedAccounts = UserToken::query()
-            ->where(['needs_reauthed' => false])
+        $connectedAccounts = ConnectedAccount::query()
             ->where('user_id', auth()->id())
             ->with('system')
             ->get();
@@ -95,7 +94,7 @@ class UserPostController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'array|max:5',
             'tags.*.*' => 'string',
-            'userTokenIds' => 'required|array',
+            'connectedAccountIds' => 'required|array',
             'image' => 'nullable|file|mimes:jpg,jpeg,mp4,mov,qt,octet-stream|max:512000',
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
@@ -128,7 +127,7 @@ class UserPostController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'array|max:5',
             'tags.*.*' => 'string',
-            'userTokenIds' => 'required|array',
+            'connectedAccountIds' => 'required|array',
             'image' => 'nullable|file|mimes:jpg,jpeg,mp4,mov,qt|max:512000',
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',

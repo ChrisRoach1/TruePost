@@ -2,15 +2,12 @@
 
 namespace App\Providers;
 
+use App\Services\ZernioClient;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Cashier\Cashier;
-use SocialiteProviders\Instagram\Provider;
-use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ZernioClient::class, fn () => new ZernioClient(
+            config('services.zernio.key'),
+            config('services.zernio.base_url'),
+        ));
     }
 
     /**
@@ -28,12 +28,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-
-        Event::listen(function (SocialiteWasCalled $event) {
-            $event->extendSocialite('threads', \SocialiteProviders\Threads\Provider::class);
-            $event->extendSocialite('instagram', Provider::class);
-        });
-
     }
 
     /**

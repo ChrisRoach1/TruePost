@@ -39,12 +39,12 @@ class CreateUserPost
 
         if ($data['aiCustomize']) {
             $customizedContent = $this->customizeWithAI->handle($data);
-            foreach ($data['userTokenIds'] as $userTokenId) {
-                $overrideText = $customizedContent[$userTokenId] ?? null;
-                $collaborators = $data['collaborators'][$userTokenId] ?? null;
-                $tags = $data['tags'][$userTokenId] ?? null;
+            foreach ($data['connectedAccountIds'] as $connectedAccountId) {
+                $overrideText = $customizedContent[$connectedAccountId] ?? null;
+                $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
+                $tags = $data['tags'][$connectedAccountId] ?? null;
                 $userPost->UserPostSystems()->create([
-                    'user_token_id' => $userTokenId,
+                    'connected_account_id' => $connectedAccountId,
                     'override_content' => $overrideText,
                     'collaborators' => $collaborators,
                     'tags' => $tags,
@@ -52,12 +52,12 @@ class CreateUserPost
             }
 
         } else {
-            foreach ($data['userTokenIds'] as $userTokenId) {
-                $overrideText = $data['channelContent'][$userTokenId] ?? null;
-                $collaborators = $data['collaborators'][$userTokenId] ?? null;
-                $tags = $data['tags'][$userTokenId] ?? null;
+            foreach ($data['connectedAccountIds'] as $connectedAccountId) {
+                $overrideText = $data['channelContent'][$connectedAccountId] ?? null;
+                $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
+                $tags = $data['tags'][$connectedAccountId] ?? null;
                 $userPost->UserPostSystems()->create([
-                    'user_token_id' => $userTokenId,
+                    'connected_account_id' => $connectedAccountId,
                     'override_content' => $overrideText,
                     'collaborators' => $collaborators,
                     'tags' => $tags,
@@ -65,7 +65,7 @@ class CreateUserPost
             }
         }
 
-        $userPostWithData = UserPost::with('UserPostSystems.userToken.system')->find($userPost->id);
+        $userPostWithData = UserPost::with('UserPostSystems.connectedAccount.system')->find($userPost->id);
 
         // Scheduled posts are left for SendDuePosts to pick up once post_at
         // passes. Claim the ones going out now so that sweep skips them.

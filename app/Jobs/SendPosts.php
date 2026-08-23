@@ -3,18 +3,11 @@
 namespace App\Jobs;
 
 use App\Models\UserPost;
-use App\Services\FacebookService;
-use App\Services\InstagramService;
-use App\Services\LinkedInService;
-use App\Services\ThreadsService;
-use App\Services\XService;
-use Exception;
+use App\Services\ZernioClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\SerializesModels;
 
-#[Tries(1)]
 class SendPosts implements ShouldQueue
 {
     use Queueable, SerializesModels;
@@ -27,55 +20,21 @@ class SendPosts implements ShouldQueue
         //
     }
 
-    /**
-     * Execute the job.
-     *
-     * @throws Exception
-     */
-    public function handle(XService $xService, InstagramService $instagramService, LinkedInService $linkedinService, FacebookService $facebookService, ThreadsService $threadsService): void
+    public function handle(ZernioClient $zernio): void
     {
         foreach ($this->userPost->UserPostSystems as $platform) {
-            switch ($platform->userToken->System->url_slug) {
-                case 'instagram':
-                    try {
-                        $instagramService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
-                    } catch (Exception $e) {
-                        $platform->update(['failed_to_post' => true]);
-                    }
-                    break;
-                case 'threads':
-                    try{
-                        $threadsService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
-                    }catch (Exception $e){
-                    $platform->update(['failed_to_post' => true]);
-                    }
-                case 'x':
-                    try {
-                        $xService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
-                    } catch (Exception $e) {
-                        $platform->update(['failed_to_post' => true]);
-                    }
-                    break;
-                case 'linkedin-openid':
-                    try {
-                        $linkedinService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
-                    } catch (Exception $e) {
-                        $platform->update(['failed_to_post' => true]);
-                    }
-                    break;
-                case 'facebook':
-                    try {
-                        $facebookService->createPost($platform, $this->userPost->original_content, $this->userPost->media_url);
-                    } catch (Exception $e) {
-                        $platform->update(['failed_to_post' => true]);
-                    }
-                    break;
-                default:
-                    throw new Exception('Unsupported platform: '.$platform->userToken->System->url_slug);
+            $content = $userPostSystem->override_content ?? $this->userPost->original_content;
+            $id = $zernio->sendPost($platform->ConnectedAccount->System->url_slug, $platform->ConnectedAccount->zernio_account_id, $content, $this->userPost->media_url);
+
+            if (! empty($id)) {
+                $platform->update(['created_post_Id' => $id]);
+            } else {
+                $platform->update(['failed_to_post' => true]);
             }
         }
 
         $this->userPost->update(['has_posted' => true]);
         $this->userPost->save();
+
     }
 }
