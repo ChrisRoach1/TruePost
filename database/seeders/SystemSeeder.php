@@ -34,7 +34,7 @@ class SystemSeeder extends Seeder
                 'name' => 'Instagram',
                 'icon' => 'FaInstagram',
                 'order' => 2,
-                'max_post_length' => 2,200,
+                'max_post_length' => 2200,
                 'background_color' => '#E4405F',
                 'image_required' => true,
                 'icon_color' => '#E4405F',
