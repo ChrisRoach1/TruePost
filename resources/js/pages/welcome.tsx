@@ -509,10 +509,9 @@ function Hero({
                         delay={120}
                         className="mt-6 max-w-lg text-[18px] leading-relaxed text-muted-foreground"
                     >
-                        Write your post once. TruePost rewrites it into a
-                        native-feeling version for every channel you've
-                        connected then schedules them all. No more copy-paste
-                        tax.
+                        Write it once, send it to every channel you've
+                        connected. Keep the same copy, customize each or let AI rewrite a
+                        native version for each one.
                     </Reveal>
                     <Reveal
                         delay={180}
