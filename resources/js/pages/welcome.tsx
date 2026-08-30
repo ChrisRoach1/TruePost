@@ -6,6 +6,7 @@ import {
     FaFacebookF,
     FaInstagram,
     FaLinkedinIn,
+    FaReddit,
     FaXTwitter,
 } from 'react-icons/fa6';
 
@@ -21,6 +22,7 @@ const CHANNELS: Channel[] = [
     { id: 'instagram', name: 'Instagram', color: '#E4405F', icon: FaInstagram },
     { id: 'x', name: 'X', color: '#000000', icon: FaXTwitter },
     { id: 'linkedin', name: 'LinkedIn', color: '#0A66C2', icon: FaLinkedinIn },
+    { id: 'reddit', name: 'Reddit', color: '#FF4500', icon: FaReddit },
 ];
 
 const channelById = (id: string) => CHANNELS.find((c) => c.id === id);

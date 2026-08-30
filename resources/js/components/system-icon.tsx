@@ -5,7 +5,8 @@ import {
     FaLinkedinIn,
     FaXTwitter,
     FaYoutube,
-    FaThreads
+    FaThreads,
+    FaReddit
 } from 'react-icons/fa6';
 
 const iconRegistry: Record<string, IconType> = {
@@ -15,6 +16,7 @@ const iconRegistry: Record<string, IconType> = {
     FaXTwitter,
     FaYoutube,
     FaThreads,
+    FaReddit
 };
 
 type Props = {

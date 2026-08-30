@@ -34,12 +34,14 @@ class UpdateUserPost
             'post_at' => $data['is_draft'] ? null : $postDate,
             'media_url' => $mediaUrl,
             'dispatched_at' => null,
+            'title' => $data['title'] ?? null,
         ]);
 
         $incomingAccountIds = collect($data['connectedAccountIds'])->map(fn ($id) => (int) $id)->all();
         $channelContent = $data['channelContent'] ?? [];
         $collaborators = $data['collaborators'] ?? [];
         $tags = $data['tags'] ?? [];
+        $crosspostList = $data['crosspost_list'] ?? [];
 
         $aiCustomize = $data['aiCustomize'] ?? false;
         $customizedContent = $aiCustomize ? $this->customizeWithAI->handle($data) : [];
@@ -54,11 +56,13 @@ class UpdateUserPost
                 : ($channelContent[$connectedAccountId] ?? null);
             $accountCollaborators = $collaborators[$connectedAccountId] ?? null;
             $accountTags = $tags[$connectedAccountId] ?? null;
+            $accountCrosspostList = $crosspostList[$connectedAccountId] ?? null;
             if ($existing->has($connectedAccountId)) {
                 $existing[$connectedAccountId]->update([
                     'override_content' => $overrideText,
                     'collaborators' => $accountCollaborators,
                     'tags' => $accountTags,
+                    'crosspost_list' => $accountCrosspostList,
                 ]);
             } else {
                 $userPost->UserPostSystems()->create([
@@ -66,6 +70,7 @@ class UpdateUserPost
                     'override_content' => $overrideText,
                     'collaborators' => $accountCollaborators,
                     'tags' => $accountTags,
+                    'crosspost_list' => $accountCrosspostList,
                 ]);
             }
         }

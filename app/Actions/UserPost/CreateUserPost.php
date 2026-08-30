@@ -35,6 +35,7 @@ class CreateUserPost
             'is_draft' => $data['is_draft'] ?? false,
             'post_at' => $data['is_draft'] ? null : $postDate,
             'media_url' => $mediaUrl,
+            'title' => $data['title'] ?? null,
         ]);
 
         if ($data['aiCustomize']) {
@@ -43,11 +44,13 @@ class CreateUserPost
                 $overrideText = $customizedContent[$connectedAccountId] ?? null;
                 $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
                 $tags = $data['tags'][$connectedAccountId] ?? null;
+                $crosspostList = $data['crosspost_list'][$connectedAccountId] ?? null;
                 $userPost->UserPostSystems()->create([
                     'connected_account_id' => $connectedAccountId,
                     'override_content' => $overrideText,
                     'collaborators' => $collaborators,
                     'tags' => $tags,
+                    'crosspost_list' => $crosspostList,
                 ]);
             }
 
@@ -56,11 +59,13 @@ class CreateUserPost
                 $overrideText = $data['channelContent'][$connectedAccountId] ?? null;
                 $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
                 $tags = $data['tags'][$connectedAccountId] ?? null;
+                $crosspostList = $data['crosspost_list'][$connectedAccountId] ?? null;
                 $userPost->UserPostSystems()->create([
                     'connected_account_id' => $connectedAccountId,
                     'override_content' => $overrideText,
                     'collaborators' => $collaborators,
                     'tags' => $tags,
+                    'crosspost_list' => $crosspostList,
                 ]);
             }
         }

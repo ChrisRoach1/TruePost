@@ -30,7 +30,7 @@ export function PlatformSection({
 
     return (
         <section className="space-y-3">
-            <header className="flex items-center justify-between gap-3 border-b border-dashed border-border pb-3">
+            <header className="space-y-2 border-b border-dashed border-border pb-3">
                 <div className="flex items-center gap-3">
                     <span className="font-mono text-[11px] font-semibold text-primary">
                         {indexLabel}
@@ -55,6 +55,19 @@ export function PlatformSection({
                         </span>
                     )}
                 </div>
+
+                {platform.url_slug === 'reddit' && (
+                    <p className="max-w-5xl text-[12px] leading-relaxed text-muted-foreground">
+                        Reddit is fundamentally different from every other
+                        platform. Each subreddit is independently moderated with
+                        its own rules — there is no universal set of rules, and
+                        what works in one will get you banned in another. Before
+                        posting, check that the subreddit allows your
+                        post type (text, link, or image), whether flair is
+                        required, whether third-party or automated posting is
+                        allowed, and any karma or account age requirements.
+                    </p>
+                )}
             </header>
 
             <div className="grid gap-3 sm:grid-cols-2">

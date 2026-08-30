@@ -27,6 +27,7 @@ class SystemSeeder extends Seeder
                 'url_slug' => 'twitter',
                 'can_collaborate' => false,
                 'can_tag' => false,
+                'can_crosspost' => false,
                 'scopes' => ['tweet.write', 'offline.access', 'media.write'],
             ],
             [
@@ -41,6 +42,7 @@ class SystemSeeder extends Seeder
                 'url_slug' => 'instagram',
                 'can_collaborate' => true,
                 'can_tag' => false,
+                'can_crosspost' => false,
                 'scopes' => [],
             ],
             [
@@ -55,6 +57,7 @@ class SystemSeeder extends Seeder
                 'url_slug' => 'linkedin',
                 'can_collaborate' => false,
                 'can_tag' => false,
+                'can_crosspost' => false,
                 'scopes' => ['w_member_social', 'openid', 'profile', 'email'],
             ],
             [
@@ -69,7 +72,23 @@ class SystemSeeder extends Seeder
                 'url_slug' => 'facebook',
                 'can_collaborate' => false,
                 'can_tag' => false,
+                'can_crosspost' => false,
                 'scopes' => ['pages_manage_posts', 'email', 'pages_read_user_content'],
+            ],
+            [
+                'id' => 5,
+                'name' => 'Reddit',
+                'icon' => 'FaReddit',
+                'order' => 5,
+                'max_post_length' => 40000,
+                'background_color' => '#FF4500',
+                'image_required' => false,
+                'icon_color' => '#FF4500',
+                'url_slug' => 'reddit',
+                'can_collaborate' => false,
+                'can_tag' => false,
+                'can_crosspost' => true,
+                'scopes' => [],
             ],
         ];
 

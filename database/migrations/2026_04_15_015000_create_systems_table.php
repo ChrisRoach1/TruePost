@@ -27,8 +27,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        //populate with default systems for fresh migrations
-        (new \Database\Seeders\SystemSeeder())->run();
     }
 
     /**

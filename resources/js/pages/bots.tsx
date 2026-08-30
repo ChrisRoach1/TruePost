@@ -59,6 +59,7 @@ export default function Bots({
 
     function deleteBot(botId: number): void {
         router.delete(deleteMethod(botId));
+        router.flushAll();
     }
 
     return (

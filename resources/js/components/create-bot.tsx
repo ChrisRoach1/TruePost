@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Plus, X } from 'lucide-react';
 import { SystemIcon } from '@/components/system-icon';
 import { Button } from '@/components/ui/button';
@@ -156,6 +156,7 @@ export default function CreateBot({
         e.preventDefault();
         submit(store());
         reset();
+        router.flushAll();
     }
 
     const step = (n: number) => String(n).padStart(2, '0');
@@ -224,7 +225,7 @@ export default function CreateBot({
                     value={data.description}
                     onChange={(e) => setData('description', e.target.value)}
                     placeholder="What should this bot post about? e.g. daily productivity tips for remote developers…"
-                    className="mt-4 min-h-40 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
+                    className="mt-4 min-h-40 resize-y text-[15px] leading-relaxed"
                 />
                 {errors.description && (
                     <p className="mt-1.5 text-xs text-destructive">

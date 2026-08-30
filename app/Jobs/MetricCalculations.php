@@ -27,14 +27,35 @@ class MetricCalculations implements ShouldQueue
 
         UserPost::query()->where('created_at', '>=', \Illuminate\Support\now()->subDays(30))
             ->with('UserPostSystems.ConnectedAccount.System')->when($this->userId, function (Builder $query, $userId) {
-            $query->where(['user_id' => $userId]);
-        })->get()->each(function ($post) use ($zernioClient) {
-            foreach ($post->UserPostSystems as $systemPost) {
+                $query->where(['user_id' => $userId]);
+            })->get()->each(function ($post) use ($zernioClient) {
+                foreach ($post->UserPostSystems as $systemPost) {
+                    if (! empty($systemPost->created_post_Id)) {
+                        $metrics = $zernioClient->getPostAnalytics($systemPost->created_post_Id);
 
-                if (! empty($systemPost->created_post_Id)){
-                    $metrics = $zernioClient->getPostAnalytics($systemPost->created_post_Id);
+                        if (! empty($metrics)) {
+                            PostMetric::create([
+                                'likes' => $systemPost->likes ?? 0,
+                                'replies' => $systemPost->replies ?? 0,
+                                'impressions' => $systemPost->impressions ?? 0,
+                                'user_post_system_id' => $systemPost->id,
+                            ]);
 
-                    if (! empty($metrics)) {
+                            UserPostSystem::find($systemPost->id)->update([
+                                'likes' => $metrics[1],
+                                'replies' => $metrics[2],
+                                'impressions' => $metrics[0],
+                            ]);
+                        }
+                    } elseif (! empty($systemPost->crosspost_ids)) {
+                        $totalLikes = 0;
+                        $totalComments = 0;
+                        foreach ($systemPost->crosspost_ids as $crosspost_id) {
+                            $metrics = $zernioClient->getPostAnalytics($crosspost_id);
+                            $totalLikes += $metrics[1];
+                            $totalComments += $metrics[2];
+                        }
+
                         PostMetric::create([
                             'likes' => $systemPost->likes ?? 0,
                             'replies' => $systemPost->replies ?? 0,
@@ -43,14 +64,13 @@ class MetricCalculations implements ShouldQueue
                         ]);
 
                         UserPostSystem::find($systemPost->id)->update([
-                            'likes' => $metrics[1],
-                            'replies' => $metrics[2],
-                            'impressions' => $metrics[0],
+                            'likes' => $totalLikes,
+                            'replies' => $totalComments,
+                            'impressions' => $totalLikes,
                         ]);
                     }
-                }
 
-            }
-        });
+                }
+            });
     }
 }

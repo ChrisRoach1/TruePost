@@ -76,6 +76,23 @@ function buildInitialTags(post: userPosts): Record<number, string[]> {
     return map;
 }
 
+function buildInitialCrosspostList(
+    post: userPosts,
+): Record<number, string[]> {
+    const map: Record<number, string[]> = {};
+
+    for (const system of post.user_post_systems ?? []) {
+        if (
+            system.crosspost_list != null &&
+            system.crosspost_list.length > 0
+        ) {
+            map[system.connected_account_id] = system.crosspost_list;
+        }
+    }
+
+    return map;
+}
+
 export default function EditPost({
     post,
     connectedAccounts,
@@ -97,6 +114,7 @@ export default function EditPost({
     const initialCustomizing = Object.keys(initialChannelContent).length > 0;
     const initialCollaborators = buildInitialCollaborators(post);
     const initialTags = buildInitialTags(post);
+    const initialCrosspostList = buildInitialCrosspostList(post);
 
     const { data, setData, processing, post: postForm, errors, clearErrors, reset } =
         useForm<{
@@ -107,6 +125,8 @@ export default function EditPost({
             channelContent: Record<number, string>;
             collaborators: Record<number, string[]>;
             tags: Record<number, string[]>;
+            crosspost_list: Record<number, string[]>;
+            title: string;
             is_scheduled: boolean;
             is_draft: boolean;
             scheduled_date?: Date;
@@ -124,6 +144,8 @@ export default function EditPost({
             channelContent: initialChannelContent,
             collaborators: initialCollaborators,
             tags: initialTags,
+            crosspost_list: initialCrosspostList,
+            title: post.title ?? '',
             is_scheduled: false,
             is_draft: true,
             scheduled_date: initialPostAt,
@@ -305,6 +327,10 @@ export default function EditPost({
         setData('tags', { ...data.tags, [tokenId]: next });
     }
 
+    function setCrosspostList(tokenId: number, next: string[]) {
+        setData('crosspost_list', { ...data.crosspost_list, [tokenId]: next });
+    }
+
     function getChipCount(id: number): number {
         if (data.customizing) {
             const override = data.channelContent[id];
@@ -334,6 +360,21 @@ export default function EditPost({
     const hasExistingImage = Boolean(post.media_url);
     const isMissingRequiredImage =
         requiresImage && !data.image && !hasExistingImage;
+    const hasReddit = selectedSystems.some(
+        (s) => s.system.name.toLowerCase() === 'reddit',
+    );
+    const extrasHasMeta = selectedSystems.some(
+        (s) => s.system.can_collaborate || s.system.can_tag,
+    );
+    const extrasHasCrosspost = selectedSystems.some(
+        (s) => s.system.can_crosspost,
+    );
+    const extrasTitle =
+        extrasHasMeta && extrasHasCrosspost
+            ? 'Tags, Collaborators & Crosspost'
+            : extrasHasCrosspost
+              ? 'Crosspost'
+              : 'Tags & Collaborators';
 
     function canSubmit(): boolean {
         let isOverLimit = false;
@@ -370,6 +411,13 @@ export default function EditPost({
             }
         }
 
+        const titleMissing = hasReddit && data.title.trim().length === 0;
+        const crosspostIncomplete = selectedSystems.some(
+            (s) =>
+                s.system.can_crosspost &&
+                (data.crosspost_list[s.id] ?? []).length < 1,
+        );
+
         return (
             (data.content.trim().length > 0 ||
                 (data.customizing &&
@@ -381,6 +429,8 @@ export default function EditPost({
             data.connectedAccountIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
+            !titleMissing &&
+            !crosspostIncomplete &&
             ((!data.is_draft &&
                 Boolean(data.scheduled_date) &&
                 Boolean(data.scheduled_time)) ||
@@ -501,6 +551,25 @@ export default function EditPost({
                             />
                         )}
 
+                        {hasReddit && (
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="edit-reddit-post-title"
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    Reddit Post Title
+                                </label>
+                                <Input
+                                    id="edit-reddit-post-title"
+                                    value={data.title}
+                                    onChange={(e) =>
+                                        setData('title', e.target.value)
+                                    }
+                                    placeholder="Title for the Reddit post"
+                                />
+                            </div>
+                        )}
+
                         <Textarea
                             value={currentText}
                             onChange={(e) =>
@@ -534,19 +603,17 @@ export default function EditPost({
                         )}
                     </section>
 
-                    {selectedSystems.some(
-                        (s) =>
-                            s.system.can_collaborate || s.system.can_tag,
-                    ) && (
+                    {(extrasHasMeta || extrasHasCrosspost) && (
                         <section className="space-y-3">
                             <div className="text-sm font-medium text-foreground">
-                                Tags & Collaborators
+                                {extrasTitle}
                             </div>
                             {selectedSystems
                                 .filter(
                                     (account) =>
                                         account.system.can_collaborate ||
-                                        account.system.can_tag,
+                                        account.system.can_tag ||
+                                        account.system.can_crosspost,
                                 )
                                 .slice()
                                 .sort(
@@ -608,6 +675,37 @@ export default function EditPost({
                                                         )
                                                     }
                                                 />
+                                            )}
+                                            {account.system
+                                                .can_crosspost && (
+                                                <>
+                                                    <TagInput
+                                                        label="Subreddits"
+                                                        placeholder="Add a subreddit"
+                                                        hint="You don't need to include r/ in the subreddit name."
+                                                        max={5}
+                                                        values={
+                                                            data.crosspost_list[
+                                                                account.id
+                                                            ] ?? []
+                                                        }
+                                                        onChange={(next) =>
+                                                            setCrosspostList(
+                                                                account.id,
+                                                                next,
+                                                            )
+                                                        }
+                                                    />
+                                                    {(data.crosspost_list[
+                                                        account.id
+                                                    ] ?? []).length ===
+                                                        0 && (
+                                                        <p className="text-[11px] text-muted-foreground">
+                                                            At least 1
+                                                            subreddit required.
+                                                        </p>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>

@@ -16,6 +16,7 @@ use Zernio\Model\CreatePostRequestPlatformsInner;
 use Zernio\Model\InstagramPlatformData;
 use Zernio\Model\InstagramPlatformDataUserTagsInner;
 use Zernio\Model\MediaItem;
+use Zernio\Model\RedditPlatformData;
 
 class ZernioClient
 {
@@ -71,7 +72,7 @@ class ZernioClient
         $this->request()->delete("accounts/{$accountId}")->throw();
     }
 
-    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null): ?string
+    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null, ?string $crosspost = null, string $title = null): ?string
     {
         $config = Configuration::getDefaultConfiguration()->setAccessToken(config('services.zernio.key'));
         $postsApi = new PostsApi(new Client, $config);
@@ -93,12 +94,15 @@ class ZernioClient
             $request->setMediaItems([$mediaItem]);
         }
 
-        if ($platform == 'instagram') {
-            $specificData = $this->instagramPlatformData($collaborators, $tags, $isVideo);
-
-            if ($specificData instanceof InstagramPlatformData) {
+        switch ($platform) {
+            case 'instagram':
+                $specificData = $this->instagramPlatformData($collaborators, $tags, $isVideo);
                 $platformRequest->setPlatformSpecificData($specificData);
-            }
+
+                break;
+            case 'reddit':
+                $specificData = $this->redditPlatformData($crosspost, $title);
+                $platformRequest->setPlatformSpecificData($specificData);
         }
 
         $request->setPlatforms([$platformRequest]);
@@ -106,7 +110,6 @@ class ZernioClient
 
         try {
             $result = $postsApi->createPost($request);
-
             return $result->getPost()->getId();
         } catch (ApiException $e) {
             \Log::error('Exception when calling PostsApi->createPost: ', [$e->getMessage()]);
@@ -150,6 +153,15 @@ class ZernioClient
         }
 
         return empty($fields) ? null : new InstagramPlatformData($fields);
+    }
+
+    private function redditPlatformData(string $subreddit, string $title): ?RedditPlatformData
+    {
+        $redditPlatformData = new RedditPlatformData();
+        $redditPlatformData->setSubreddit($subreddit);
+        $redditPlatformData->setTitle($title);
+
+        return $redditPlatformData;
     }
 
     public function getPostAnalytics(string $postId): array

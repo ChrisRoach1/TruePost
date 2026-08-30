@@ -4,9 +4,9 @@ import { Clock, FileText, Sparkles, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
-import { SystemIcon } from '@/components/system-icon';
 import { CounterRing } from '@/components/post-form/counter-ring';
 import { TagInput } from '@/components/post-form/tag-input';
+import { SystemIcon } from '@/components/system-icon';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -79,6 +79,8 @@ export default function CreatePost({
             channelContent: Record<number, string>;
             collaborators: Record<number, string[]>;
             tags: Record<number, string[]>;
+            crosspost_list: Record<number, string[]>;
+            title: string;
             is_scheduled: boolean;
             is_draft: boolean;
             scheduled_date?: Date;
@@ -93,6 +95,8 @@ export default function CreatePost({
             channelContent: {},
             collaborators: {},
             tags: {},
+            crosspost_list: {},
+            title: '',
             is_scheduled: false,
             is_draft: false,
             scheduled_date: new Date(),
@@ -289,6 +293,10 @@ export default function CreatePost({
         setData('tags', { ...data.tags, [tokenId]: next });
     }
 
+    function setCrosspostList(tokenId: number, next: string[]) {
+        setData('crosspost_list', { ...data.crosspost_list, [tokenId]: next });
+    }
+
     function getChipCount(id: number): number {
         if (data.customizing) {
             const override = data.channelContent[id];
@@ -316,11 +324,30 @@ export default function CreatePost({
     );
     const requiresImage = requiringSystems.length > 0;
     const isMissingRequiredImage = requiresImage && !data.image;
-    const showTagsSection = selectedSystems.some(
+    const hasReddit = selectedSystems.some(
+        (s) => s.system.name.toLowerCase() === 'reddit',
+    );
+    const extrasHasMeta = selectedSystems.some(
         (s) => s.system.can_collaborate || s.system.can_tag,
     );
+    const extrasHasCrosspost = selectedSystems.some(
+        (s) => s.system.can_crosspost,
+    );
+    const showExtrasSection = extrasHasMeta || extrasHasCrosspost;
+    const extrasTitle =
+        extrasHasMeta && extrasHasCrosspost
+            ? 'Tags, Collaborators & Crosspost'
+            : extrasHasCrosspost
+              ? 'Crosspost'
+              : 'Tags & Collaborators';
+    const extrasDescription =
+        extrasHasMeta && extrasHasCrosspost
+            ? 'add collaborators, tags, and subreddits per channel'
+            : extrasHasCrosspost
+              ? 'add 1–5 subreddits to post and crosspost to'
+              : 'add collaborators and tags per channel';
     const step = (n: number) => String(n).padStart(2, '0');
-    const mediaStep = showTagsSection ? 4 : 3;
+    const mediaStep = showExtrasSection ? 4 : 3;
 
     function canSubmit(): boolean {
         let isOverLimit = false;
@@ -357,6 +384,14 @@ export default function CreatePost({
             }
         }
 
+        const titleMissing =
+            hasReddit && data.title.trim().length === 0;
+        const crosspostIncomplete = selectedSystems.some(
+            (s) =>
+                s.system.can_crosspost &&
+                (data.crosspost_list[s.id] ?? []).length < 1,
+        );
+
         return (
             (data.content && data.content.trim().length > 0 ||
                 (data.customizing &&
@@ -368,6 +403,8 @@ export default function CreatePost({
             data.connectedAccountIds.length > 0 &&
             !isOverLimit &&
             !isMissingRequiredImage &&
+            !titleMissing &&
+            !crosspostIncomplete &&
             ((!data.is_draft &&
                 Boolean(data.scheduled_date) &&
                 Boolean(data.scheduled_time)) ||
@@ -509,6 +546,24 @@ export default function CreatePost({
                     />
                 )}
 
+                {hasReddit && (
+                    <div className="mt-4 space-y-1.5">
+                        <label
+                            htmlFor="reddit-post-title"
+                            className="text-xs font-medium text-muted-foreground"
+                        >
+                            Reddit Post Title
+                        </label>
+                        <Input
+                            id="reddit-post-title"
+                            value={data.title}
+                            onChange={(e) => setData('title', e.target.value)}
+                            placeholder="Title for the Reddit post"
+                            className="h-10 text-[15px]"
+                        />
+                    </div>
+                )}
+
                 <Textarea
                     value={currentText ?? ''}
                     onChange={(e) => setContent(effectiveTab, e.target.value)}
@@ -517,11 +572,11 @@ export default function CreatePost({
                             ? 'Write your core message — AI will tailor it per channel…'
                             : 'What do you want to say?'
                     }
-                    className="mt-4 min-h-40 resize-y border-none bg-transparent px-0 py-1 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 dark:bg-transparent"
+                    className="mt-4 min-h-40 resize-y text-[15px] leading-relaxed"
                 />
 
                 {counterLimit > 0 && (
-                    <div className="mt-1 flex items-center justify-end gap-2 border-t border-dashed border-border pt-2">
+                    <div className="mt-1.5 flex items-center justify-end gap-2">
                         <span
                             className={cn(
                                 'text-xs tabular-nums',
@@ -537,12 +592,12 @@ export default function CreatePost({
                 )}
             </div>
 
-            {showTagsSection && (
+            {showExtrasSection && (
                 <div className="border-t border-border px-7 pt-5 pb-5">
                     <SectionHeader
                         number={step(3)}
-                        title="Tags & Collaborators"
-                        description="add collaborators and tags per channel"
+                        title={extrasTitle}
+                        description={extrasDescription}
                     />
 
                     <div className="mt-4 space-y-4">
@@ -550,7 +605,8 @@ export default function CreatePost({
                             .filter(
                                 (account) =>
                                     account.system.can_collaborate ||
-                                    account.system.can_tag,
+                                    account.system.can_tag ||
+                                    account.system.can_crosspost,
                             )
                             .sort((a, b) => a.system.order - b.system.order)
                             .map((account) => (
@@ -602,6 +658,35 @@ export default function CreatePost({
                                                     setTags(account.id, next)
                                                 }
                                             />
+                                        )}
+                                        {account.system.can_crosspost && (
+                                            <>
+                                                <TagInput
+                                                    label="Subreddits"
+                                                    placeholder="Add a subreddit"
+                                                    hint="You don't need to include r/ in the subreddit name."
+                                                    max={5}
+                                                    values={
+                                                        data.crosspost_list[
+                                                            account.id
+                                                        ] ?? []
+                                                    }
+                                                    onChange={(next) =>
+                                                        setCrosspostList(
+                                                            account.id,
+                                                            next,
+                                                        )
+                                                    }
+                                                />
+                                                {(data.crosspost_list[
+                                                    account.id
+                                                ] ?? []).length === 0 && (
+                                                    <p className="text-[11px] text-muted-foreground">
+                                                        At least 1 subreddit
+                                                        required.
+                                                    </p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </div>

@@ -20,4 +20,5 @@ export type System = {
     url_slug: string;
     can_tag: boolean;
     can_collaborate: boolean;
+    can_crosspost: boolean;
 };

@@ -10,6 +10,7 @@ type Props = {
     max?: number;
     placeholder?: string;
     label?: string;
+    hint?: string;
 };
 
 export function TagInput({
@@ -18,6 +19,7 @@ export function TagInput({
     max = 3,
     placeholder,
     label,
+    hint,
 }: Props) {
     const [draft, setDraft] = useState('');
     const atMax = values.length >= max;
@@ -61,6 +63,9 @@ export function TagInput({
                         {values.length}/{max}
                     </span>
                 </div>
+            )}
+            {hint && (
+                <p className="text-[11px] text-muted-foreground">{hint}</p>
             )}
             {values.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">

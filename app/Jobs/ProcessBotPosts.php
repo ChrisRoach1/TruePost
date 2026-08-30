@@ -35,12 +35,15 @@ class ProcessBotPosts implements ShouldQueue
 
             $postHistory = BotPostHistory::where(['bot_post_id' => $botPost->id])
                 ->orderByDesc('created_at')
-                ->take(30)
+                ->take(10)
                 ->pluck('post_text')->toArray();
 
             foreach ($botPost->BotPostSystems as $platform) {
 
-                $content = (new GenerateBasePost($botPost->bot_description, $postHistory))->prompt('please generate a post fit for posting on '.$platform->ConnectedAccount->System->name.' and it must be under this character limit: '.$platform->ConnectedAccount->System->max_post_length);
+
+                $content = (new GenerateBasePost($botPost->bot_description, $postHistory))
+                    ->prompt('please generate a post fit for posting on '.$platform->ConnectedAccount->System->name.' and it must be under this character limit: '.$platform->ConnectedAccount->System->max_post_length);
+                
                 BotPostHistory::create(['bot_post_id' => $botPost->id, 'post_text' => $content]);
 
                 $id = $zernioClient->sendPost($platform->ConnectedAccount->System->url_slug, $platform->ConnectedAccount->zernio_account_id, $content, '');
