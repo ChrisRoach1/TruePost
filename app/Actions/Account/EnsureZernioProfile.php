@@ -21,8 +21,9 @@ class EnsureZernioProfile
             return $user->zernio_profile_id;
         }
 
+        $profileName = env('APP_ENV').'_truepost_user'.$user->id;
         $profile = $this->zernio->createProfile(
-            name: 'truepost_user_'.$user->id,
+            name: $profileName,
             description: $user->email,
         );
 
