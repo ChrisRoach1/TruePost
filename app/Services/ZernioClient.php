@@ -72,7 +72,7 @@ class ZernioClient
         $this->request()->delete("accounts/{$accountId}")->throw();
     }
 
-    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null, ?string $crosspost = null, string $title = null): ?string
+    public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null, ?string $crosspost = null, ?string $title = null): ?string
     {
         $config = Configuration::getDefaultConfiguration()->setAccessToken(config('services.zernio.key'));
         $postsApi = new PostsApi(new Client, $config);
@@ -97,7 +97,10 @@ class ZernioClient
         switch ($platform) {
             case 'instagram':
                 $specificData = $this->instagramPlatformData($collaborators, $tags, $isVideo);
-                $platformRequest->setPlatformSpecificData($specificData);
+
+                if ($specificData != null) {
+                    $platformRequest->setPlatformSpecificData($specificData);
+                }
 
                 break;
             case 'reddit':
@@ -110,6 +113,7 @@ class ZernioClient
 
         try {
             $result = $postsApi->createPost($request);
+
             return $result->getPost()->getId();
         } catch (ApiException $e) {
             \Log::error('Exception when calling PostsApi->createPost: ', [$e->getMessage()]);
@@ -157,7 +161,7 @@ class ZernioClient
 
     private function redditPlatformData(string $subreddit, string $title): ?RedditPlatformData
     {
-        $redditPlatformData = new RedditPlatformData();
+        $redditPlatformData = new RedditPlatformData;
         $redditPlatformData->setSubreddit($subreddit);
         $redditPlatformData->setTitle($title);
 
