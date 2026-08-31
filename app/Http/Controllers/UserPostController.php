@@ -200,7 +200,7 @@ class UserPostController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'is_scheduled' => __('Scheduling posts is a Pro feature.'),
+            'is_scheduled' => __('An active subscription is required to schedule posts.'),
         ]);
     }
 }

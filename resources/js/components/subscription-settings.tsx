@@ -85,6 +85,7 @@ export default function SubscriptionSettings({
         botFeature(auth.solo_bot_limit),
         'Multiple accounts per channel',
         'Unlimited posts',
+        'Scheduled posts',
         'Support',
     ];
 
@@ -379,11 +380,11 @@ function DowngradeToSoloDialog({
                   overBots
                       ? `Unselected bots will be deleted (keep up to ${botLimit}).`
                       : null,
-                  "You won't be able to schedule new posts. Already-scheduled posts will still go out. AI rewrites will stop, and you'll be billed for Solo instead.",
+                  "AI rewrites will stop, and you'll be billed for Solo instead.",
               ]
                   .filter(Boolean)
                   .join(' ')
-            : "Pro will be cancelled immediately. You'll be billed for Solo instead. You won't be able to schedule new posts (already-scheduled posts still go out), and AI rewrites will stop.";
+            : "Pro will be cancelled immediately. You'll be billed for Solo instead. AI rewrites will stop.";
 
     return (
         <Dialog

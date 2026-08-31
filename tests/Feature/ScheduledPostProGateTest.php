@@ -32,23 +32,27 @@ test('solo members can post immediately', function () {
     Queue::assertPushed(SendPosts::class);
 });
 
-test('solo members cannot schedule posts', function () {
+test('solo members can schedule posts', function () {
     Queue::fake();
 
     $user = makeScheduledPostSoloUser();
     $account = makeScheduledPostAccount($user);
 
     $this->actingAs($user)
-        ->from(route('create'))
         ->post(route('userPost.store'), postPayload($account, [
             'is_scheduled' => true,
             'scheduled_date_string' => now()->addDay()->toDateString(),
             'scheduled_time' => '10:00',
         ]))
-        ->assertRedirect(route('create'))
-        ->assertSessionHasErrors('is_scheduled');
+        ->assertRedirect(route('create'));
 
-    expect(UserPost::query()->count())->toBe(0);
+    $post = UserPost::query()->first();
+
+    expect($post)->not->toBeNull()
+        ->and($post->is_draft)->toBeFalsy()
+        ->and($post->post_at)->not->toBeNull()
+        ->and($post->dispatched_at)->toBeNull();
+
     Queue::assertNothingPushed();
 });
 
@@ -76,7 +80,7 @@ test('pro members can schedule posts', function () {
     Queue::assertNothingPushed();
 });
 
-test('send due posts still fires grandfathered solo schedules', function () {
+test('send due posts fires solo schedules', function () {
     Queue::fake();
 
     $user = makeScheduledPostSoloUser();

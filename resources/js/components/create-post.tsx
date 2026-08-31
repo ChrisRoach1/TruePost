@@ -203,10 +203,6 @@ export default function CreatePost({
     }
 
     function openSchedule() {
-        if (!auth.is_pro_member) {
-            return;
-        }
-
         setScheduleOpen(true);
         setData((prev) => ({
             ...prev,
@@ -774,22 +770,20 @@ export default function CreatePost({
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-zinc-900 px-6 py-3.5 text-zinc-50 dark:bg-zinc-950">
                 <div className="flex flex-wrap items-center gap-2">
-                    {auth.is_pro_member && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={data.is_draft}
-                            onClick={scheduleOpen ? clearSchedule : openSchedule}
-                            className={cn(
-                                'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50 disabled:opacity-40',
-                                scheduleOpen && 'border-zinc-50/40 bg-zinc-50/10',
-                            )}
-                        >
-                            <Clock className="size-3.5" />
-                            {scheduleLabel}
-                        </Button>
-                    )}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={data.is_draft}
+                        onClick={scheduleOpen ? clearSchedule : openSchedule}
+                        className={cn(
+                            'border-zinc-50/20 bg-transparent text-zinc-50 hover:bg-zinc-50/10 hover:text-zinc-50 disabled:opacity-40',
+                            scheduleOpen && 'border-zinc-50/40 bg-zinc-50/10',
+                        )}
+                    >
+                        <Clock className="size-3.5" />
+                        {scheduleLabel}
+                    </Button>
                     <Button
                         type="button"
                         variant="outline"
@@ -804,7 +798,7 @@ export default function CreatePost({
                         <FileText className="size-3.5" />
                         {draftLabel}
                     </Button>
-                    {auth.is_pro_member && scheduleOpen && !data.is_draft && (
+                    {scheduleOpen && !data.is_draft && (
                         <div className="flex items-center gap-1.5">
                             <Popover>
                                 <PopoverTrigger asChild>

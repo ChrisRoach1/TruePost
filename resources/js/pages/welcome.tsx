@@ -668,7 +668,7 @@ const PLANS: Plan[] = [
         price: '$9',
         cadence: 'per month',
         blurb: 'For getting your first posts out the door.',
-        features: ['3 connected accounts', '1 bot', 'Multiple accounts per channel', 'Unlimited posts', 'Support'],
+        features: ['3 connected accounts', '1 bot', 'Multiple accounts per channel', 'Unlimited posts', 'Scheduled posts', 'Support'],
         cta: 'Start Solo trial',
         featured: false,
     },

@@ -69,7 +69,7 @@ class User extends Authenticatable
 
     public function canSchedulePosts(): bool
     {
-        return $this->isProMember();
+        return $this->hasActiveSubscription();
     }
 
     public function isSoloMember(): bool
