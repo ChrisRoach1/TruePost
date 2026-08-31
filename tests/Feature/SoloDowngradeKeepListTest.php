@@ -3,7 +3,6 @@
 use App\Actions\Subscription\ApplySoloKeepList;
 use App\Models\BotPost;
 use App\Models\ConnectedAccount;
-use App\Models\System;
 use App\Models\User;
 use App\Models\UserPost;
 use App\Models\UserPostSystem;
@@ -12,41 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
-
-function makeProUser(): User
-{
-    $user = User::factory()->create(['timezone' => 'UTC']);
-
-    $user->subscriptions()->create([
-        'type' => 'pro',
-        'stripe_id' => 'sub_pro_'.$user->id,
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_pro',
-        'quantity' => 1,
-    ]);
-
-    return $user->fresh();
-}
-
-function makeConnectedAccount(User $user, string $zernioAccountId): ConnectedAccount
-{
-    return ConnectedAccount::create([
-        'user_id' => $user->id,
-        'system_id' => System::query()->value('id'),
-        'zernio_account_id' => $zernioAccountId,
-        'username' => $zernioAccountId,
-        'display_name' => $zernioAccountId,
-    ]);
-}
-
-function makeBot(User $user, string $description): BotPost
-{
-    return BotPost::create([
-        'user_id' => $user->id,
-        'bot_description' => $description,
-        'post_times' => ['09:00'],
-    ]);
-}
 
 test('apply solo keep list disconnects extra accounts and deletes extra bots without wiping posts', function () {
     $user = User::factory()->create(['timezone' => 'UTC']);

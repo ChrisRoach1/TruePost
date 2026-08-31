@@ -19,15 +19,13 @@ class EnsureSubscribed
         $user = $request->user();
 
         if ($user === null) {
-            return to_route('solo-subscription.checkout');
+            return redirect(route('login'));
         }
 
         $user->keepLatestActiveSubscription();
 
         if (! $user->hasActiveSubscription()) {
-            if ($request->hasHeader('X-Inertia')) {
-                return Inertia::location(route('solo-subscription.checkout'));
-            }
+            return redirect(route('solo-subscription.checkout'));
         }
 
         return $next($request);

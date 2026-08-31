@@ -1,7 +1,13 @@
 <?php
 
+use App\Models\BotPost;
+use App\Models\ConnectedAccount;
+use App\Models\System;
+use App\Models\User;
+use Database\Seeders\SystemSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use function Pest\Laravel\seed;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +21,10 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        seed(SystemSeeder::class);
+    })
     ->in('Feature');
 
 /*
@@ -44,7 +53,100 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function makeProUser(): User
 {
-    // ..
+    $user = User::factory()->create(['timezone' => 'UTC']);
+
+    $user->subscriptions()->create([
+        'type' => 'pro',
+        'stripe_id' => 'sub_pro_'.$user->id,
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_pro',
+        'quantity' => 1,
+    ]);
+
+    return $user->fresh();
+}
+
+function makeConnectedAccount(User $user, string $zernioAccountId): ConnectedAccount
+{
+    return ConnectedAccount::create([
+        'user_id' => $user->id,
+        'system_id' => System::query()->value('id'),
+        'zernio_account_id' => $zernioAccountId,
+        'username' => $zernioAccountId,
+        'display_name' => $zernioAccountId,
+    ]);
+}
+
+function makeBot(User $user, string $description): BotPost
+{
+    return BotPost::create([
+        'user_id' => $user->id,
+        'bot_description' => $description,
+        'post_times' => ['09:00'],
+    ]);
+}
+
+function makeScheduledPostProUser(): User
+{
+    $user = User::factory()->create(['timezone' => 'UTC']);
+
+    $user->subscriptions()->create([
+        'type' => 'pro',
+        'stripe_id' => 'sub_pro_'.$user->id,
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_pro',
+        'quantity' => 1,
+    ]);
+
+    return $user->fresh();
+}
+
+function makeScheduledPostSoloUser(): User
+{
+    $user = User::factory()->create(['timezone' => 'UTC']);
+
+    $user->subscriptions()->create([
+        'type' => 'solo',
+        'stripe_id' => 'sub_solo_'.$user->id,
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_solo',
+        'quantity' => 1,
+    ]);
+
+    return $user->fresh();
+}
+
+function makeScheduledPostAccount(User $user): ConnectedAccount
+{
+    return ConnectedAccount::create([
+        'user_id' => $user->id,
+        'system_id' => System::query()->value('id'),
+        'zernio_account_id' => 'z-'.$user->id,
+        'username' => 'tester',
+        'display_name' => 'Tester',
+    ]);
+}
+
+function makeScheduledPostAccountWithSystem(User $user, string $zernioId, string $url_slug): ConnectedAccount
+{
+    return ConnectedAccount::create([
+        'user_id' => $user->id,
+        'system_id' => System::query()->where('url_slug', $url_slug)->first()->value('id'),
+        'zernio_account_id' => $zernioId,
+        'username' => 'tester',
+        'display_name' => 'Tester',
+    ]);
+}
+
+function postPayload(ConnectedAccount $account, array $overrides = []): array
+{
+    return array_merge([
+        'content' => 'Hello from TruePost',
+        'is_draft' => false,
+        'connectedAccountIds' => [$account->id],
+        'is_scheduled' => false,
+        'aiCustomize' => false,
+    ], $overrides);
 }

@@ -11,57 +11,7 @@ use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
-function makeScheduledPostProUser(): User
-{
-    $user = User::factory()->create(['timezone' => 'UTC']);
 
-    $user->subscriptions()->create([
-        'type' => 'pro',
-        'stripe_id' => 'sub_pro_'.$user->id,
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_pro',
-        'quantity' => 1,
-    ]);
-
-    return $user->fresh();
-}
-
-function makeScheduledPostSoloUser(): User
-{
-    $user = User::factory()->create(['timezone' => 'UTC']);
-
-    $user->subscriptions()->create([
-        'type' => 'solo',
-        'stripe_id' => 'sub_solo_'.$user->id,
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_solo',
-        'quantity' => 1,
-    ]);
-
-    return $user->fresh();
-}
-
-function makeScheduledPostAccount(User $user): ConnectedAccount
-{
-    return ConnectedAccount::create([
-        'user_id' => $user->id,
-        'system_id' => System::query()->value('id'),
-        'zernio_account_id' => 'z-'.$user->id,
-        'username' => 'tester',
-        'display_name' => 'Tester',
-    ]);
-}
-
-function postPayload(ConnectedAccount $account, array $overrides = []): array
-{
-    return array_merge([
-        'content' => 'Hello from TruePost',
-        'is_draft' => false,
-        'connectedAccountIds' => [$account->id],
-        'is_scheduled' => false,
-        'aiCustomize' => false,
-    ], $overrides);
-}
 
 test('solo members can post immediately', function () {
     Queue::fake();

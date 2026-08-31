@@ -159,11 +159,17 @@ class ZernioClient
         return empty($fields) ? null : new InstagramPlatformData($fields);
     }
 
-    private function redditPlatformData(string $subreddit, string $title): ?RedditPlatformData
+    private function redditPlatformData(?string $subreddit, ?string $title): ?RedditPlatformData
     {
         $redditPlatformData = new RedditPlatformData;
-        $redditPlatformData->setSubreddit($subreddit);
-        $redditPlatformData->setTitle($title);
+
+        if ($subreddit) {
+            $redditPlatformData->setSubreddit($subreddit);
+        }
+
+        if ($title) {
+            $redditPlatformData->setTitle($title);
+        }
 
         return $redditPlatformData;
     }

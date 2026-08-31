@@ -12,7 +12,7 @@ beforeEach(function () {
 test('sends verification notification', function () {
     Notification::fake();
 
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->unverified()->create(['timezone' => 'UTC']);
 
     $this->actingAs($user)
         ->post(route('verification.send'))
@@ -24,11 +24,11 @@ test('sends verification notification', function () {
 test('does not send verification notification if email is verified', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['timezone' => 'UTC']);
 
     $this->actingAs($user)
         ->post(route('verification.send'))
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('create', absolute: false));
 
     Notification::assertNothingSent();
 });

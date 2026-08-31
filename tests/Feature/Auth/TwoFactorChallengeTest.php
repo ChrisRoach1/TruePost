@@ -20,7 +20,7 @@ test('two factor challenge can be rendered', function () {
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['timezone' => 'UTC']);
 
     $user->forceFill([
         'two_factor_secret' => encrypt('test-secret'),
