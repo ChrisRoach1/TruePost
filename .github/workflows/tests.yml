@@ -40,6 +40,9 @@ jobs:
       - name: Install Node Dependencies
         run: npm i
 
+      - name: Composer Update
+        run: composer update --no-interaction --prefer-dist --optimize-autoloader
+
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
