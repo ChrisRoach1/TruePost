@@ -31,32 +31,43 @@ class SendPosts implements ShouldQueue
 
             if ($platform->crosspost_list != null) {
                 $ids = [];
-                foreach ($platform->crosspost_list as $crosspost) {
-                    $id = $zernio->sendPost(
-                        $platform->ConnectedAccount->System->url_slug,
-                        $platform->ConnectedAccount->zernio_account_id,
-                        $content,
-                        $this->userPost->media_url,
-                        $collaborators,
-                        $usersToTag,
-                        $crosspost,
-                        $this->userPost->title);
-                    $ids[] = $id;
-                }
-                if (! empty($ids)) {
-                    $platform->update(['crosspost_ids' => $ids]);
-                } else {
+                try {
+                    foreach ($platform->crosspost_list as $crosspost) {
+                        $id = $zernio->sendPost(
+                            $platform->ConnectedAccount->System->url_slug,
+                            $platform->ConnectedAccount->zernio_account_id,
+                            $content,
+                            $this->userPost->media_url,
+                            $collaborators,
+                            $usersToTag,
+                            $crosspost,
+                            $this->userPost->title);
+                        $ids[] = $id;
+                    }
+                    if (! empty($ids)) {
+                        $platform->update(['crosspost_ids' => $ids]);
+                    } else {
+                        $platform->update(['failed_to_post' => true]);
+                    }
+                } catch (\Exception $ex) {
                     $platform->update(['failed_to_post' => true]);
+                    \Log::error('failed to post with error: '.$ex->getMessage());
                 }
 
             } else {
-                $id = $zernio->sendPost($platform->ConnectedAccount->System->url_slug, $platform->ConnectedAccount->zernio_account_id, $content, $this->userPost->media_url, $collaborators, $usersToTag);
+                try {
+                    $id = $zernio->sendPost($platform->ConnectedAccount->System->url_slug, $platform->ConnectedAccount->zernio_account_id, $content, $this->userPost->media_url, $collaborators, $usersToTag);
 
-                if (! empty($id)) {
-                    $platform->update(['created_post_Id' => $id]);
-                } else {
+                    if (! empty($id)) {
+                        $platform->update(['created_post_Id' => $id]);
+                    } else {
+                        $platform->update(['failed_to_post' => true]);
+                    }
+                } catch (\Exception $ex) {
                     $platform->update(['failed_to_post' => true]);
+                    \Log::error('failed to post with error: '.$ex->getMessage());
                 }
+
             }
         }
 

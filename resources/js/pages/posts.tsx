@@ -231,6 +231,24 @@ export default function Posts({
                         </div>
                     </div>
 
+                    {posts.length === 0 && (
+                        <div className="rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
+                            <p className="text-[15px] text-foreground">
+                                No posts yet.
+                            </p>
+                            <p className="mt-1 text-[13px] text-muted-foreground">
+                                Write one now and send it across every channel,
+                                or save it as a draft.
+                            </p>
+                            <Button asChild className="mt-5">
+                                <Link href={create().url}>
+                                    <Send className="size-3.5" />
+                                    Create your first post
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
+
                     {showScheduled && (
                         <section>
                             <SectionHeader

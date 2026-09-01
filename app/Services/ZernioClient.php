@@ -112,11 +112,19 @@ class ZernioClient
         $request->setPublishNow(true);
 
         try {
-            $result = $postsApi->createPost($request);
+            return retry(
+                3,
+                function () use ($postsApi, $request) {
+                    $result = $postsApi->createPost($request);
 
-            return $result->getPost()->getId();
+                    return $result->getPost()->getId();
+                },
+                fn (int $attempt, \Throwable $exception) => $this->retryAfterMilliseconds($exception),
+                fn (\Throwable $exception) => $exception instanceof ApiException &&
+                    ($exception->getCode() === 429 || $exception->getCode() === 500 || $exception->getCode() === 502 || $exception->getCode() === 503 || $exception->getCode() === 504),
+            );
         } catch (ApiException $e) {
-            \Log::error('Exception when calling PostsApi->createPost: ', [$e->getMessage()]);
+            \Log::error('Exception when calling PostsApi->createPost: ', [$e->getMessage(), $e->getCode()]);
 
             return null;
         }
@@ -186,6 +194,24 @@ class ZernioClient
         } catch (ApiException $e) {
             return [];
         }
+    }
+
+    private function retryAfterMilliseconds(\Throwable $exception): int
+    {
+        $fallback = 60_000;
+
+        if (! $exception instanceof ApiException) {
+            return $fallback;
+        }
+
+        $headers = array_change_key_case($exception->getResponseHeaders() ?? [], CASE_LOWER);
+        $retryAfter = $headers['retry-after'] ?? 60;
+
+        if (is_array($retryAfter)) {
+            $retryAfter = $retryAfter[0] ?? 60;
+        }
+
+        return is_numeric($retryAfter) ? ((int) $retryAfter) * 1000 : $fallback;
     }
 
     private function request(): PendingRequest
