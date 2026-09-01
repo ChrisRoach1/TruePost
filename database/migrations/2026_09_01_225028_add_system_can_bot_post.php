@@ -13,8 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('systems', function (Blueprint $table) {
-            $table->boolean('can_crosspost')->default(false);
+            $table->boolean('can_botpost')->default(true);
         });
+
+        // populate with default systems for fresh migrations
+        (new SystemSeeder)->run();
     }
 
     /**
@@ -22,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('system', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };

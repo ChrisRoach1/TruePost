@@ -28,7 +28,10 @@ class ProcessBotPosts implements ShouldQueue
     {
         $botPosts = BotPost::query()
             ->where('next_post_at', '<=', now())
-            ->with('BotPostSystems.ConnectedAccount.System')
+            ->with(['BotPostSystems' => function ($query) {
+                $query->whereHas('ConnectedAccount.System', fn ($q) => $q->where('can_botpost', true))
+                    ->with('ConnectedAccount.System');
+            }])
             ->get();
 
         foreach ($botPosts as $botPost) {

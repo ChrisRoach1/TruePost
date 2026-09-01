@@ -17,16 +17,16 @@ class BotController extends Controller
     public function index(Request $request)
     {
         $systems = Cache::remember('systems-for-bot-posting', 6000, function () {
-            return System::where(['image_required' => false])
-                ->where('can_crosspost', false)
+            return System::where('can_botpost', true)
                 ->orderBy('id')->get();
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystems-for-bot-posting', 6000, function () {
-            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')->with(['system' => function ($query) {
-                $query->where('image_required', false)
-                    ->where('can_crosspost', false);
-            }])->get();
+            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')
+                ->whereHas('System', function ($query) {
+                    $query->where('can_botpost', true);
+                })
+                ->with('system')->get();
         });
 
         return Inertia::render('create-bot', [
@@ -39,13 +39,16 @@ class BotController extends Controller
     public function list(Request $request)
     {
         $systems = Cache::remember('systems-for-bot-posting', 6000, function () {
-            return System::where(['image_required' => false])->orderBy('id')->get();
+            return System::where('can_botpost', true)
+                ->orderBy('id')->get();
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystems-for-bot-posting', 6000, function () {
-            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')->with(['system' => function ($query) {
-                $query->where('image_required', false);
-            }])->get();
+            return ConnectedAccount::query()->where('user_id', auth()->id())->whereNull('disconnected_at')
+                ->whereHas('System', function ($query) {
+                    $query->where('can_botpost', true);
+                })
+                ->with('system')->get();
         });
 
         $bots = BotPost::query()->where(['user_id' => auth()->id()])

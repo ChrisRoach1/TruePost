@@ -21,4 +21,5 @@ export type System = {
     can_tag: boolean;
     can_collaborate: boolean;
     can_crosspost: boolean;
+    can_botpost: boolean;
 };
