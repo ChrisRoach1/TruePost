@@ -182,15 +182,6 @@ function ChannelPip({
     );
 }
 
-function Eyebrow({ children }: { children: ReactNode }) {
-    return (
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 py-1.5 pr-3 pl-2 font-dm-mono text-[11px] font-medium tracking-[0.08em] text-primary uppercase">
-            <Sparkle className="size-3 text-primary" />
-            {children}
-        </div>
-    );
-}
-
 function SectionHead({
     kicker,
     title,

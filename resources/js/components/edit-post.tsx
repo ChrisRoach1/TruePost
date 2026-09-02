@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
-import { SystemIcon } from '@/components/system-icon';
 import { TagInput } from '@/components/post-form/tag-input';
+import { SystemIcon } from '@/components/system-icon';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {

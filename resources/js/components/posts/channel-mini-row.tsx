@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type {ReactNode} from 'react';
 import { SystemIcon } from '@/components/system-icon';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';

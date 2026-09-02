@@ -143,6 +143,7 @@ export default function Posts({
     const sectionNumber = (() => {
         let n = 0;
         const next = () => String(++n).padStart(2, '0');
+
         return {
             scheduled: showScheduled ? next() : '',
             drafts: showDrafts ? next() : '',

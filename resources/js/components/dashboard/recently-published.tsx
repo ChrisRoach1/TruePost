@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, Eye, MessageCircle, Minus, TrendingUp } from 'lucide-react';
+import { Heart, Eye, MessageCircle } from 'lucide-react';
 import { systemTileStyle } from '@/lib/system-colors';
 import type { RecentlyPublishedItem } from '@/types/userPosts';
 
@@ -38,8 +38,6 @@ export function RecentlyPublished({
                             typeof item.time === 'string'
                                 ? new Date(item.time)
                                 : item.time;
-                        const TrendIcon =
-                            item.trend === 'flat' ? Minus : TrendingUp;
                         const channels = item.user_post_systems ?? [];
                         const totals = channels.reduce(
                             (acc, ps) => {

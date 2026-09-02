@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { BotIcon, LayoutGrid, PencilIcon, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -21,7 +21,6 @@ import type { NavItem } from '@/types';
 
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
 
     const createNavItems: NavItem[] = [
         {
