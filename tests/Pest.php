@@ -150,3 +150,25 @@ function postPayload(ConnectedAccount $account, array $overrides = []): array
         'aiCustomize' => false,
     ], $overrides);
 }
+
+function postPayloadDraft(ConnectedAccount $account, array $overrides = []): array
+{
+    return array_merge([
+        'content' => 'Hello from TruePost',
+        'is_draft' => true,
+        'connectedAccountIds' => [$account->id],
+        'is_scheduled' => false,
+        'aiCustomize' => false,
+    ], $overrides);
+}
+
+function postPayloadUpdate(ConnectedAccount $account, array $overrides = []): array
+{
+    return array_merge([
+        'content' => 'Hello from TruePost update',
+        'is_draft' => false,
+        'connectedAccountIds' => [$account->id],
+        'is_scheduled' => false,
+        'aiCustomize' => false,
+    ], $overrides);
+}
