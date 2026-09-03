@@ -10,10 +10,14 @@ class ZernioWebhookController extends Controller
 {
     public function __invoke(Request $request, SyncAccounts $syncAccounts)
     {
-        $receivedSignature = $request->header('X-Zernio-Signature');
-        $expectedSignature = hash_hmac('sha256', $request->getContent(), config('services.zernio.webhook_secret'));
+        if ($request->isMethod('GET') || $request->isMethod('HEAD')) {
+            return response()->noContent();
+        }
 
-        abort_if($receivedSignature !== $expectedSignature, 403);
+        $receivedSignature = $request->header('X-Zernio-Signature') ?? $request->header('X-Late-Signature');
+        $expectedSignature = hash_hmac('sha256', $request->getContent(), (string) config('services.zernio.webhook_secret'));
+
+        abort_if(! hash_equals($expectedSignature, (string) $receivedSignature), 403);
 
         $user = User::query()
             ->where('zernio_profile_id', $request->input('account.profileId'))
