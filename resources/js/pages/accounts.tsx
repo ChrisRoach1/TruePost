@@ -60,6 +60,7 @@ export default function Accounts({ connectedAccounts = [], systems }: Props) {
 
     function disconnect(account: ConnectedAccount) {
         router.delete(deleteMethod(account.id));
+        router.flushAll();
     }
 
     return (

@@ -7,6 +7,8 @@ use App\Models\System;
 use App\Models\User;
 use App\Models\UserPost;
 use App\Services\ZernioClient;
+use DateTime;
+use DateTimeZone;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
@@ -54,7 +56,10 @@ class SyncAccounts
             ->where('user_id', $user->id)
             ->whereNotIn('zernio_account_id', $seen);
 
-        $connectedAccountsToDelete->update(['disconnected_at' => now()]);
+        $userTz = new DateTimeZone($user->getTimezone());
+        $disconnectDate = new DateTime(now($userTz));
+
+        $connectedAccountsToDelete->update(['disconnected_at' => $disconnectDate]);
 
         Cache::delete($user->id.'-connectedSystem');
         Cache::delete($user->id.'-all-connectedSystem');
