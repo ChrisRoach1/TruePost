@@ -12,7 +12,7 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::post('webhooks/zernio', ZernioWebhookController::class)->name('webhooks.zernio');
+Route::post('/webhooks/zernio', ZernioWebhookController::class)->name('webhooks.zernio');
 
 Route::get('privacy', function () {
     return view('privacy');
