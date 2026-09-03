@@ -19,7 +19,7 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
+        $connectedAccounts = Cache::remember(auth()->id().'-all-connectedSystem', 6000, function () {
             return ConnectedAccount::query()->where(['user_id' => auth()->id()])->with('system')->get();
         });
 

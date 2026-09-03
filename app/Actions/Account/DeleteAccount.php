@@ -18,5 +18,6 @@ class DeleteAccount
         UserPost::query()->whereIn('id', $postIds)->delete();
 
         Cache::delete(auth()->id().'-connectedSystem');
+        Cache::delete(auth()->id().'-all-connectedSystem');
     }
 }

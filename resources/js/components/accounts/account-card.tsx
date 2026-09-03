@@ -16,7 +16,8 @@ export function AccountCard({
     onReconnect,
     onDisconnect,
 }: Props) {
-    const connectedAt = new Date(account.created_at);
+    const isDisconnected = account.disconnected_at !== null;
+    const statusAt = new Date(account.disconnected_at ?? account.created_at);
 
     const handle = account.username?.trim() || 'Account';
 
@@ -34,7 +35,9 @@ export function AccountCard({
                         <span
                             className={cn(
                                 'inline-block size-1.5 shrink-0 rounded-full',
-                                'bg-emerald-500',
+                                isDisconnected
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500',
                             )}
                             aria-hidden
                         />
@@ -42,14 +45,16 @@ export function AccountCard({
                             <span
                                 className={cn(
                                     'text-[12px] font-medium',
-                                    'text-foreground'
+                                    isDisconnected
+                                        ? 'text-amber-700 dark:text-amber-400'
+                                        : 'text-foreground',
                                 )}
                             >
-                                Connected {formatDistanceToNow(connectedAt)} ago
+                                {isDisconnected ? 'Disconnected' : 'Connected'}{' '}
+                                {formatDistanceToNow(statusAt)} ago
                             </span>
                         </div>
                     </div>
-
                 </div>
             </div>
 

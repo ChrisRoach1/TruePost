@@ -24,7 +24,7 @@ class UserPostController extends Controller
         });
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
-            return ConnectedAccount::query()->where(['user_id' => auth()->id()])->with('system')->get();
+            return ConnectedAccount::query()->where(['user_id' => auth()->id()])->whereNull('disconnected_at')->with('system')->get();
         });
 
         $recentlyPublished = UserPost::query()
@@ -62,10 +62,9 @@ class UserPostController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        $connectedAccounts = ConnectedAccount::query()
-            ->where('user_id', auth()->id())
-            ->with('system')
-            ->get();
+        $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
+            return ConnectedAccount::query()->where(['user_id' => auth()->id()])->whereNull('disconnected_at')->with('system')->get();
+        });
 
         $systems = Cache::remember('systems', 6000, function () {
             return System::query()->orderBy('id')->get();

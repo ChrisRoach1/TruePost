@@ -39,6 +39,7 @@ class ApplySoloKeepList
         }
 
         Cache::delete($user->id.'-connectedSystem');
+        Cache::delete($user->id.'-all-connectedSystem');
         Cache::delete($user->id.'-connectedSystems-for-bot-posting');
     }
 }

@@ -54,15 +54,10 @@ class SyncAccounts
             ->where('user_id', $user->id)
             ->whereNotIn('zernio_account_id', $seen);
 
-        UserPost::whereHas('UserPostSystems', function($query) use ($connectedAccountsToDelete) {
-            $query->whereIn('connected_account_id', $connectedAccountsToDelete->pluck('id'));
-        })->where('user_id', $user->id)
-            ->has('UserPostSystems', '=', 1)
-            ->delete();
-
-        $connectedAccountsToDelete->delete();
+        $connectedAccountsToDelete->update(['disconnected_at' => now()]);
 
         Cache::delete($user->id.'-connectedSystem');
+        Cache::delete($user->id.'-all-connectedSystem');
         Cache::delete('systems-for-bot-posting');
         Cache::delete($user->id.'-connectedSystems-for-bot-posting');
     }
