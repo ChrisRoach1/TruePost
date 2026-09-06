@@ -20,6 +20,8 @@ class SyncAccounts
     /**
      * @throws RequestException
      * @throws ConnectionException
+     * @throws \DateInvalidTimeZoneException
+     * @throws \DateMalformedStringException
      */
     public function handle(User $user): void
     {
