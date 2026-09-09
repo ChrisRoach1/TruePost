@@ -640,6 +640,7 @@ export default function EditPost({
                                                 .can_collaborate && (
                                                 <TagInput
                                                     label="Collaborators"
+                                                    hint="You don't need to include the @ in the username."
                                                     placeholder="Add a collaborator"
                                                     values={
                                                         data.collaborators[
@@ -657,6 +658,7 @@ export default function EditPost({
                                             {account.system.can_tag && (
                                                 <TagInput
                                                     label="Tags"
+                                                    hint="You don't need to include the @ in the username."
                                                     placeholder="Add a tag"
                                                     values={
                                                         data.tags[

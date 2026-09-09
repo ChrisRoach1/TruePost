@@ -19,5 +19,7 @@ class DeleteAccount
 
         Cache::delete(auth()->id().'-connectedSystem');
         Cache::delete(auth()->id().'-all-connectedSystem');
+        Cache::delete('systems-for-bot-posting');
+        Cache::delete(auth()->id().'-connectedSystems-for-bot-posting');
     }
 }

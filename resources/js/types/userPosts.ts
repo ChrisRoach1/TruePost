@@ -22,6 +22,7 @@ export type userPostSystems = {
     crosspost_list: string[] | null;
     tags: string[] | null;
     failed_to_post: boolean;
+    error_message: string | null;
     impressions: number;
     likes: number;
     replies: number;

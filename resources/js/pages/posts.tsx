@@ -3,7 +3,9 @@ import { debounce } from '@tanstack/pacer';
 import { isPast } from 'date-fns';
 import { RefreshCw, Search, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import EditPost from '@/components/edit-post';
+import AttentionPostRow from '@/components/posts/attention-post-row';
 import DraftPostRow from '@/components/posts/draft-post-row';
 import PublishedPostRow from '@/components/posts/published-post-row';
 import ScheduledPostRow from '@/components/posts/scheduled-post-row';
@@ -11,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { create } from '@/routes';
-import userPost, { deleteMethod, index, metricsRefresh, postNow } from '@/routes/userPost';
+import userPost, { deleteMethod, index, metricsRefresh, postNow, retryFailed } from '@/routes/userPost';
 import type { ConnectedAccount, System } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
@@ -22,28 +24,32 @@ type Props = {
     systems?: System[];
 };
 
-type FilterKey = 'all' | 'scheduled' | 'drafts' | 'posted';
+type FilterKey = 'all' | 'attention' | 'scheduled' | 'drafts' | 'posted';
 
 function SectionHeader({
     number,
     label,
     accent,
     count,
+    tone = 'default',
 }: {
     number: string;
     label: string;
     accent: string;
     count: number;
+    tone?: 'default' | 'danger';
 }) {
+    const accentColor = tone === 'danger' ? 'text-destructive' : 'text-primary';
+
     return (
         <div className="flex items-baseline gap-2 px-1 pb-3">
-            <span className="font-mono text-[11px] font-semibold text-primary">
+            <span className={cn('font-mono text-[11px] font-semibold', accentColor)}>
                 {number}
             </span>
             <span className="text-[18px] font-semibold tracking-tight text-foreground">
                 {label}
             </span>
-            <span className="font-sans text-[18px] text-primary">
+            <span className={cn('font-sans text-[18px]', accentColor)}>
                 {accent}
             </span>
             <span className="font-mono text-[11px] text-muted-foreground">
@@ -98,12 +104,18 @@ export default function Posts({
         wait: 500,
       });
 
-    const { scheduled, drafts, published } = useMemo(() => {
+    const { needsAttention, scheduled, drafts, published } = useMemo(() => {
+        const attentionList: userPosts[] = [];
         const scheduledList: userPosts[] = [];
         const draftList: userPosts[] = [];
         const publishedList: userPosts[] = [];
 
         for (const post of posts) {
+            if (post.user_post_systems?.some((ps) => ps.failed_to_post)) {
+                attentionList.push(post);
+                continue;
+            }
+
             if (post.is_draft) {
                 draftList.push(post);
                 continue;
@@ -126,16 +138,26 @@ export default function Posts({
 
             return aT - bT;
         });
-        publishedList.sort((a, b) => {
+
+        const newestFirst = (a: userPosts, b: userPosts) => {
             const aT = a.post_at ? new Date(a.post_at).getTime() : 0;
             const bT = b.post_at ? new Date(b.post_at).getTime() : 0;
 
             return bT - aT;
-        });
+        };
 
-        return { scheduled: scheduledList, drafts: draftList, published: publishedList };
+        attentionList.sort(newestFirst);
+        publishedList.sort(newestFirst);
+
+        return {
+            needsAttention: attentionList,
+            scheduled: scheduledList,
+            drafts: draftList,
+            published: publishedList,
+        };
     }, [posts]);
 
+    const showAttention = (filter === 'all' || filter === 'attention') && needsAttention.length > 0;
     const showScheduled = (filter === 'all' || filter === 'scheduled') && scheduled.length > 0;
     const showDrafts = (filter === 'all' || filter === 'drafts') && drafts.length > 0;
     const showPublished = (filter === 'all' || filter === 'posted') && published.length > 0;
@@ -145,6 +167,7 @@ export default function Posts({
         const next = () => String(++n).padStart(2, '0');
 
         return {
+            attention: showAttention ? next() : '',
             scheduled: showScheduled ? next() : '',
             drafts: showDrafts ? next() : '',
             published: showPublished ? next() : '',
@@ -161,6 +184,11 @@ export default function Posts({
 
     function handleRefreshMetrics(): void {
         router.post(metricsRefresh.url());
+    }
+
+    // TODO: wire up to a retry endpoint once one exists.
+    function handleRetry(postId: number): void {
+        router.post(retryFailed(postId))
     }
 
     return (
@@ -198,6 +226,12 @@ export default function Posts({
                                 label="All"
                                 count={posts.length}
                                 onClick={() => setFilter('all')}
+                            />
+                            <FilterTab
+                                active={filter === 'attention'}
+                                label="Needs attention"
+                                count={needsAttention.length}
+                                onClick={() => setFilter('attention')}
                             />
                             <FilterTab
                                 active={filter === 'scheduled'}
@@ -250,6 +284,27 @@ export default function Posts({
                         </div>
                     )}
 
+                    {showAttention && (
+                        <section>
+                            <SectionHeader
+                                number={sectionNumber.attention}
+                                label="Needs"
+                                accent="attention"
+                                count={needsAttention.length}
+                                tone="danger"
+                            />
+                            <ul className="space-y-3">
+                                {needsAttention.map((post) => (
+                                    <AttentionPostRow
+                                        key={post.id}
+                                        post={post}
+                                        onRetry={() => handleRetry(post.id)}
+                                    />
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
                     {showScheduled && (
                         <section>
                             <SectionHeader
@@ -258,7 +313,7 @@ export default function Posts({
                                 accent="& queued"
                                 count={scheduled.length}
                             />
-                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm divide-y divide-border">
+                            <ul className="space-y-3">
                                 {scheduled.map((post) => (
                                     <ScheduledPostRow
                                         key={post.id}
@@ -280,7 +335,7 @@ export default function Posts({
                                 accent="progress"
                                 count={drafts.length}
                             />
-                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                            <ul className="space-y-3">
                                 {drafts.map((post, i) => (
                                     <DraftPostRow
                                         key={post.id}
@@ -302,7 +357,7 @@ export default function Posts({
                                 accent="published"
                                 count={published.length}
                             />
-                            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                            <ul className="space-y-3">
                                 {published.map((post) => (
                                     <PublishedPostRow
                                         key={post.id}

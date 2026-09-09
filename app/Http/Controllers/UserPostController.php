@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\UserPost\CreateUserPost;
 use App\Actions\UserPost\PostNow;
+use App\Actions\UserPost\RetryFailedPost;
 use App\Actions\UserPost\UpdateUserPost;
 use App\Jobs\MetricCalculations;
 use App\Models\ConnectedAccount;
@@ -57,9 +58,11 @@ class UserPostController extends Controller
             ->with('UserPostSystems.connectedAccount.system')
             ->where('user_id', auth()->id())
             ->when($searchQuery, function (Builder $query, $searchQuery) {
-                $query->where('original_content', 'like', '%'.$searchQuery.'%');
+                $query->where('original_content', 'like', '%'.$searchQuery.'%')->orWhereHas('UserPostSystems', function ($query) use ($searchQuery) {
+                    $query->where('override_content', 'like', '%'.$searchQuery.'%');
+                });
             })
-            ->orderBy('id', 'desc')
+            ->orderByDesc('id')
             ->get();
 
         $connectedAccounts = Cache::remember(auth()->id().'-connectedSystem', 6000, function () {
@@ -178,6 +181,21 @@ class UserPostController extends Controller
         $postNow->handle($userPost);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Posted!')])->render('posts');
+
+        return redirect()->route('userPost.index');
+    }
+
+    /**
+     * @throws \DateInvalidTimeZoneException
+     * @throws \DateMalformedStringException
+     */
+    public function retryFailed(UserPost $userPost, RetryFailedPost $retryFailed)
+    {
+        abort_unless($userPost->user_id === auth()->id(), 403);
+
+        $retryFailed->handle($userPost);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Retrying please check back in a bit!')])->render('posts');
 
         return redirect()->route('userPost.index');
     }

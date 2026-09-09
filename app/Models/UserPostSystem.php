@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['connected_account_id', 'user_post_id', 'override_content', 'collaborators', 'tags', 'failed_to_post', 'likes', 'replies', 'impressions', 'created_post_Id', 'crosspost_list', 'crosspost_ids'])]
+#[Fillable(['connected_account_id', 'user_post_id', 'override_content', 'collaborators', 'tags', 'failed_to_post', 'likes', 'replies', 'impressions', 'created_post_Id', 'crosspost_list', 'crosspost_ids', 'error_message'])]
 class UserPostSystem extends Model
 {
     protected function casts(): array
