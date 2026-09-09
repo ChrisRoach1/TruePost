@@ -3,7 +3,6 @@ import { debounce } from '@tanstack/pacer';
 import { isPast } from 'date-fns';
 import { RefreshCw, Search, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import EditPost from '@/components/edit-post';
 import AttentionPostRow from '@/components/posts/attention-post-row';
 import DraftPostRow from '@/components/posts/draft-post-row';
