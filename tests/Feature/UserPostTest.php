@@ -2,6 +2,7 @@
 
 use App\Models\UserPost;
 use App\Services\ZernioClient;
+use Zernio\ApiException;
 
 test('example', function () {
     $response = $this->get('/');
@@ -63,9 +64,11 @@ test('Test creating a post as a draft and then updating it to post immediately.'
 
 })->with(['twitter', 'linkedin', 'facebook', 'instagram', 'reddit']);
 
-test('Test Zernio Client Directly', function (string $slug) {
+test(/**
+ * @throws ApiException
+ */ 'Test Zernio Client Directly', function (string $slug) {
 
     $client = app(ZernioClient::class);
-    $client->sendPost($slug, 'acct_1', 'hello', null, [], []);
+    $response = $client->sendPost($slug, 'acct_1', 'hello', null, [], []);
 
-})->with(['twitter', 'linkedin', 'facebook', 'instagram', 'reddit'])->throwsNoExceptions();
+})->with(['twitter', 'linkedin', 'facebook', 'instagram', 'reddit'])->throws(ApiException::class);

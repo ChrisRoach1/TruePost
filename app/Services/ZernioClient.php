@@ -72,6 +72,9 @@ class ZernioClient
         $this->request()->delete("accounts/{$accountId}")->throw();
     }
 
+    /**
+     * @throws ApiException
+     */
     public function sendPost(string $platform, string $accountId, string $postContent, ?string $mediaUrl, ?array $collaborators = null, ?array $tags = null, ?string $crosspost = null, ?string $title = null): ?string
     {
         $config = Configuration::getDefaultConfiguration()->setAccessToken(config('services.zernio.key'));
@@ -111,23 +114,9 @@ class ZernioClient
         $request->setPlatforms([$platformRequest]);
         $request->setPublishNow(true);
 
-        try {
-            return retry(
-                3,
-                function () use ($postsApi, $request) {
-                    $result = $postsApi->createPost($request);
+        $result = $postsApi->createPost($request);
 
-                    return $result->getPost()->getId();
-                },
-                fn (int $attempt, \Throwable $exception) => $this->retryAfterMilliseconds($exception),
-                fn (\Throwable $exception) => $exception instanceof ApiException &&
-                    ($exception->getCode() === 429 || $exception->getCode() === 500 || $exception->getCode() === 502 || $exception->getCode() === 503 || $exception->getCode() === 504),
-            );
-        } catch (ApiException $e) {
-            \Log::error('Exception when calling PostsApi->createPost: ', [$e->getMessage(), $e->getCode()]);
-
-            return null;
-        }
+        return $result->getPost()->getId();
     }
 
     private function instagramPlatformData(?array $collaborators, ?array $tags, bool $isVideo): ?InstagramPlatformData
@@ -194,24 +183,6 @@ class ZernioClient
         } catch (ApiException $e) {
             return [];
         }
-    }
-
-    private function retryAfterMilliseconds(\Throwable $exception): int
-    {
-        $fallback = 60_000;
-
-        if (! $exception instanceof ApiException) {
-            return $fallback;
-        }
-
-        $headers = array_change_key_case($exception->getResponseHeaders() ?? [], CASE_LOWER);
-        $retryAfter = $headers['retry-after'] ?? 60;
-
-        if (is_array($retryAfter)) {
-            $retryAfter = $retryAfter[0] ?? 60;
-        }
-
-        return is_numeric($retryAfter) ? ((int) $retryAfter) * 1000 : $fallback;
     }
 
     private function request(): PendingRequest

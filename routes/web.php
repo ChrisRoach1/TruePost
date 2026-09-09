@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified', 'subscribed'])->group(function () {
     Route::put('userPost/{userPost}', [UserPostController::class, 'update'])->name('userPost.update');
     Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
     Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');
+    Route::post('userPost/{userPost}/retryFailed', [UserPostController::class, 'retryFailed'])->name('userPost.retryFailed');
 
     Route::get('create-bot', [BotController::class, 'index'])->name('create.bot');
     Route::post('bots', [BotController::class, 'store'])->name('bots.store');
