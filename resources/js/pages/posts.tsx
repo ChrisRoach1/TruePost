@@ -39,7 +39,7 @@ function SectionHeader({
     count: number;
     tone?: 'default' | 'danger';
 }) {
-    const accentColor = tone === 'danger' ? 'text-destructive' : 'text-primary';
+    const accentColor = tone === 'danger' ? 'text-red-600 dark:text-red-100' : 'text-primary';
 
     return (
         <div className="flex items-baseline gap-2 px-1 pb-3">

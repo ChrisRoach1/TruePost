@@ -53,7 +53,6 @@ export function ChannelMiniRow({
             className={cn(
                 'flex items-start gap-3 px-5 py-2.5',
                 !isFirst && 'border-t border-dashed border-border/60',
-                tone === 'danger' && 'bg-destructive/[0.04]',
             )}
         >
             <div className="flex w-36 shrink-0 items-start gap-2 pt-px">
@@ -69,7 +68,7 @@ export function ChannelMiniRow({
                             className={cn(
                                 'mt-0.5 font-mono text-[9px] font-semibold tracking-widest uppercase',
                                 tone === 'danger'
-                                    ? 'text-destructive'
+                                    ? 'text-red-600 dark:text-red-100'
                                     : 'text-muted-foreground',
                             )}
                         >
@@ -96,7 +95,7 @@ export function ChannelMiniRow({
                 </p>
 
                 {trimmedError && (
-                    <p className="mt-1.5 flex items-start gap-1.5 text-[11px] leading-snug text-destructive">
+                    <p className="mt-1.5 flex items-start gap-1.5 text-[11px] leading-snug text-red-600 dark:text-red-100">
                         <AlertTriangle className="mt-px size-3 shrink-0" />
                         <span className="line-clamp-2 min-w-0">
                             {trimmedError}

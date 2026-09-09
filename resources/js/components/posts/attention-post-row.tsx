@@ -33,7 +33,7 @@ export function AttentionPostRow({ post, onRetry }: Props) {
                 </>
             }
             summary={
-                <span className="flex items-center gap-1.5 font-mono text-[9px] font-semibold tracking-widest text-destructive uppercase">
+                <span className="flex items-center gap-1.5 font-mono text-[9px] font-semibold tracking-widest text-red-600 uppercase dark:text-red-100">
                     <AlertTriangle className="size-3" />
                     Published on {publishedCount} of {channels.length} ·{' '}
                     {failedCount} failed

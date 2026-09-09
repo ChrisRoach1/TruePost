@@ -38,7 +38,7 @@ export function PostCard({
             className={cn(
                 'overflow-hidden rounded-xl border border-border bg-card shadow-sm',
                 tone === 'danger' &&
-                    'border-destructive/40 border-l-2 border-l-destructive/60 bg-destructive/3',
+                    'border border-border bg-card shadow-sm bg-red-50 dark:border-red-200/10 dark:bg-red-700/10',
             )}
         >
             <div className="flex items-start gap-4 px-5 py-3">
