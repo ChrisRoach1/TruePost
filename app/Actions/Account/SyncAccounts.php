@@ -5,7 +5,6 @@ namespace App\Actions\Account;
 use App\Models\ConnectedAccount;
 use App\Models\System;
 use App\Models\User;
-use App\Models\UserPost;
 use App\Services\ZernioClient;
 use DateTime;
 use DateTimeZone;

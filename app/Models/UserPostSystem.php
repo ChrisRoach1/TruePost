@@ -15,7 +15,7 @@ class UserPostSystem extends Model
             'collaborators' => 'array',
             'tags' => 'array',
             'crosspost_list' => 'array',
-            'crosspost_ids' => 'array'
+            'crosspost_ids' => 'array',
         ];
     }
 

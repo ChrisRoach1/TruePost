@@ -7,6 +7,7 @@ use App\Models\User;
 use Database\Seeders\SystemSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+
 use function Pest\Laravel\seed;
 
 /*

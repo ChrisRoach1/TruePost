@@ -18,11 +18,9 @@ class PostNow
         $userTz = new DateTimeZone(auth()->user()->getTimezone());
         $postDate = new DateTime(now($userTz));
         $userPostWithData = UserPost::with('UserPostSystems.connectedAccount.system')->find($userPost->id);
+        $userPost->update(['post_at' => $postDate, 'dispatched_at' => now()]);
 
         SendPosts::dispatch($userPostWithData);
 
-        // Claiming the post is what cancels the pending scheduled send, since
-        // SendDuePosts only picks up rows that have not been dispatched.
-        $userPost->update(['post_at' => $postDate, 'dispatched_at' => now(), 'has_posted' => true]);
     }
 }

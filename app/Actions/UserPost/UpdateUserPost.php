@@ -34,6 +34,7 @@ class UpdateUserPost
             'post_at' => $data['is_draft'] ? null : $postDate,
             'media_url' => $mediaUrl,
             'dispatched_at' => null,
+            'has_posted' => false,
             'title' => $data['title'] ?? null,
         ]);
 
