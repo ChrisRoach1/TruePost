@@ -43,6 +43,5 @@ return [
 
     'r2' => [
         'public_endpoint' => env('R2_PUBLIC_ENDPOINT'),
-    ]
+    ],
 ];
-

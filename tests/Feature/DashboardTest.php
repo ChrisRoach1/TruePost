@@ -14,11 +14,9 @@ test('authenticated users cant visit the dashboard', function () {
     $this->get(route('create'))->assertStatus(302)->assertRedirect(route('solo-subscription.checkout'));
 });
 
-
 test('authenticated users with solo subscription cant visit the dashboard', function () {
     $user = makeScheduledPostSoloUser();
     $this->actingAs($user);
-
 
     $response = $this->get(route('create'));
 

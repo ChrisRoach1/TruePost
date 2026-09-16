@@ -2,16 +2,11 @@
 
 use App\Jobs\SendDuePosts;
 use App\Jobs\SendPosts;
-use App\Models\ConnectedAccount;
-use App\Models\System;
-use App\Models\User;
 use App\Models\UserPost;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
-
-
 
 test('solo members can post immediately', function () {
     Queue::fake();

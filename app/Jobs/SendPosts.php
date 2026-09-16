@@ -60,8 +60,9 @@ class SendPosts implements ShouldQueue
                         $platform->update(['crosspost_ids' => $ids, 'failed_to_post' => false, 'error_message' => null]);
                     }
                 } catch (ApiException $ex) {
-                    $friendlyErrorMessage = json_decode($ex->getResponseBody())->error;
-                    $platform->update(['failed_to_post' => true, 'error_message' => $friendlyErrorMessage]);
+                    $friendlyError = json_decode($ex->getResponseBody() ?? '');
+                    $errorMessage = $friendlyError->error ?? 'Unknown error has occurred. Please try again later.';
+                    $platform->update(['failed_to_post' => true, 'error_message' => $errorMessage]);
                     \Log::error('failed to post with error: '.$ex->getMessage());
                 }
 
@@ -86,16 +87,19 @@ class SendPosts implements ShouldQueue
                         $platform->update(['created_post_Id' => $id, 'failed_to_post' => false, 'error_message' => null]);
                     }
                 } catch (ApiException $ex) {
-                    $friendlyErrorMessage = json_decode($ex->getResponseBody())->error;
-                    $platform->update(['failed_to_post' => true, 'error_message' => $friendlyErrorMessage]);
+                    $friendlyError = json_decode($ex->getResponseBody() ?? '');
+                    $errorMessage = $friendlyError->error ?? 'Unknown error has occurred. Please try again later.';
+                    $platform->update(['failed_to_post' => true, 'error_message' => $errorMessage]);
                     \Log::error('failed to post with error: '.$ex->getMessage());
                 }
             }
         }
 
-        $this->userPost->update(['has_posted' => true]);
-        $this->userPost->save();
+        $published = $this->userPost->UserPostSystems()
+            ->where(fn ($query) => $query->whereNotNull('created_post_Id')->orWhereNotNull('crosspost_ids'))
+            ->exists();
 
+        $this->userPost->update(['has_posted' => $published]);
     }
 
     private function retryAfterMilliseconds(\Throwable $exception): int

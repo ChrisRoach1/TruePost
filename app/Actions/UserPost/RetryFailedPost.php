@@ -17,6 +17,9 @@ class RetryFailedPost
             $query->where('failed_to_post', true);
         }, 'UserPostSystems.ConnectedAccount.System'])->find($userPost->id);
 
-        SendPosts::dispatch($userPostWithData);
+        if ($userPostWithData->UserPostSystems->count() > 0) {
+            SendPosts::dispatch($userPostWithData);
+        }
+
     }
 }

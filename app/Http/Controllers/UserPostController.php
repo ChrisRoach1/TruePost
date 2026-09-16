@@ -176,7 +176,7 @@ class UserPostController extends Controller
      */
     public function postNow(UserPost $userPost, PostNow $postNow)
     {
-        abort_unless($userPost->user_id === auth()->id(), 403);
+        abort_unless($userPost->user_id === auth()->id() && $userPost->has_posted == false && $userPost->dispatched_at == null, 403);
 
         $postNow->handle($userPost);
 
