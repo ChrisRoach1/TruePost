@@ -106,7 +106,6 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
-            'aiCustomize' => 'boolean|required',
         ]);
 
         $this->ensureCanSchedulePosts($request);
@@ -147,7 +146,6 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
-            'aiCustomize' => 'boolean|required',
         ]);
 
         $this->ensureCanSchedulePosts($request);
@@ -208,6 +206,17 @@ class UserPostController extends Controller
 
         return redirect()->route('userPost.index');
 
+    }
+
+    public function generateAICustomizedPost(Request $request)
+    {
+        $validated = $request->validate([
+            'content' => 'string',
+            'tone' => 'string',
+            'notes' => 'nullable|string',
+        ]);
+
+        return response()->json(['message' => 'Deleted successfully'], 200);
     }
 
     private function ensureCanSchedulePosts(Request $request): void

@@ -44,17 +44,13 @@ class UpdateUserPost
         $tags = $data['tags'] ?? [];
         $crosspostList = $data['crosspost_list'] ?? [];
 
-        $aiCustomize = $data['aiCustomize'] ?? false;
-        $customizedContent = $aiCustomize ? $this->customizeWithAI->handle($data) : [];
 
         $userPost->UserPostSystems()->whereNotIn('connected_account_id', $incomingAccountIds)->delete();
 
         $existing = $userPost->UserPostSystems()->get()->keyBy('connected_account_id');
 
         foreach ($incomingAccountIds as $connectedAccountId) {
-            $overrideText = $aiCustomize
-                ? ($customizedContent[$connectedAccountId] ?? null)
-                : ($channelContent[$connectedAccountId] ?? null);
+            $overrideText = $channelContent[$connectedAccountId] ?? null;
             $accountCollaborators = $collaborators[$connectedAccountId] ?? null;
             $accountTags = $tags[$connectedAccountId] ?? null;
             $accountCrosspostList = $crosspostList[$connectedAccountId] ?? null;

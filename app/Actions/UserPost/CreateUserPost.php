@@ -38,38 +38,19 @@ class CreateUserPost
             'title' => $data['title'] ?? null,
         ]);
 
-        if ($data['aiCustomize']) {
-            $customizedContent = $this->customizeWithAI->handle($data);
-            foreach ($data['connectedAccountIds'] as $connectedAccountId) {
-                $overrideText = $customizedContent[$connectedAccountId] ?? null;
-                $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
-                $tags = $data['tags'][$connectedAccountId] ?? null;
-                $crosspostList = $data['crosspost_list'][$connectedAccountId] ?? null;
-                $userPost->UserPostSystems()->create([
-                    'connected_account_id' => $connectedAccountId,
-                    'override_content' => $overrideText,
-                    'collaborators' => $collaborators,
-                    'tags' => $tags,
-                    'crosspost_list' => $crosspostList,
-                ]);
-            }
-
-        } else {
-            foreach ($data['connectedAccountIds'] as $connectedAccountId) {
-                $overrideText = $data['channelContent'][$connectedAccountId] ?? null;
-                $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
-                $tags = $data['tags'][$connectedAccountId] ?? null;
-                $crosspostList = $data['crosspost_list'][$connectedAccountId] ?? null;
-                $userPost->UserPostSystems()->create([
-                    'connected_account_id' => $connectedAccountId,
-                    'override_content' => $overrideText,
-                    'collaborators' => $collaborators,
-                    'tags' => $tags,
-                    'crosspost_list' => $crosspostList,
-                ]);
-            }
+        foreach ($data['connectedAccountIds'] as $connectedAccountId) {
+            $overrideText = $data['channelContent'][$connectedAccountId] ?? null;
+            $collaborators = $data['collaborators'][$connectedAccountId] ?? null;
+            $tags = $data['tags'][$connectedAccountId] ?? null;
+            $crosspostList = $data['crosspost_list'][$connectedAccountId] ?? null;
+            $userPost->UserPostSystems()->create([
+                'connected_account_id' => $connectedAccountId,
+                'override_content' => $overrideText,
+                'collaborators' => $collaborators,
+                'tags' => $tags,
+                'crosspost_list' => $crosspostList,
+            ]);
         }
-
         $userPostWithData = UserPost::with('UserPostSystems.connectedAccount.system')->find($userPost->id);
 
         // Scheduled posts are left for SendDuePosts to pick up once post_at

@@ -1,7 +1,11 @@
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, FileText, ImageIcon, Sparkles, X } from 'lucide-react';
+import { Clock, FileText, ImageIcon, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import {
+    AdaptPostButton,
+    AdaptPostModal,
+} from '@/components/post-form/adapt-post-modal';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
@@ -106,6 +110,7 @@ export default function EditPost({
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [adaptOpen, setAdaptOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
 
     const initialPostAt = post.post_at ? new Date(post.post_at) : new Date();
@@ -132,7 +137,6 @@ export default function EditPost({
             scheduled_date_string?: string;
             scheduled_time?: string;
             image: File | null;
-            aiCustomize: boolean;
         }>({
             _method: 'put',
             content: post.original_content ?? '',
@@ -151,7 +155,6 @@ export default function EditPost({
             scheduled_date_string: format(initialPostAt, 'yyyy-MM-dd'),
             scheduled_time: format(initialPostAt, 'HH:mm'),
             image: null,
-            aiCustomize: false,
         });
 
     useEffect(() => {
@@ -159,6 +162,7 @@ export default function EditPost({
             reset();
             clearImage();
             setScheduleOpen(false);
+            setAdaptOpen(false);
             setActiveTab('all');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,13 +205,7 @@ export default function EditPost({
             return;
         }
 
-        setData('aiCustomize', false);
-
-        const sortedConnectedSystems = connectedSystems
-            .filter((account) => data.connectedAccountIds.includes(account.id))
-            .sort((a, b) => a.system.order - b.system.order);
-
-        const firstId = sortedConnectedSystems[0]?.id;
+        const firstId = sortedSelectedSystems()[0]?.id;
         const seed = data.content;
 
         setData((prev) => ({
@@ -221,17 +219,24 @@ export default function EditPost({
         }
     }
 
-    function toggleAiCustomizePerChannel(checked: boolean) {
-        setData('aiCustomize', checked);
+    function applyAdaptedVersions(results: Record<number, string>) {
+        setData((prev) => ({
+            ...prev,
+            customizing: true,
+            channelContent: { ...prev.channelContent, ...results },
+        }));
 
-        if (checked && data.customizing) {
-            setData((prev) => ({
-                ...prev,
-                channelContent: {},
-                customizing: false,
-            }));
-            setActiveTab('all');
+        const firstId = sortedSelectedSystems()[0]?.id;
+
+        if (firstId !== undefined) {
+            setActiveTab(firstId);
         }
+    }
+
+    function sortedSelectedSystems() {
+        return connectedSystems
+            .filter((account) => data.connectedAccountIds.includes(account.id))
+            .sort((a, b) => a.system.order - b.system.order);
     }
 
     function openSchedule() {
@@ -348,6 +353,10 @@ export default function EditPost({
     const selectedSystems = connectedSystems.filter((s) =>
         data.connectedAccountIds.includes(s.id),
     );
+    const adaptSource = data.content.trim() ? data.content : currentText;
+    const canAdapt = adaptSource.trim().length > 0;
+    const showManualSwitch = data.connectedAccountIds.length > 1;
+    const showAdaptButton = data.connectedAccountIds.length > 0;
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
     );
@@ -503,33 +512,33 @@ export default function EditPost({
                     </section>
 
                     <section className="space-y-2">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
                             <div className="text-sm font-medium text-foreground">
                                 Content
                             </div>
-                            {data.connectedAccountIds.length > 1 && (
-                                <div className="flex flex-col items-end gap-2">
-                                    <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
-                                        <Switch
-                                            size="sm"
-                                            checked={data.customizing}
-                                            onCheckedChange={customizePerChannel}
-                                        />
-                                        Customize per channel
-                                    </label>
-                                    <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
-                                        <Switch
-                                            size="sm"
-                                            checked={data.aiCustomize}
-                                            onCheckedChange={
-                                                toggleAiCustomizePerChannel
+                            {(showManualSwitch || showAdaptButton) && (
+                                <div className="flex w-full flex-wrap items-center justify-end gap-x-3 gap-y-2 sm:w-auto sm:flex-col sm:items-end sm:gap-2">
+                                    {showManualSwitch && (
+                                        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
+                                            <Switch
+                                                size="sm"
+                                                checked={data.customizing}
+                                                onCheckedChange={
+                                                    customizePerChannel
+                                                }
+                                            />
+                                            Customize per channel
+                                        </label>
+                                    )}
+                                    {showAdaptButton && (
+                                        <AdaptPostButton
+                                            count={
+                                                data.connectedAccountIds.length
                                             }
+                                            disabled={!canAdapt}
+                                            onClick={() => setAdaptOpen(true)}
                                         />
-                                        <span className="inline-flex items-center gap-1">
-                                            <Sparkles className="size-3 text-primary" />
-                                            Let AI adapt each channel
-                                        </span>
-                                    </label>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -570,11 +579,7 @@ export default function EditPost({
                             onChange={(e) =>
                                 setContent(effectiveTab, e.target.value)
                             }
-                            placeholder={
-                                data.aiCustomize
-                                    ? 'Write your core message — AI will tailor it per channel…'
-                                    : 'What do you want to say?'
-                            }
+                            placeholder="What do you want to say?"
                             className="min-h-32 resize-y text-[15px] leading-relaxed"
                         />
 
@@ -596,6 +601,14 @@ export default function EditPost({
                                 />
                             </div>
                         )}
+
+                        <AdaptPostModal
+                            open={adaptOpen}
+                            onOpenChange={setAdaptOpen}
+                            original={adaptSource}
+                            accounts={sortedSelectedSystems()}
+                            onApply={applyAdaptedVersions}
+                        />
                     </section>
 
                     {(extrasHasMeta || extrasHasCrosspost) && (

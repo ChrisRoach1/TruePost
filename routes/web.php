@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified', 'subscribed'])->group(function () {
     Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
     Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');
     Route::post('userPost/{userPost}/retryFailed', [UserPostController::class, 'retryFailed'])->name('userPost.retryFailed');
+    Route::post('userPost/generateAICustomization', [UserPostController::class, 'generateAICustomizedPost'])->name('userPost.generateAICustomizedPost');
 
     Route::get('create-bot', [BotController::class, 'index'])->name('create.bot');
     Route::post('bots', [BotController::class, 'store'])->name('bots.store');

@@ -1,7 +1,11 @@
 import { router, useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Clock, FileText, Sparkles, X } from 'lucide-react';
+import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import {
+    AdaptPostButton,
+    AdaptPostModal,
+} from '@/components/post-form/adapt-post-modal';
 import { ChannelCard } from '@/components/post-form/channel-card';
 import { ChannelTabs } from '@/components/post-form/channel-tabs';
 import { CounterRing } from '@/components/post-form/counter-ring';
@@ -51,7 +55,11 @@ function SectionHeader({
                     </span>
                 )}
             </div>
-            {action && <div className="flex items-center">{action}</div>}
+            {action && (
+                <div className="flex w-full items-center justify-end sm:w-auto">
+                    {action}
+                </div>
+            )}
         </div>
     );
 }
@@ -69,6 +77,7 @@ export default function CreatePost({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [adaptOpen, setAdaptOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | number>('all');
 
     const { data, setData, processing, submit, reset, errors, clearErrors } =
@@ -87,7 +96,6 @@ export default function CreatePost({
             scheduled_date_string?: string;
             scheduled_time?: string;
             image: File | null;
-            aiCustomize: boolean;
         }>({
             content: '',
             connectedAccountIds: [],
@@ -103,7 +111,6 @@ export default function CreatePost({
             scheduled_date_string: format(new Date(), 'yyyy-MM-dd'),
             scheduled_time: format(new Date(), 'HH:mm'),
             image: null,
-            aiCustomize: false
         });
 
     function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -167,13 +174,7 @@ export default function CreatePost({
             return;
         }
 
-        setData("aiCustomize", false);
-
-        const sortedConnectedSystems = connectedSystems
-            .filter((account) => data.connectedAccountIds.includes(account.id))
-            .sort((a, b) => a.system.order - b.system.order);
-
-        const firstId = sortedConnectedSystems[0]?.id;
+        const firstId = sortedSelectedSystems()[0]?.id;
         const seed = data.content ?? '';
 
         setData((prev) => ({
@@ -189,17 +190,25 @@ export default function CreatePost({
         }
     }
 
-    function toggleAiCustomizePerChannel(checked: boolean) {
-        setData("aiCustomize", checked);
+    function applyAdaptedVersions(results: Record<number, string>) {
+        setData((prev) => ({
+            ...prev,
+            customizing: true,
+            content: null,
+            channelContent: { ...prev.channelContent, ...results },
+        }));
 
-        if (checked && data.customizing) {
-            setData((prev) => ({
-                ...prev,
-                channelContent: {},
-                customizing: false,
-            }));
-            setActiveTab('all');
+        const firstId = sortedSelectedSystems()[0]?.id;
+
+        if (firstId !== undefined) {
+            setActiveTab(firstId);
         }
+    }
+
+    function sortedSelectedSystems() {
+        return connectedSystems
+            .filter((account) => data.connectedAccountIds.includes(account.id))
+            .sort((a, b) => a.system.order - b.system.order);
     }
 
     function openSchedule() {
@@ -315,6 +324,11 @@ export default function CreatePost({
     const selectedSystems = connectedSystems.filter((s) =>
         data.connectedAccountIds.includes(s.id),
     );
+    const adaptSource = (data.content?.trim() ? data.content : currentText) ?? '';
+    const canAdapt = adaptSource.trim().length > 0;
+    const showManualSwitch = data.connectedAccountIds.length > 1;
+    const showAdaptButton =
+        auth.is_pro_member && data.connectedAccountIds.length > 0;
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
     );
@@ -490,41 +504,32 @@ export default function CreatePost({
                     number={step(2)}
                     title="Compose"
                     description={
-                        data.aiCustomize
-                            ? 'write once — AI adapts each channel'
-                            : data.customizing
-                              ? 'tune each channel yourself'
-                              : 'one message, every channel'
+                        data.customizing
+                            ? 'tune each channel yourself'
+                            : 'one message, every channel'
                     }
                     action={
-                        data.connectedAccountIds.length > 1 && (
-                            <div className="flex flex-col items-end gap-2">
-                                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
-                                    <Switch
-                                        size="sm"
-                                        checked={data.customizing}
-                                        onCheckedChange={customizePerChannel}
-                                    />
-                                    Customize manually
-                                </label>
-                                {
-                                    auth.is_pro_member ?
+                        (showManualSwitch || showAdaptButton) && (
+                            <div className="flex w-full flex-wrap items-center justify-end gap-x-3 gap-y-2 sm:w-auto sm:flex-col sm:items-end sm:gap-2">
+                                {showManualSwitch && (
                                     <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-foreground">
-                                    <Switch
-                                        size="sm"
-                                        checked={data.aiCustomize}
-                                        onCheckedChange={
-                                            toggleAiCustomizePerChannel
-                                        }
+                                        <Switch
+                                            size="sm"
+                                            checked={data.customizing}
+                                            onCheckedChange={
+                                                customizePerChannel
+                                            }
+                                        />
+                                        Customize manually
+                                    </label>
+                                )}
+                                {showAdaptButton && (
+                                    <AdaptPostButton
+                                        count={data.connectedAccountIds.length}
+                                        disabled={!canAdapt}
+                                        onClick={() => setAdaptOpen(true)}
                                     />
-                                    <span className="inline-flex items-center gap-1">
-                                        <Sparkles className="size-3 text-primary" />
-                                        Let AI adapt each channel
-                                    </span>
-                                </label>
-                                : <></>
-                                }
-
+                                )}
                             </div>
                         )
                     }
@@ -563,11 +568,7 @@ export default function CreatePost({
                 <Textarea
                     value={currentText ?? ''}
                     onChange={(e) => setContent(effectiveTab, e.target.value)}
-                    placeholder={
-                        data.aiCustomize
-                            ? 'Write your core message — AI will tailor it per channel…'
-                            : 'What do you want to say?'
-                    }
+                    placeholder="What do you want to say?"
                     className="mt-4 min-h-40 resize-y text-[15px] leading-relaxed"
                 />
 
@@ -586,6 +587,14 @@ export default function CreatePost({
                         <CounterRing pct={counterPct} over={counterOver} />
                     </div>
                 )}
+
+                <AdaptPostModal
+                    open={adaptOpen}
+                    onOpenChange={setAdaptOpen}
+                    original={adaptSource}
+                    accounts={sortedSelectedSystems()}
+                    onApply={applyAdaptedVersions}
+                />
             </div>
 
             {showExtrasSection && (
