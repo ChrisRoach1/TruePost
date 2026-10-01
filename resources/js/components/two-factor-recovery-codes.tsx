@@ -32,7 +32,7 @@ export default function TwoFactorRecoveryCodes({
             await fetchRecoveryCodes();
         }
 
-        setCodesAreVisible(!codesAreVisible);
+        setCodesAreVisible(previous => !previous);
 
         if (!codesAreVisible) {
             setTimeout(() => {

@@ -5,6 +5,10 @@ import { create } from '@/routes';
 import type { ConnectedAccount, System } from '@/types';
 import type { RecentlyPublishedItem } from '@/types/userPosts';
 
+const EMPTY_CONNECTED_ACCOUNTS: ConnectedAccount[] = [];
+const EMPTY_SYSTEMS: System[] = [];
+const EMPTY_RECENTLY_PUBLISHED_ITEMS: RecentlyPublishedItem[] = [];
+
 type Props = {
     connectedAccounts?: ConnectedAccount[];
     systems?: System[];
@@ -12,9 +16,9 @@ type Props = {
 };
 
 export default function Dashboard({
-    connectedAccounts = [],
-    systems = [],
-    recentlyPublishedItems = [],
+    connectedAccounts = EMPTY_CONNECTED_ACCOUNTS,
+    systems = EMPTY_SYSTEMS,
+    recentlyPublishedItems = EMPTY_RECENTLY_PUBLISHED_ITEMS,
 }: Props) {
     return (
         <>
@@ -37,6 +41,7 @@ export default function Dashboard({
 Dashboard.layout = {
     breadcrumbs: [
         {
+            id: 2,
             title: 'Post',
             href: create(),
         },

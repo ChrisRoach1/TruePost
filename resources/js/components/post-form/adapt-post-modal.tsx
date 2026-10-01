@@ -25,13 +25,13 @@ const TONES: { id: ToneId; label: string }[] = [
 ];
 
 
-const postGenerate: AdaptGenerator = ({ content, tone, notes, accountId }) => {
+const postGenerate: AdaptGenerator = ({ content, tone, notes, accountId, signal }) => {
         return axios.post(generateAICustomizedPost().url, {
             content: content,
             notes: notes,
             tone: tone,
             accountId: accountId
-        }).then(response => response.data.message);
+        }, { signal }).then(response => response.data.message);
 };
 
 function plural(count: number, word: string): string {

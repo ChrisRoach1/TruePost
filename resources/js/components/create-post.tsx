@@ -1,5 +1,5 @@
 import { router, useForm, usePage } from '@inertiajs/react';
-import { format, set } from 'date-fns';
+import { format } from 'date-fns';
 import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import {
@@ -220,8 +220,10 @@ export default function CreatePost({
     }
 
     function sortedSelectedSystems() {
+        const connectedAccountSet = new Set(data.connectedAccountIds);
+        
         return connectedSystems
-            .filter((account) => data.connectedAccountIds.includes(account.id))
+            .filter((account) => connectedAccountSet.has(account.id))
             .sort((a, b) => a.system.order - b.system.order);
     }
 
@@ -335,14 +337,14 @@ export default function CreatePost({
     }
 
     const currentText = getContent(effectiveTab);
+    const connectedAccountSet = new Set(data.connectedAccountIds);
     const selectedSystems = connectedSystems.filter((s) =>
-        data.connectedAccountIds.includes(s.id),
+        connectedAccountSet.has(s.id),
     );
     const adaptSource = (data.content?.trim() ? data.content : currentText) ?? '';
     const canAdapt = adaptSource.trim().length > 0;
     const showManualSwitch = data.connectedAccountIds.length > 1;
-    const showAdaptButton =
-        auth.is_pro_member && data.connectedAccountIds.length > 0;
+    const showAdaptButton = auth.is_pro_member && data.connectedAccountIds.length > 0;
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
     );
@@ -375,11 +377,14 @@ export default function CreatePost({
 
     function canSubmit(): boolean {
         let isOverLimit = false;
+        const connectedSystemsById = new Map(
+            connectedSystems.map((a) => [a.id, a]),
+        );
 
         if (data.customizing) {
             for (const [key, value] of Object.entries(data.channelContent)) {
-                const connectedSystem = connectedSystems.find(
-                    (a) => a.id === Number.parseInt(key),
+                const connectedSystem = connectedSystemsById.get(
+                    Number.parseInt(key),
                 );
 
                 if (connectedSystem) {
@@ -393,9 +398,7 @@ export default function CreatePost({
             }
         } else {
             for (const systemId of data.connectedAccountIds) {
-                const connectedSystem = connectedSystems.find(
-                    (a) => a.id === systemId,
-                );
+                const connectedSystem = connectedSystemsById.get(systemId);
 
                 if (connectedSystem && data.content) {
                     if (
@@ -497,7 +500,7 @@ export default function CreatePost({
                                 <ChannelCard
                                     key={account.id}
                                     account={account}
-                                    selected={data.connectedAccountIds.includes(
+                                    selected={connectedAccountSet.has(
                                         account.id,
                                     )}
                                     count={getChipCount(account.id)}
@@ -552,7 +555,7 @@ export default function CreatePost({
                 {data.customizing && data.connectedAccountIds.length > 0 && (
                     <ChannelTabs
                         accounts={connectedSystems.filter((account) =>
-                            data.connectedAccountIds.includes(account.id),
+                            connectedAccountSet.has(account.id),
                         )}
                         activeTab={effectiveTab}
                         onSelect={(id) => setActiveTab(id)}

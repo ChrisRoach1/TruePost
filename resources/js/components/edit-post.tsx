@@ -1,7 +1,7 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Clock, FileText, ImageIcon, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
     AdaptPostButton,
     AdaptPostModal,
@@ -107,6 +107,9 @@ export default function EditPost({
     const connectedSystems = connectedAccounts.filter((s) =>
         systems.some((ca) => ca.id === s.system_id),
     );
+    
+    const page = usePage();
+    const { auth } = page.props;
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -120,7 +123,7 @@ export default function EditPost({
     const initialTags = buildInitialTags(post);
     const initialCrosspostList = buildInitialCrosspostList(post);
 
-    const { data, setData, processing, post: postForm, errors, clearErrors, reset } =
+    const { data, setData, processing, post: postForm, errors, clearErrors } =
         useForm<{
             _method: 'put';
             content: string;
@@ -156,17 +159,6 @@ export default function EditPost({
             scheduled_time: format(initialPostAt, 'HH:mm'),
             image: null,
         });
-
-    useEffect(() => {
-        if (!open) {
-            reset();
-            clearImage();
-            setScheduleOpen(false);
-            setAdaptOpen(false);
-            setActiveTab('all');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open]);
 
     function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0] ?? null;
@@ -234,8 +226,10 @@ export default function EditPost({
     }
 
     function sortedSelectedSystems() {
+        const connectedAccountSet = new Set(data.connectedAccountIds);
+
         return connectedSystems
-            .filter((account) => data.connectedAccountIds.includes(account.id))
+            .filter((account) => connectedAccountSet.has(account.id))
             .sort((a, b) => a.system.order - b.system.order);
     }
 
@@ -350,13 +344,14 @@ export default function EditPost({
     }
 
     const currentText = getContent(effectiveTab);
+    const connectedAccountSet = new Set(data.connectedAccountIds);
     const selectedSystems = connectedSystems.filter((s) =>
-        data.connectedAccountIds.includes(s.id),
+        connectedAccountSet.has(s.id),
     );
     const adaptSource = data.content.trim() ? data.content : currentText;
     const canAdapt = adaptSource.trim().length > 0;
     const showManualSwitch = data.connectedAccountIds.length > 1;
-    const showAdaptButton = data.connectedAccountIds.length > 0;
+    const showAdaptButton = auth.is_pro_member && data.connectedAccountIds.length > 0;
     const requiringSystems = selectedSystems.filter(
         (s) => s.system.image_required,
     );
@@ -382,11 +377,14 @@ export default function EditPost({
 
     function canSubmit(): boolean {
         let isOverLimit = false;
+        const connectedSystemsById = new Map(
+            connectedSystems.map((a) => [a.id, a]),
+        );
 
         if (data.customizing) {
             for (const [key, value] of Object.entries(data.channelContent)) {
-                const connectedSystem = connectedSystems.find(
-                    (a) => a.id === Number.parseInt(key),
+                const connectedSystem = connectedSystemsById.get(
+                    Number.parseInt(key),
                 );
 
                 if (connectedSystem) {
@@ -400,9 +398,7 @@ export default function EditPost({
             }
         } else {
             for (const systemId of data.connectedAccountIds) {
-                const connectedSystem = connectedSystems.find(
-                    (a) => a.id === systemId,
-                );
+                const connectedSystem = connectedSystemsById.get(systemId);
 
                 if (connectedSystem) {
                     if (
@@ -494,7 +490,7 @@ export default function EditPost({
                                         <ChannelCard
                                             key={account.id}
                                             account={account}
-                                            selected={data.connectedAccountIds.includes(
+                                            selected={connectedAccountSet.has(
                                                 account.id,
                                             )}
                                             count={getChipCount(account.id)}
@@ -546,7 +542,7 @@ export default function EditPost({
                         {data.customizing && data.connectedAccountIds.length > 0 && (
                             <ChannelTabs
                                 accounts={connectedSystems.filter((account) =>
-                                    data.connectedAccountIds.includes(account.id),
+                                    connectedAccountSet.has(account.id),
                                 )}
                                 activeTab={effectiveTab}
                                 onSelect={(id) => setActiveTab(id)}

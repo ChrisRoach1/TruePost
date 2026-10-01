@@ -34,50 +34,67 @@ export function AdaptChannelDraft({
     const [use, setUse] = useState(true);
 
 
-    const runId = useRef(0);
+    const pending = useRef<AbortController | null>(null);
+
+    const cancelPending = useCallback(() => {
+        pending.current?.abort();
+        pending.current = null;
+    }, []);
+
+    const report = useCallback(
+        (next: DraftState) => {
+            setText(next.text);
+            setUse(next.use);
+            setStatus(next.status);
+            onChange(account.id, next);
+        },
+        [account.id, onChange],
+    );
 
     const start = useCallback(() => {
-        const thisRun = ++runId.current;
+        cancelPending();
 
-        generate({ accountId: account.id, content: original, tone, notes })
+        const controller = new AbortController();
+        pending.current = controller;
+
+        generate({
+            accountId: account.id,
+            content: original,
+            tone,
+            notes,
+            signal: controller.signal,
+        })
             .then((result) => {
-                if (thisRun !== runId.current) {
+                if (controller.signal.aborted) {
                     return;
                 }
 
-                setText(result);
-                setUse(true);
-                setStatus('ready');
+                report({ text: result, use: true, status: 'ready' });
             })
             .catch(() => {
-                if (thisRun !== runId.current) {
+                if (controller.signal.aborted) {
                     return;
                 }
 
-                setUse(false);
-                setStatus('error');
+                report({ text: '', use: false, status: 'error' });
             });
-    }, [account.id, generate, notes, original, tone]);
+    }, [account.id, cancelPending, generate, notes, original, report, tone]);
 
 
     useEffect(() => {
         start();
-    }, [start]);
 
-    useEffect(() => {
-        onChange(account.id, { text, use, status });
-    }, [account.id, onChange, status, text, use]);
+        return cancelPending;
+    }, [start, cancelPending]);
 
     function regenerate() {
-        setStatus('loading');
+        report({ text, use, status: 'loading' });
         start();
     }
 
     function useOriginal() {
-        runId.current += 1;
-        setText(original);
-        setUse(false);
-        setStatus('ready');
+        cancelPending();
+        report({ text: original, use: false, status: 'ready' });
     }
 
     const limit = account.system.max_post_length;
@@ -115,7 +132,9 @@ export function AdaptChannelDraft({
                         <Switch
                             size="sm"
                             checked={use}
-                            onCheckedChange={setUse}
+                            onCheckedChange={(checked) =>
+                                report({ text, use: checked, status })
+                            }
                             disabled={status !== 'ready'}
                             aria-label={`Use the rewrite for ${account.system.name}`}
                         />
@@ -137,7 +156,9 @@ export function AdaptChannelDraft({
             ) : (
                 <Textarea
                     value={text}
-                    onChange={(event) => setText(event.target.value)}
+                    onChange={(event) =>
+                        report({ text: event.target.value, use, status })
+                    }
                     aria-label={`${account.system.name} version`}
                     className="mt-2 min-h-20 resize-y rounded-none border-0 border-b border-dashed border-border px-0 py-2 text-[15px] leading-relaxed shadow-none focus-visible:border-border focus-visible:ring-0"
                 />

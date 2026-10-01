@@ -49,6 +49,7 @@ export type AdaptRequest = {
     content: string;
     tone: ToneId;
     notes: string;
+    signal?: AbortSignal;
 };
 
 export type AdaptGenerator = (request: AdaptRequest) => Promise<string>;

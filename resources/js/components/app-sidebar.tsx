@@ -27,13 +27,11 @@ export function AppSidebar() {
             title: 'Post',
             href: create(),
             icon: PencilIcon,
-            shouldShow: true
         },
         {
             title: 'Bot',
             href: bot(),
             icon: BotIcon,
-            shouldShow: true
         }
     ];
 
@@ -42,13 +40,11 @@ export function AppSidebar() {
             title: 'Posts',
             href: userPost.index(),
             icon: LayoutGrid,
-            shouldShow: true
         },
         {
             title: 'Bots',
             href: bots.list(),
             icon: BotIcon,
-            shouldShow: true
         }
     ];
 
@@ -57,13 +53,11 @@ export function AppSidebar() {
             title: 'Connected Accounts',
             href: accounts(),
             icon: User,
-            shouldShow: true
         },
         {
             title: 'Settings',
             href: edit(),
             icon: Settings,
-            shouldShow: true
         },
     ];
 

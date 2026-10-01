@@ -7,12 +7,14 @@ import { deleteMethod } from '@/routes/accounts';
 import oauth from '@/routes/oauth';
 import type { ConnectedAccount, System } from '@/types';
 
+const EMPTY_ITEMS: ConnectedAccount[] = []
+
 type Props = {
     connectedAccounts?: ConnectedAccount[];
     systems: System[];
 };
 
-export default function Accounts({ connectedAccounts = [], systems }: Props) {
+export default function Accounts({ connectedAccounts = EMPTY_ITEMS, systems }: Props) {
     const { auth } = usePage().props;
 
     const accountLimit = auth.is_pro_member
@@ -194,6 +196,7 @@ function EmptyState() {
 Accounts.layout = {
     breadcrumbs: [
         {
+            id: 2,
             title: 'Connected Accounts',
             href: accounts(),
         },

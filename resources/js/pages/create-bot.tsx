@@ -3,6 +3,9 @@ import CreateBot from '@/components/create-bot';
 import { bot } from '@/routes/create';
 import type { ConnectedAccount, System } from '@/types';
 
+const EMPTY_CONNECTED_ACCOUNTS: ConnectedAccount[] = [];
+const EMPTY_SYSTEMS: System[] = [];
+
 type Props = {
     connectedAccounts?: ConnectedAccount[];
     systems?: System[];
@@ -10,8 +13,8 @@ type Props = {
 };
 
 export default function AiBots({
-    connectedAccounts = [],
-    systems = [],
+    connectedAccounts = EMPTY_CONNECTED_ACCOUNTS,
+    systems = EMPTY_SYSTEMS,
     botCount = 0,
 }: Props) {
     const { auth } = usePage().props;
@@ -72,6 +75,7 @@ function BotLimitNotice({ limit, isPro }: { limit: number; isPro: boolean }) {
 AiBots.layout = {
     breadcrumbs: [
         {
+            id: 2,
             title: 'Create Bot',
             href: bot(),
         },
