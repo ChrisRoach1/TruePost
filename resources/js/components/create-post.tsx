@@ -1,5 +1,5 @@
 import { router, useForm, usePage } from '@inertiajs/react';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { Clock, FileText, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import {
@@ -160,6 +160,20 @@ export default function CreatePost({
                 ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
                 : [...data.connectedAccountIds, connectedAccountId],
         );
+
+        if(data.customizing){
+            const updatedChannelContent = { ...data.channelContent };
+
+            if (updatedChannelContent[connectedAccountId] !== undefined) {
+                delete updatedChannelContent[connectedAccountId];
+            }
+
+            setData((prev) => ({
+                ...prev,
+                channelContent: updatedChannelContent,
+            }));
+        }
+
     }
 
     function customizePerChannel(checked: boolean) {

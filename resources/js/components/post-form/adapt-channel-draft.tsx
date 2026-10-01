@@ -7,27 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { systemTileStyle } from '@/lib/system-colors';
 import { cn } from '@/lib/utils';
-import type { ConnectedAccount, System } from '@/types';
+import type { ConnectedAccount } from '@/types';
 import type { ToneId, AdaptGenerator, DraftState, DraftStatus } from '@/types/userPosts';
 
 
-const CHANNEL_GUIDANCE: Record<string, string> = {
-    x: '280 characters max, one idea, no hashtag clutter',
-    threads: 'short and conversational, no hashtag clutter',
-    instagram: 'caption voice, 4–6 hashtags at the end',
-    facebook: 'conversational, a little longer, no hashtags',
-    linkedin: 'professional, hook up front, room to breathe',
-    reddit: 'plain and direct, no marketing voice',
-    bluesky: 'short and casual, no hashtags',
-    mastodon: 'short and casual, no hashtags',
-};
-
-function guidanceFor(system: System): string {
-    return (
-        CHANNEL_GUIDANCE[system.name.toLowerCase()] ??
-        `${system.max_post_length.toLocaleString()} characters max`
-    );
-}
 
 type Props = {
     account: ConnectedAccount;
@@ -50,8 +33,7 @@ export function AdaptChannelDraft({
     const [text, setText] = useState('');
     const [use, setUse] = useState(true);
 
-    // Bumped whenever a result should be ignored, so a slow response can't
-    // land on top of a newer regeneration or a switch back to the original.
+
     const runId = useRef(0);
 
     const start = useCallback(() => {
@@ -77,8 +59,7 @@ export function AdaptChannelDraft({
             });
     }, [account.id, generate, notes, original, tone]);
 
-    // The modal remounts every card when a new run starts, so this fires once
-    // per card and the brief never changes underneath it.
+
     useEffect(() => {
         start();
     }, [start]);
@@ -93,7 +74,6 @@ export function AdaptChannelDraft({
     }
 
     function useOriginal() {
-        // Abandons anything still in flight.
         runId.current += 1;
         setText(original);
         setUse(false);
@@ -116,9 +96,6 @@ export function AdaptChannelDraft({
                 </span>
                 <span className="text-[13px] font-semibold text-foreground">
                     {account.system.name}
-                </span>
-                <span className="hidden font-mono text-[10px] tracking-widest text-muted-foreground uppercase sm:inline">
-                    {guidanceFor(account.system)}
                 </span>
 
                 <div className="ml-auto flex items-center gap-2">

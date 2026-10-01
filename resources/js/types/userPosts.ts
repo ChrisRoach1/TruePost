@@ -52,7 +52,7 @@ export type AdaptRequest = {
 };
 
 export type AdaptGenerator = (request: AdaptRequest) => Promise<string>;
-
+    
 export type DraftStatus = 'loading' | 'ready' | 'error';
 
 export type DraftState = {

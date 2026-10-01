@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Middleware\EnsureProMember;
 use App\Http\Controllers\Middleware\EnsureSubscribed;
 use App\Http\Controllers\Middleware\HandleAppearance;
 use App\Http\Controllers\Middleware\HandleInertiaRequests;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'subscribed' => EnsureSubscribed::class,
+            'proMember' => EnsureProMember::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

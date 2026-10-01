@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 import { Sparkles } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { AdaptChannelDraft } from '@/components/post-form/adapt-channel-draft';
@@ -24,32 +24,15 @@ const TONES: { id: ToneId; label: string }[] = [
     { id: 'playful', label: 'Playful' },
 ];
 
-/**
- * Placeholder until a real rewrite endpoint exists. Kept at module scope so the
- * reference stays stable across renders.
- */
-const mockGenerate: AdaptGenerator = ({ content, tone, notes }) =>
-    new Promise((resolve) => {
 
-        const response =router.post(generateAICustomizedPost(), {
+const postGenerate: AdaptGenerator = ({ content, tone, notes, accountId }) => {
+        return axios.post(generateAICustomizedPost().url, {
             content: content,
             notes: notes,
-            tone: tone
-        });
-
-        console.log(response);
-
-        window.setTimeout(
-            () => {
-                const aside = notes.trim() ? ` Also: ${notes.trim()}.` : '';
-
-                resolve(
-                    `${content.trim()}${aside} (${tone} draft — placeholder text until generation is wired up.)`,
-                );
-            },
-            700 + Math.random() * 800,
-        );
-    });
+            tone: tone,
+            accountId: accountId
+        }).then(response => response.data.message);
+};
 
 function plural(count: number, word: string): string {
     return `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -58,9 +41,7 @@ function plural(count: number, word: string): string {
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    /** The text the composer currently holds, and the fallback for skipped channels. */
     original: string;
-    /** Only the channels the post is actually going out to. */
     accounts: ConnectedAccount[];
     onApply: (results: Record<number, string>) => void;
     generate?: AdaptGenerator;
@@ -72,7 +53,7 @@ export function AdaptPostModal({
     original,
     accounts,
     onApply,
-    generate = mockGenerate,
+    generate = postGenerate,
 }: Props) {
     const [step, setStep] = useState<'brief' | 'review'>('brief');
     const [tone, setTone] = useState<ToneId>('keep');

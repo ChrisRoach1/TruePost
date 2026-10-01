@@ -46,13 +46,16 @@ Route::middleware(['auth', 'verified', 'subscribed'])->group(function () {
     Route::delete('userPost/{userPost}', [UserPostController::class, 'delete'])->name('userPost.delete');
     Route::post('userPost/{userPost}/postNow', [UserPostController::class, 'postNow'])->name('userPost.postNow');
     Route::post('userPost/{userPost}/retryFailed', [UserPostController::class, 'retryFailed'])->name('userPost.retryFailed');
-    Route::post('userPost/generateAICustomization', [UserPostController::class, 'generateAICustomizedPost'])->name('userPost.generateAICustomizedPost');
 
     Route::get('create-bot', [BotController::class, 'index'])->name('create.bot');
     Route::post('bots', [BotController::class, 'store'])->name('bots.store');
     Route::get('bots', [BotController::class, 'list'])->name('bots.list');
     Route::delete('bots/{botPost}', [BotController::class, 'delete'])->name('bot.delete');
     Route::patch('bots/{botPost}', [BotController::class, 'update'])->name('bot.update');
+});
+
+Route::middleware(['auth', 'verified', 'subscribed', 'proMember', 'throttle:60,1'])->group(function () {
+    Route::post('userPost/generateAICustomization', [UserPostController::class, 'generateAICustomizedPost'])->name('userPost.generateAICustomizedPost');
 });
 
 require __DIR__.'/settings.php';

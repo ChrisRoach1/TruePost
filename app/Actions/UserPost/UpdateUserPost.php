@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Date;
 
 class UpdateUserPost
 {
-    public function __construct(public UploadFile $uploadFile, public CustomizeWithAI $customizeWithAI) {}
+    public function __construct(public UploadFile $uploadFile) {}
 
     /**
      * @throws \DateInvalidTimeZoneException
