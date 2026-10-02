@@ -365,6 +365,8 @@ function DowngradeToSoloDialog({
         setProcessing(false);
     };
 
+    const keepAccountIdSet = new Set(keepAccountIds);
+    const keepBotIdSet = new Set(keepBotIds);
     const overAccountSelection = keepAccountIds.length > accountLimit;
     const overBotSelection = keepBotIds.length > botLimit;
     const canConfirm =
@@ -413,7 +415,7 @@ function DowngradeToSoloDialog({
                         limit={accountLimit}
                     >
                         {accounts.map((account) => {
-                            const checked = keepAccountIds.includes(account.id);
+                            const checked = keepAccountIdSet.has(account.id);
                             const atLimit =
                                 !checked &&
                                 keepAccountIds.length >= accountLimit;
@@ -445,7 +447,7 @@ function DowngradeToSoloDialog({
                         limit={botLimit}
                     >
                         {bots.map((bot) => {
-                            const checked = keepBotIds.includes(bot.id);
+                            const checked = keepBotIdSet.has(bot.id);
                             const atLimit =
                                 !checked && keepBotIds.length >= botLimit;
 

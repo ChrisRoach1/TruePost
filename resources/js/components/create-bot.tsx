@@ -114,6 +114,7 @@ export default function CreateBot({
                 ? data.connectedAccountIds.filter((id) => id !== connectedAccountId)
                 : [...data.connectedAccountIds, connectedAccountId],
         );
+
     }
 
     function addTime() {
@@ -190,16 +191,20 @@ export default function CreateBot({
                     <div className="mt-4 grid gap-2.5 sm:grid-cols-2 md:grid-cols-3">
                         {eligibleAccounts
                             .sort((a, b) => a.system.order - b.system.order)
-                            .map((account) => (
-                                <AccountCard
-                                    key={account.id}
-                                    account={account}
-                                    selected={data.connectedAccountIds.includes(
-                                        account.id,
-                                    )}
-                                    onToggle={() => togglePlatform(account.id)}
-                                />
-                            ))}
+                            .map((account) => {
+                                const connectedAccountSet = new Set(data.connectedAccountIds);
+
+                                return (
+                                    <AccountCard
+                                        key={account.id}
+                                        account={account}
+                                        selected={connectedAccountSet.has(
+                                            account.id,
+                                        )}
+                                        onToggle={() => togglePlatform(account.id)}
+                                    />
+                                );
+                            })}
                     </div>
                 ) : (
                     <div className="mt-4 rounded-lg border border-dashed border-border/70 p-3.5 text-center text-[13px] text-muted-foreground">
@@ -249,7 +254,7 @@ export default function CreateBot({
                 <div className="mt-4 space-y-2.5">
                     {data.times.map((time, index) => (
                         <div
-                            key={index}
+                            key={time}
                             className="flex items-center gap-2.5"
                         >
                             <span className="w-16 font-mono text-xs font-semibold text-muted-foreground">

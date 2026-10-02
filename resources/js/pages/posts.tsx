@@ -17,6 +17,10 @@ import type { ConnectedAccount, System } from '@/types';
 import type { userPosts } from '@/types/userPosts';
 
 
+const EMPTY_USER_POSTS: userPosts[] = [];
+const EMPTY_CONNECTED_ACCOUNTS: ConnectedAccount[] = [];
+const EMPTY_SYSTEMS: System[] = [];
+
 type Props = {
     userPosts?: userPosts[];
     connectedAccounts?: ConnectedAccount[];
@@ -90,9 +94,9 @@ function FilterTab({
 }
 
 export default function Posts({
-    userPosts: posts = [],
-    connectedAccounts = [],
-    systems = [],
+    userPosts: posts = EMPTY_USER_POSTS,
+    connectedAccounts = EMPTY_CONNECTED_ACCOUNTS,
+    systems = EMPTY_SYSTEMS,
 }: Props) {
     const [editingPost, setEditingPost] = useState<userPosts | null>(null);
     const [filter, setFilter] = useState<FilterKey>('all');
@@ -371,6 +375,7 @@ export default function Posts({
 
             {editingPost && (
                 <EditPost
+                    key={editingPost.id}
                     post={editingPost}
                     connectedAccounts={connectedAccounts}
                     systems={systems}
@@ -389,6 +394,7 @@ export default function Posts({
 Posts.layout = {
     breadcrumbs: [
         {
+            id: 2,
             title: 'Posts',
             href: userPost.index(),
         },

@@ -35,3 +35,29 @@ export type RecentlyPublishedItem = {
     user_post_systems: userPostSystems[];
     trend?: 'up' | 'flat';
 };
+
+
+export type ToneId =
+    | 'keep'
+    | 'punchier'
+    | 'warmer'
+    | 'professional'
+    | 'playful';
+
+export type AdaptRequest = {
+    accountId: number;
+    content: string;
+    tone: ToneId;
+    notes: string;
+    signal?: AbortSignal;
+};
+
+export type AdaptGenerator = (request: AdaptRequest) => Promise<string>;
+    
+export type DraftStatus = 'loading' | 'ready' | 'error';
+
+export type DraftState = {
+    text: string;
+    use: boolean;
+    status: DraftStatus;
+};

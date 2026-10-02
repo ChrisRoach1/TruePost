@@ -25,6 +25,7 @@ export default function Appearance() {
 Appearance.layout = {
     breadcrumbs: [
         {
+            id: 2,            
             title: 'Appearance settings',
             href: editAppearance(),
         },

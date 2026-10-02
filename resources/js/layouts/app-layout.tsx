@@ -1,8 +1,11 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { BreadcrumbItem } from '@/types';
 
+const EMPTY_ITEMS: BreadcrumbItem[] = []
+
+
 export default function AppLayout({
-    breadcrumbs = [],
+    breadcrumbs = EMPTY_ITEMS,
     children,
 }: {
     breadcrumbs?: BreadcrumbItem[];

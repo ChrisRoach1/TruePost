@@ -148,7 +148,6 @@ function postPayload(ConnectedAccount $account, array $overrides = []): array
         'is_draft' => false,
         'connectedAccountIds' => [$account->id],
         'is_scheduled' => false,
-        'aiCustomize' => false,
     ], $overrides);
 }
 
@@ -159,7 +158,6 @@ function postPayloadDraft(ConnectedAccount $account, array $overrides = []): arr
         'is_draft' => true,
         'connectedAccountIds' => [$account->id],
         'is_scheduled' => false,
-        'aiCustomize' => false,
     ], $overrides);
 }
 
@@ -170,6 +168,5 @@ function postPayloadUpdate(ConnectedAccount $account, array $overrides = []): ar
         'is_draft' => false,
         'connectedAccountIds' => [$account->id],
         'is_scheduled' => false,
-        'aiCustomize' => false,
     ], $overrides);
 }

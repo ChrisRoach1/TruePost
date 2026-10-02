@@ -16,6 +16,10 @@ type Props = {
     systems?: System[];
 };
 
+const EMPTY_ITEMS: BotPost[] = []
+const EMPTY_CONNECTED_ACCOUNTS: ConnectedAccount[] = []
+const EMPTY_SYSTEMS: System[] = []
+
 function SectionHeader({
     number,
     label,
@@ -44,9 +48,9 @@ function SectionHeader({
 }
 
 export default function Bots({
-    bots: botList = [],
-    connectedAccounts = [],
-    systems = [],
+    bots: botList = EMPTY_ITEMS,
+    connectedAccounts = EMPTY_CONNECTED_ACCOUNTS,
+    systems = EMPTY_SYSTEMS,
 }: Props) {
     const { auth } = usePage().props;
     const [editingBot, setEditingBot] = useState<BotPost | null>(null);
@@ -183,6 +187,7 @@ export default function Bots({
 Bots.layout = {
     breadcrumbs: [
         {
+            id: 2,            
             title: 'Bots',
             href: bots.list(),
         },

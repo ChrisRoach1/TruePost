@@ -13,11 +13,14 @@ import { send } from '@/routes/verification';
 import type { ConnectedAccount } from '@/types';
 import type { BotPost } from '@/types/bots';
 
+const EMPTY_CONNECTED_ACCOUNTS: ConnectedAccount[] = [];
+const EMPTY_BOTS: BotPost[] = [];
+
 export default function Profile({
     mustVerifyEmail,
     status,
-    connectedAccounts = [],
-    bots = [],
+    connectedAccounts = EMPTY_CONNECTED_ACCOUNTS,
+    bots = EMPTY_BOTS,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
@@ -155,6 +158,7 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
+            id: 2,
             title: 'Profile settings',
             href: edit(),
         },

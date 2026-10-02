@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Actions\UserPost\CreateUserPost;
+use App\Actions\UserPost\CustomizeWithAI;
 use App\Actions\UserPost\PostNow;
 use App\Actions\UserPost\RetryFailedPost;
 use App\Actions\UserPost\UpdateUserPost;
+use App\Ai\Agents\PostCustomizer;
 use App\Jobs\MetricCalculations;
 use App\Models\ConnectedAccount;
 use App\Models\System;
@@ -13,6 +15,7 @@ use App\Models\UserPost;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -106,7 +109,6 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
-            'aiCustomize' => 'boolean|required',
         ]);
 
         $this->ensureCanSchedulePosts($request);
@@ -147,7 +149,6 @@ class UserPostController extends Controller
             'is_scheduled' => 'required|boolean',
             'scheduled_date_string' => 'nullable|string',
             'scheduled_time' => 'nullable|string',
-            'aiCustomize' => 'boolean|required',
         ]);
 
         $this->ensureCanSchedulePosts($request);
@@ -208,6 +209,25 @@ class UserPostController extends Controller
 
         return redirect()->route('userPost.index');
 
+    }
+
+    public function generateAICustomizedPost(Request $request, CustomizeWithAI $customizeWithAI)
+    {
+        $validated = $request->validate([
+            'content' => 'string',
+            'tone' => 'string',
+            'notes' => 'nullable|string',
+            'accountId' => 'required|numeric',
+        ]);
+
+        try{
+            $response = $customizeWithAI->handle($validated);
+            return response()->json(['message' => $response], 200);
+
+        }catch (\Exception $ex){
+            Log::error($ex);
+            return response()->json(['message' => 'An error has occurred.'], 500);
+        }
     }
 
     private function ensureCanSchedulePosts(Request $request): void

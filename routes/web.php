@@ -54,4 +54,8 @@ Route::middleware(['auth', 'verified', 'subscribed'])->group(function () {
     Route::patch('bots/{botPost}', [BotController::class, 'update'])->name('bot.update');
 });
 
+Route::middleware(['auth', 'verified', 'subscribed', 'proMember', 'throttle:60,1'])->group(function () {
+    Route::post('userPost/generateAICustomization', [UserPostController::class, 'generateAICustomizedPost'])->name('userPost.generateAICustomizedPost');
+});
+
 require __DIR__.'/settings.php';

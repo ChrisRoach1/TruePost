@@ -156,6 +156,7 @@ export default function EditBot({
         });
     }
 
+    const connectedAccountSet = new Set(data.connectedAccountIds);
     const postsPerDayLabel =
         data.times.length === 1
             ? 'Posts once a day'
@@ -192,7 +193,7 @@ export default function EditBot({
                                         <AccountCard
                                             key={account.id}
                                             account={account}
-                                            selected={data.connectedAccountIds.includes(
+                                            selected={connectedAccountSet.has(
                                                 account.id,
                                             )}
                                             onToggle={() =>
@@ -245,7 +246,7 @@ export default function EditBot({
                         <div className="space-y-2.5">
                             {data.times.map((time, index) => (
                                 <div
-                                    key={index}
+                                    key={time}
                                     className="flex items-center gap-2.5"
                                 >
                                     <span className="w-16 font-mono text-xs font-semibold text-muted-foreground">
